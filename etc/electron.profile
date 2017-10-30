@@ -5,11 +5,10 @@ include /etc/firejail/electron.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
+
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
-
-whitelist ${DOWNLOADS}
 
 caps.drop all
 netfilter

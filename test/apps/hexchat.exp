@@ -50,7 +50,7 @@ send -- "firemon --seccomp\r"
 expect {
 	timeout {puts "TESTING ERROR 5\n";exit}
 	"need to be root" {puts "/proc mounted as hidepid, exiting...\n"; exit}
-	":firejail hexchat"
+	"hexchat"
 }
 expect {
 	timeout {puts "TESTING ERROR 5.1 (seccomp)\n";exit}
@@ -64,7 +64,7 @@ after 100
 send -- "firemon --caps\r"
 expect {
 	timeout {puts "TESTING ERROR 6\n";exit}
-	":firejail hexchat"
+	"hexchat"
 }
 expect {
 	timeout {puts "TESTING ERROR 6.1\n";exit}
@@ -80,4 +80,4 @@ expect {
 }
 after 100
 
-puts "\nall done\n"
+puts "\n"

@@ -196,7 +196,7 @@ static int copy_file_by_fd(int src, int dst) {
 			done += rv;
 		}
 	}
-//	fflush(0);
+	fflush(0);
 	return 0;
 }
 
@@ -747,7 +747,7 @@ uid_t pid_get_uid(pid_t pid) {
 }
 
 
-void invalid_filename(const char *fname, int globbing) {
+void invalid_filename(const char *fname) {
 //	EUID_ASSERT();
 	assert(fname);
 	const char *ptr = fname;
@@ -763,19 +763,10 @@ void invalid_filename(const char *fname, int globbing) {
 		return;
 
 	int len = strlen(ptr);
-	
-	if (globbing) {
-		// file globbing ('*?[]') is allowed
-		if (strcspn(ptr, "\\&!\"'<>%^(){};,") != (size_t)len) {
-			fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
-			exit(1);
-		}
-	}
-	else {
-		if (strcspn(ptr, "\\&!?\"'<>%^(){};,*[]") != (size_t)len) {
-			fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
-			exit(1);
-		}
+	// file globbing ('*') is allowed
+	if (strcspn(ptr, "\\&!?\"'<>%^(){}[];,") != (size_t)len) {
+		fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
+		exit(1);
 	}
 }
 
@@ -948,18 +939,4 @@ errexit:
 	close(fd);
 	fprintf(stderr, "Error: cannot read %s\n", fname);
 	exit(1);
-}
-
-
-unsigned extract_timeout(const char *str) {
-	unsigned s;
-	unsigned m;
-	unsigned h;
-	int rv = sscanf(str, "%02u:%02u:%02u", &h, &m, &s);
-	if (rv != 3) {
-		fprintf(stderr, "Error: invalid timeout, please use a hh:mm:ss format\n");
-		exit(1);
-	}
-
-	return h * 3600 + m * 60 + s;
 }

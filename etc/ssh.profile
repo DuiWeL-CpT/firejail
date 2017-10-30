@@ -21,7 +21,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
-# noroot - see issue #1543
+noroot
 nosound
 notv
 protocol unix,inet,inet6
@@ -35,5 +35,3 @@ private-dev
 memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
-writable-run-user
-

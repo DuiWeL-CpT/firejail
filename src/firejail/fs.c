@@ -220,6 +220,14 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 			}
 		}
 
+		// We don't usually need to blacklist things in private home directories
+		if (okay_to_blacklist
+		 && cfg.homedir
+		 && arg_private
+		 && (!arg_allow_private_blacklist)
+		 && (strncmp(path, cfg.homedir, strlen(cfg.homedir)) == 0))
+			okay_to_blacklist = false;
+
 		if (okay_to_blacklist)
 			disable_file(op, path);
 		else if (arg_debug)
@@ -574,35 +582,33 @@ void fs_proc_sys_dev_boot(void) {
 
 
 	// disable various ipc sockets in /run/user
-	if (!arg_writable_run_user) {
-		struct stat s;
-	
-		char *fname;
-		if (asprintf(&fname, "/run/user/%d", getuid()) == -1)
+	struct stat s;
+
+	char *fname;
+	if (asprintf(&fname, "/run/user/%d", getuid()) == -1)
+		errExit("asprintf");
+	if (is_dir(fname)) { // older distros don't have this directory
+		// disable /run/user/{uid}/gnupg
+		char *fnamegpg;
+		if (asprintf(&fnamegpg, "/run/user/%d/gnupg", getuid()) == -1)
 			errExit("asprintf");
-		if (is_dir(fname)) { // older distros don't have this directory
-			// disable /run/user/{uid}/gnupg
-			char *fnamegpg;
-			if (asprintf(&fnamegpg, "/run/user/%d/gnupg", getuid()) == -1)
-				errExit("asprintf");
-			if (stat(fnamegpg, &s) == -1)
-			    mkdir_attr(fnamegpg, 0700, getuid(), getgid());
-			if (stat(fnamegpg, &s) == 0)
-				disable_file(BLACKLIST_FILE, fnamegpg);
-			free(fnamegpg);
-	
-			// disable /run/user/{uid}/systemd
-			char *fnamesysd;
-			if (asprintf(&fnamesysd, "/run/user/%d/systemd", getuid()) == -1)
-				errExit("asprintf");
-			if (stat(fnamesysd, &s) == -1)
-				mkdir_attr(fnamesysd, 0755, getuid(), getgid());
-			if (stat(fnamesysd, &s) == 0)
-				disable_file(BLACKLIST_FILE, fnamesysd);
-			free(fnamesysd);
-		}
-		free(fname);
+		if (stat(fnamegpg, &s) == -1)
+		    mkdir_attr(fnamegpg, 0700, getuid(), getgid());
+		if (stat(fnamegpg, &s) == 0)
+			disable_file(BLACKLIST_FILE, fnamegpg);
+		free(fnamegpg);
+
+		// disable /run/user/{uid}/systemd
+		char *fnamesysd;
+		if (asprintf(&fnamesysd, "/run/user/%d/systemd", getuid()) == -1)
+			errExit("asprintf");
+		if (stat(fnamesysd, &s) == -1)
+			mkdir_attr(fnamesysd, 0755, getuid(), getgid());
+		if (stat(fnamesysd, &s) == 0)
+			disable_file(BLACKLIST_FILE, fnamesysd);
+		free(fnamesysd);
 	}
+	free(fname);
 
 	if (getuid() != 0) {
 		// disable /dev/kmsg and /proc/kmsg
@@ -1103,19 +1109,9 @@ void fs_check_chroot_dir(const char *rootdir) {
 			exit(1);
 		}
 	}
-	else {
-		fprintf(stderr, "Error: chroot /etc/resolv.conf not found\n");
-		exit(1);
-	}
-	// on Arch /etc/resolv.conf could be a symlink to /run/systemd/resolve/resolv.conf
-	// on Ubuntu 17.04 /etc/resolv.conf could be a symlink to /run/resolveconf/resolv.conf
 	if (is_link(name)) {
-		// check the link points in chroot
-		char *rname = realpath(name, NULL);
-		if (!rname || strncmp(rname, rootdir, strlen(rootdir)) != 0) {
-			fprintf(stderr, "Error: chroot /etc/resolv.conf is pointing outside chroot\n");
-			exit(1);
-		}
+		fprintf(stderr, "Error: invalid %s file\n", name);
+		exit(1);
 	}
 	free(name);
 
@@ -1188,11 +1184,17 @@ void fs_chroot(const char *rootdir) {
 			errExit("mount bind");
 
 		// copy /etc/resolv.conf in chroot directory
+		// if resolv.conf in chroot is a symbolic link, this will fail
+		// no exit on error, let the user deal with the problem
 		char *fname;
 		if (asprintf(&fname, "%s/etc/resolv.conf", rootdir) == -1)
 			errExit("asprintf");
 		if (arg_debug)
 			printf("Updating /etc/resolv.conf in %s\n", fname);
+		if (is_link(fname)) {
+			fprintf(stderr, "Error: invalid %s file\n", fname);
+			exit(1);
+		}
 		if (copy_file("/etc/resolv.conf", fname, 0, 0, 0644) == -1) // root needed
 			fwarning("/etc/resolv.conf not initialized\n");
 	}

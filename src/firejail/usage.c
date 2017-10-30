@@ -44,8 +44,6 @@ void usage(void) {
 	printf("    --bind=filename1,filename2 - mount-bind filename1 on top of filename2.\n");
 #endif
 	printf("    --blacklist=filename - blacklist directory or file.\n");
-	printf("    --build - build a whitelisted profile for the application.\n");
-	printf("    --build=filename - build a whitelisted profile for the application.\n");
 	printf("    -c - execute command and exit.\n");
 	printf("    --caps - enable default Linux capabilities filter.\n");
 	printf("    --caps.drop=all - drop all capabilities.\n");
@@ -170,9 +168,6 @@ void usage(void) {
 	printf("    --quiet - turn off Firejail's output.\n");
 	printf("    --read-only=filename - set directory or file read-only..\n");
 	printf("    --read-write=filename - set directory or file read-write.\n");
-	printf("    --rlimit-as=number - set the maximum size of the process's virtual memory\n");
-	printf("\t(address space) in bytes.\n");
-	printf("    --rlimit-cpu=number - set the maximum CPU time in seconds.\n");
 	printf("    --rlimit-fsize=number - set the maximum file size that can be created\n");
 	printf("\tby a process.\n");
 	printf("    --rlimit-nofile=number - set the maximum number of files that can be\n");
@@ -200,8 +195,6 @@ void usage(void) {
 	printf("    --shell=none - run the program directly without a user shell.\n");
 	printf("    --shell=program - set default user shell.\n");
 	printf("    --shutdown=name|pid - shutdown the sandbox identified by name or PID.\n");
-	printf("    --timeout=hh:mm:ss - kill the sandbox automatically after the time\n");
-	printf("\thas elapsed.\n");
 	printf("    --tmpfs=dirname - mount a tmpfs filesystem on directory dirname.\n");
 	printf("    --top - monitor the most CPU-intensive sandboxes.\n");
 	printf("    --trace - trace open, access and connect system calls.\n");
@@ -216,8 +209,6 @@ void usage(void) {
 	printf("    --whitelist=filename - whitelist directory or file.\n");
 #endif
 	printf("    --writable-etc - /etc directory is mounted read-write.\n");
-	printf("    --writable-run-user - allow access to /run/user/$UID/systemd and\n");
- 	printf("\t/run/user/$UID/gnupg.\n");
 	printf("    --writable-var - /var directory is mounted read-write.\n");
 	printf("    --writable-var-log - use the real /var/log directory, not a clone.\n");
 #ifdef HAVE_X11

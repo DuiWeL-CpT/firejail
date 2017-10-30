@@ -12,8 +12,6 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
 netfilter
 nodvd
@@ -27,7 +25,6 @@ protocol unix
 seccomp
 shell none
 
-# private-bin inkscape,potrace - problems on Debian stretch
 private-dev
 private-tmp
 

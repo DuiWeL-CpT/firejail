@@ -1,0 +1,7 @@
+Tests: run-tests
+Restrictions: allow-stderr, breaks-testbed, isolation-machine
+Depends: @, expect, file, strace, sudo, man-db, iptables, iputils-ping, wget, csh, zsh, xvfb, xserver-xephyr, xterm, evince, thunderbird, firefox, transmission-gtk
+
+Tests: run-network-test
+Restrictions: allow-stderr, breaks-testbed, isolation-machine, needs-root
+Depends: @, expect, iproute2, iptables, iputils-ping, net-tools, bridge-utils

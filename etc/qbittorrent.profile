@@ -25,7 +25,6 @@ whitelist ~/.config/qBittorrentrc
 whitelist ~/.config/qt5ct
 whitelist ~/.local/share/data/qBittorrent
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 machine-id
@@ -39,14 +38,9 @@ notv
 novideo
 protocol unix,inet,inet6,netlink
 seccomp
-shell none
+# shell none
 
-private-bin qbittorrent
+# private-bin qbittorrent
 private-dev
 # private-etc X11,fonts,xdg,resolv.conf
-# private-lib - problems on Arch
 private-tmp
-
-memory-deny-write-execute
-noexec ${HOME}
-noexec /tmp

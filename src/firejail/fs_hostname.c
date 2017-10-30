@@ -94,7 +94,7 @@ void fs_resolvconf(void) {
 
 	struct stat s;
 
-	// create a new /etc/resolv.conf
+	// create a new /etc/hostname
 	if (stat("/etc/resolv.conf", &s) == 0) {
 		if (arg_debug)
 			printf("Creating a new /etc/resolv.conf file\n");
@@ -129,7 +129,7 @@ void fs_resolvconf(void) {
 
 char *fs_check_hosts_file(const char *fname) {
 	assert(fname);
-	invalid_filename(fname, 0); // no globbing
+	invalid_filename(fname);
 	char *rv = expand_home(fname, cfg.homedir);
 
 	// no a link

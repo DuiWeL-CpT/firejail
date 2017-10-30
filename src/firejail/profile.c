@@ -69,7 +69,13 @@ static void warning_feature_disabled(const char *feature) {
 }
 
 
-static int is_in_ignore_list(char *ptr) {
+
+// check profile line; if line == 0, this was generated from a command line option
+// return 1 if the command is to be added to the linked list of profile commands
+// return 0 if the command was already executed inside the function
+int profile_check_line(char *ptr, int lineno, const char *fname) {
+	EUID_ASSERT();
+
 	// check ignore list
 	int i;
 	for (i = 0; i < MAX_PROFILE_IGNORE; i++) {
@@ -80,23 +86,9 @@ static int is_in_ignore_list(char *ptr) {
 		if (strncmp(ptr, cfg.profile_ignore[i], len) == 0) {
 			// full word match
 			if (*(ptr + len) == '\0' || *(ptr + len) == ' ')
-				return 1;	// ignore line
+				return 0;	// ignore line
 		}
 	}
-
-	return 0;
-}
-
-
-// check profile line; if line == 0, this was generated from a command line option
-// return 1 if the command is to be added to the linked list of profile commands
-// return 0 if the command was already executed inside the function
-int profile_check_line(char *ptr, int lineno, const char *fname) {
-	EUID_ASSERT();
-
-	// check ignore list
-	if (is_in_ignore_list(ptr))
-		return 0;
 
 	if (strncmp(ptr, "ignore ", 7) == 0) {
 		char *str = strdup(ptr + 7);
@@ -250,8 +242,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		return 0;
 	}
 	else if (strcmp(ptr, "allow-private-blacklist") == 0) {
-		if (!arg_quiet)
-			fprintf(stderr, "Warning: --allow-private-blacklist was deprecated\n");
+		arg_allow_private_blacklist = 1;
 		return 0;
 	}
 	else if (strcmp(ptr, "netfilter") == 0) {
@@ -728,11 +719,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		arg_writable_var = 1;
 		return 0;
 	}
-	// writable-run-user
-	if (strcmp(ptr, "writable-run-user") == 0) {
-		arg_writable_run_user = 1;
-		return 0;
-	}
 	if (strcmp(ptr, "writable-var-log") == 0) {
 		arg_writable_var_log = 1;
 		return 0;
@@ -934,7 +920,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 			}
 
 			// check name
-			invalid_filename(subdirname, 0); // no globbing
+			invalid_filename(subdirname);
 			if (strstr(subdirname, "..") || strstr(subdirname, "/")) {
 				fprintf(stderr, "Error: invalid overlay name\n");
 				exit(1);
@@ -1002,8 +988,8 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 			}
 
 			// check directories
-			invalid_filename(dname1, 0); // no globbing
-			invalid_filename(dname2, 0); // no globbing
+			invalid_filename(dname1);
+			invalid_filename(dname2);
 			if (strstr(dname1, "..") || strstr(dname2, "..")) {
 				fprintf(stderr, "Error: invalid file name.\n");
 				exit(1);
@@ -1030,11 +1016,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 			sscanf(ptr + 14, "%llu", &cfg.rlimit_nofile);
 			arg_rlimit_nofile = 1;
 		}
-		else if (strncmp(ptr, "rlimit-cpu ", 11) == 0) {
-			check_unsigned(ptr + 11, "Error: invalid rlimit in profile file: ");
-			sscanf(ptr + 11, "%llu", &cfg.rlimit_cpu);
-			arg_rlimit_cpu = 1;
-		}
 		else if (strncmp(ptr, "rlimit-nproc ", 13) == 0) {
 			check_unsigned(ptr + 13, "Error: invalid rlimit in profile file: ");
 			sscanf(ptr + 13, "%llu", &cfg.rlimit_nproc);
@@ -1050,11 +1031,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 			sscanf(ptr + 18, "%llu", &cfg.rlimit_sigpending);
 			arg_rlimit_sigpending = 1;
 		}
-		else if (strncmp(ptr, "rlimit-as ", 10) == 0) {
-			check_unsigned(ptr + 10, "Error: invalid rlimit in profile file: ");
-			sscanf(ptr + 10, "%llu", &cfg.rlimit_as);
-			arg_rlimit_as = 1;
-		}
 		else {
 			fprintf(stderr, "Invalid rlimit option on line %d\n", lineno);
 			exit(1);
@@ -1062,12 +1038,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 
 		return 0;
 	}
-	
-	if (strncmp(ptr, "timeout ", 8) == 0) {
-		cfg.timeout = extract_timeout(ptr +8);
-		return 0;
-	}
-	
+
 	if (strncmp(ptr, "join-or-start ", 14) == 0) {
 		// try to join by name only
 		pid_t pid;
@@ -1142,7 +1113,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 	}
 
 	// some characters just don't belong in filenames
-	invalid_filename(ptr, 1); // globbing
+	invalid_filename(ptr);
 	if (strstr(ptr, "..")) {
 		if (lineno == 0)
 			fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
@@ -1189,7 +1160,7 @@ void profile_read(const char *fname) {
 	}
 
 	// check file
-	invalid_filename(fname, 0); // no globbing
+	invalid_filename(fname);
 	if (strlen(fname) == 0 || is_dir(fname)) {
 		fprintf(stderr, "Error: invalid profile file\n");
 		exit(1);
@@ -1264,12 +1235,8 @@ void profile_read(const char *fname) {
 		}
 
 		// process quiet
-		// todo: a quiet in the profile file cannot be disabled by --ignore on command line
 		if (strcmp(ptr, "quiet") == 0) {
-			if (is_in_ignore_list(ptr))
-				arg_quiet = 0;
-			else
-				arg_quiet = 1;
+			arg_quiet = 1;
 			free(ptr);
 			continue;
 		}

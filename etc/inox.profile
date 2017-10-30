@@ -20,17 +20,7 @@ whitelist ~/.cache/inox
 whitelist ~/.config/inox
 whitelist ~/.pki
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
-caps.keep sys_chroot,sys_admin
 netfilter
 nodvd
-nogroups
 notv
-shell none
-
-private-dev
-# private-tmp - problems with multiple browser sessions
-
-noexec ${HOME}
-noexec /tmp

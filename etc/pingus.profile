@@ -5,8 +5,6 @@ include /etc/firejail/pingus.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ~/.pingus
 
 include /etc/firejail/disable-common.inc

@@ -49,7 +49,7 @@ void check_netns(const char *nsname) {
 		fprintf(stderr, "Error: invalid netns name %s\n", nsname);
 		exit(1);
 	}
-	invalid_filename(nsname, 0); // no globbing
+	invalid_filename(nsname);
 	char *control_file = netns_control_file(nsname);
 
 	EUID_ASSERT();

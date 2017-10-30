@@ -12,8 +12,6 @@ include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
 netfilter
 nodvd
@@ -27,5 +25,7 @@ seccomp
 shell none
 tracelog
 
+# private-bin kate
 private-dev
-#private-tmp - problems on kubuntu 17.04
+# private-etc fonts
+private-tmp

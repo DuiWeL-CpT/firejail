@@ -20,14 +20,12 @@ mkdir ~/.thunderbird
 whitelist ~/.cache/thunderbird
 whitelist ~/.gnupg
 whitelist ~/.icedove
+whitelist ~/.local/share/applications
 whitelist ~/.thunderbird
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
-# We need the real /tmp for data exchange when xdg-open handles email attachments on KDE
 ignore private-tmp
-machine-id
-disable-mnt
+
 read-only ~/.config/mimeapps.list
 
 # allow browsers

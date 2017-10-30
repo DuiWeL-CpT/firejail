@@ -7,8 +7,6 @@ include /etc/firejail/globals.local
 
 blacklist /tmp/.X11-unix
 
-noblacklist /var/mail
-noblacklist /var/spool/mail
 noblacklist ~/.Mail
 noblacklist ~/.bogofilter
 noblacklist ~/.cache/mutt
@@ -50,6 +48,5 @@ novideo
 protocol unix,inet,inet6
 seccomp
 shell none
-writable-run-user
 
 private-dev

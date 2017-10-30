@@ -5,8 +5,6 @@ include /etc/firejail/synfigstudio.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.config/synfig
 noblacklist ${HOME}/.synfig
 
@@ -16,7 +14,7 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 caps.drop all
-net none
+netfilter
 nodvd
 nogroups
 nonewprivs
@@ -28,7 +26,6 @@ protocol unix
 seccomp
 shell none
 
-#private-bin synfigstudio,synfig,ffmpeg
 private-dev
 private-tmp
 

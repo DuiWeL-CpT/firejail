@@ -19,7 +19,7 @@ tar -xJvf $CODE_ARCHIVE
 #mkdir -p $INSTALL_DIR
 cd $CODE_DIR
 ./configure --prefix=/usr --enable-git-install
-make -j2
+make
 mkdir debian
 DESTDIR=debian make install-strip
 
@@ -39,11 +39,12 @@ sed "s/FIREJAILVER/$2/g"  platform/debian/control > $DEBIAN_CTRL_DIR/control
 mkdir -p $INSTALL_DIR/usr/share/lintian/overrides/
 cp platform/debian/firejail.lintian-overrides $INSTALL_DIR/usr/share/lintian/overrides/firejail
 
-find $INSTALL_DIR/etc -type f | sed "s,^$INSTALL_DIR,," | LC_ALL=C sort > $DEBIAN_CTRL_DIR/conffiles
+cp platform/debian/conffiles $DEBIAN_CTRL_DIR/.
 find $INSTALL_DIR  -type d | xargs chmod 755
 cd $CODE_DIR
 fakeroot dpkg-deb --build debian
-lintian --no-tag-display-limit debian.deb
-mv debian.deb ../firejail_$2_1_$(dpkg-architecture -qDEB_HOST_ARCH).deb
+lintian debian.deb
+mv debian.deb ../firejail_$2_1_amd64.deb
+echo "if building a 32bit package, rename the deb file manually"
 cd ..
 rm -fr $CODE_DIR

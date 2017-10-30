@@ -325,7 +325,7 @@ void fs_private(void) {
 // check new private home directory (--private= option) - exit if it fails
 void fs_check_private_dir(void) {
 	EUID_ASSERT();
-	invalid_filename(cfg.home_private, 0); // no globbing
+	invalid_filename(cfg.home_private);
 
 	// Expand the home directory
 	char *tmp = expand_home(cfg.home_private, cfg.homedir);
@@ -367,7 +367,7 @@ static char *check_dir_or_file(const char *name) {
 	assert(name);
 
 	// basic checks
-	invalid_filename(name, 0); // no globbing
+	invalid_filename(name);
 	if (arg_debug)
 		printf("Private home: checking %s\n", name);
 
@@ -462,8 +462,6 @@ static void duplicate(char *name) {
 // 	set skel files,
 // 	restore .Xauthority
 void fs_private_home_list(void) {
-	timetrace_start();
-
 	char *homedir = cfg.homedir;
 	char *private_list = cfg.home_private_keep;
 	assert(homedir);
@@ -521,8 +519,4 @@ void fs_private_home_list(void) {
 		copy_xauthority();
 	if (aflag)
 		copy_asoundrc();
-
-	if (!arg_quiet)
-		fprintf(stderr, "Home directory installed in %0.2f ms\n", timetrace_end());
-
 }

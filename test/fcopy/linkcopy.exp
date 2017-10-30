@@ -34,8 +34,6 @@ expect {
 	"lrwxrwxrwx"
 }
 after 100
-send -- "stty -echo\r"
-after 100
 
 send -- "diff -q dircopy.exp dest/dircopy.exp; echo done\r"
 expect {

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+LOGFILE="$ADTTMP/test.log"
+
+# copy tests to temporary directory, as current one might be read-only
+cp -a test "$ADTTMP"
+cd "$ADTTMP/test"
+
+# start Xvfb for X11 tests
+Xvfb :42 &
+XVFB_PID=$!
+export DISPLAY=:42.0
+
+# run tests
+for dir in apps apps-x11 apps-x11-xorg arguments environment fcopy filters fs profiles sysutils utils;
+do
+	pushd $dir
+	bash -x ./$dir.sh | tee -a "$LOGFILE"
+	popd
+done
+
+echo "======================================"
+grep "TESTING" "$LOGFILE"
+echo "======================================"
+
+kill $XVFB_PID
+
+[ $(grep -c "TESTING ERROR" "$LOGFILE") -gt 0 ] && exit 1
+
+exit 0

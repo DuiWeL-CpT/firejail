@@ -1,0 +1,20 @@
+#!/bin/bash
+
+LOGFILE="$ADTTMP/test-network.log"
+
+# copy tests to temporary directory, as current one might be read-only
+cp -a test "$ADTTMP"
+cd "$ADTTMP/test"
+
+pushd network
+bash -x ./configure
+runuser -u nobody -g nogroup -- bash -x ./network.sh | tee "$LOGFILE"
+popd
+
+echo "======================================"
+grep "TESTING" "$LOGFILE"
+echo "======================================"
+
+[ $(grep -c "TESTING ERROR" "$LOGFILE") -gt 0 ] && exit 1
+
+exit 0

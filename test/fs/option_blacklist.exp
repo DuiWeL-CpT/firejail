@@ -12,8 +12,7 @@ expect {
 	timeout {puts "TESTING ERROR 0\n";exit}
 	"Child process initialized"
 }
-after 100
-send -- "stty -echo\r"
+sleep 1
 
 send -- "ls -l /var;echo done\r"
 expect {

@@ -1,0 +1,7 @@
+firejail (0.9.46~rc1-1) experimental; urgency=low
+
+  The application profiles are now included in a separate package.
+  If you were using them and the package management is configured to
+  not install recommended packages, please install firejail-profiles.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Sat, 15 Apr 2017 21:41:56 +0200

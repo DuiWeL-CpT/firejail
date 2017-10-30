@@ -13,6 +13,7 @@ blacklist /tmp/.X11-unix
 
 noblacklist /sbin
 noblacklist /usr/sbin
+# noblacklist /var/log
 # noblacklist /var/opt
 
 include /etc/firejail/disable-common.inc
@@ -27,8 +28,6 @@ nosound
 notv
 novideo
 seccomp
-
-# netfilter /etc/firejail/webserver.net
 
 # disable-mnt
 private

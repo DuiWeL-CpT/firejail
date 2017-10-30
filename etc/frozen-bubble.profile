@@ -5,8 +5,6 @@ include /etc/firejail/frozen-bubble.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ~/.frozen-bubble
 
 include /etc/firejail/disable-common.inc
@@ -16,7 +14,6 @@ include /etc/firejail/disable-programs.inc
 mkdir ~/.frozen-bubble
 whitelist ~/.frozen-bubble
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 net none

@@ -5,8 +5,6 @@ include /etc/firejail/bless.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.config/bless
 
 include /etc/firejail/disable-common.inc
@@ -28,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-# private-bin bless,sh,bash,mono
+# private-bin bless,dash,sh,bash,mono
 private-dev
 private-etc fonts,mono
 private-tmp

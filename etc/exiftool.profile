@@ -6,7 +6,6 @@ include /etc/firejail/exiftool.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
 blacklist /tmp/.X11-unix
 
 noblacklist /usr/bin/perl

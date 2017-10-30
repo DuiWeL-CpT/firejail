@@ -13,8 +13,7 @@ expect {
 	timeout {puts "TESTING ERROR 0\n";exit}
 	"Child process initialized"
 }
-after 100
-send -- "stty -echo\r"
+sleep 1
 
 send -- "echo mytest > /dev/shm/ttt;echo done\r"
 expect {
@@ -44,7 +43,8 @@ expect {
 	"mytest" {puts "TESTING ERROR 6\n";exit}
 	"done"
 }
-after 100
+
+sleep 1
 send -- "exit\r"
 sleep 1
 
@@ -54,8 +54,7 @@ expect {
 	timeout {puts "TESTING ERROR 7\n";exit}
 	"Child process initialized"
 }
-after 100
-send -- "stty -echo\r"
+sleep 1
 
 send -- "echo mytest > /dev/shm/ttt;echo done\r"
 expect {

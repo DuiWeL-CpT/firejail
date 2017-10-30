@@ -1,0 +1,14 @@
+Firejail for Debian
+===================
+
+Firejail is intended to sandbox/restrict other applications.
+To achieve this, it utilizes Linux namespaces, which require
+root privileges. Because of this, the setuid bit of the binary
+has to be set.
+
+To allow only users being part of a certain group to run firejail,
+dpkg-statoverride(1) can be used to modify the permissions.
+
+Example:
+ # dpkg-statoverride --update --add root users 4754 /usr/bin/firejail
+

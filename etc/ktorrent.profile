@@ -18,11 +18,11 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 mkdir ~/.kde/share/apps/ktorrent
+mkdir ~/.kde/share/config/ktorrentrc
 mkdir ~/.kde4/share/apps/ktorrent
+mkdir ~/.kde4/share/config/ktorrentrc
 mkdir ~/.local/share/ktorrent
 mkfile ~/.config/ktorrentrc
-mkfile ~/.kde/share/config/ktorrentrc
-mkfile ~/.kde4/share/config/ktorrentrc
 whitelist  ${DOWNLOADS}
 whitelist ~/.config/ktorrentrc
 whitelist ~/.kde/share/apps/ktorrent
@@ -31,7 +31,6 @@ whitelist ~/.kde4/share/apps/ktorrent
 whitelist ~/.kde4/share/config/ktorrentrc
 whitelist ~/.local/share/ktorrent
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -47,11 +46,8 @@ protocol unix,inet,inet6
 seccomp
 shell none
 
-private-bin ktorrent
 private-dev
-# private-lib - problems on Arch
 private-tmp
 
-# memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
