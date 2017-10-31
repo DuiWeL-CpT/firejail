@@ -1,3 +1,9 @@
+firejail (0.9.50-3parrot1) testing; urgency=medium
+
+  * Fix firefox rules.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 31 Oct 2017 22:29:40 +0100
+
 firejail (0.9.50-3parrot0) testing; urgency=medium
 
   * Non-maintainer upload.

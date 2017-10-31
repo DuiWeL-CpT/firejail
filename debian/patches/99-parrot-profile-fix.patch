@@ -71,3 +71,13 @@ Last-Update: 2017-10-30
  whitelist ~/.local/share/applications
  whitelist ~/.thunderbird
  include /etc/firejail/whitelist-common.inc
+--- firejail-0.9.50.orig/etc/firefox.profile
++++ firejail-0.9.50/etc/firefox.profile
+@@ -29,6 +29,7 @@ mkdir ~/.cache/mozilla/firefox
+ mkdir ~/.mozilla
+ mkdir ~/.pki
+ whitelist ${DOWNLOADS}
++whitelist ~/Desktop
+ whitelist ~/.cache/gnome-mplayer/plugin
+ whitelist ~/.cache/mozilla/firefox
+ whitelist ~/.config/gnome-mplayer
