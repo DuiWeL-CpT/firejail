@@ -13,13 +13,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-whitelist ${DOWNLOADS}
-whitelist ~/.config/autostart
-whitelist ~/.config/Gitter
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
-machine-id
 netfilter
 nodvd
 nogroups
@@ -31,12 +25,6 @@ protocol unix,inet,inet6,netlink
 seccomp
 shell none
 
-disable-mnt
-private-bin bash,env,gitter
-private-etc fonts,pulse,resolv.conf
-private-opt Gitter
+private-bin gitter
 private-dev
 private-tmp
-
-noexec ${HOME}
-noexec /tmp

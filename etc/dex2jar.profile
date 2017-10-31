@@ -6,7 +6,6 @@ include /etc/firejail/dex2jar.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -27,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin dex2jar,java,sh,bash,expr,dirname,ls,uname,grep
+private-bin dex2jar,dash,java,sh,bash,expr,dirname,ls,uname,grep
 private-dev
 
 noexec ${HOME}

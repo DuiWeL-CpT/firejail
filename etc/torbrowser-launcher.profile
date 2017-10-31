@@ -5,19 +5,16 @@ include /etc/firejail/torbrowser-launcher.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.tor-browser-en
+
 noblacklist ~/.config/torbrowser
+whitelist ~/.config/torbrowser
 noblacklist ~/.local/share/torbrowser
+whitelist ~/.local/share/torbrowser
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
-
-whitelist ~/.tor-browser-en
-whitelist ~/.config/torbrowser
-whitelist ~/.local/share/torbrowser
-include /etc/firejail/whitelist-common.inc
 
 caps.drop all
 netfilter
@@ -32,7 +29,7 @@ seccomp
 shell none
 tracelog
 
-private-bin bash,cp,dirname,env,expr,file,getconf,gpg,grep,id,ln,mkdir,python*,readlink,rm,sed,sh,tail,test,tor-browser-en,torbrowser-launcher
+private-bin torbrowser-launcher,python2.7,python,bash,dash,sh,grep,tail,env,gpg,id,readlink,dirname,test,mkdir,ln,sed,cp,rm,getconf
 private-dev
 private-etc fonts
 private-tmp

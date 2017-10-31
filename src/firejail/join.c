@@ -386,7 +386,7 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			}
 		}
 
-		start_application(0);
+		start_application();
 
 		// it will never get here!!!
 	}

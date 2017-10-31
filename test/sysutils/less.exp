@@ -7,14 +7,14 @@ set timeout 10
 spawn $env(SHELL)
 match_max 100000
 
-send -- "firejail less sysutils.sh\r"
+send -- "firejail less ../../Makefile.in\r"
 expect {
 	timeout {puts "TESTING ERROR 1\n";exit}
-	"MALLOC_CHECK"
+	"MYLIBS"
 }
 expect {
 	timeout {puts "TESTING ERROR 2\n";exit}
-	"./cpio.exp"
+	"APPS"
 }
 
 puts "\nall done\n"

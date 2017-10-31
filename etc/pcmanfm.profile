@@ -5,8 +5,6 @@ include /etc/firejail/pcmanfm.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-# blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.local/share/Trash
 noblacklist ~/.config/libfm
 noblacklist ~/.config/pcmanfm

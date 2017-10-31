@@ -5,8 +5,6 @@ include /etc/firejail/meld.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.local/share/meld
 
 include /etc/firejail/disable-common.inc
@@ -28,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin meld,python*
+# private-bin meld,python2,python2.7
 private-dev
 private-tmp
 

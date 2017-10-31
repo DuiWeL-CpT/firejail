@@ -6,7 +6,6 @@ include /etc/firejail/sdat2img.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -27,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin sdat2img,env,python*
+# private-bin sdat2img,env,python,python3,python3.6
 private-dev
 
 noexec ${HOME}

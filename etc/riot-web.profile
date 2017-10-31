@@ -5,9 +5,9 @@ include /etc/firejail/riot-web.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ${HOME}/.config/Riot
+noblacklist ~/.config/Riot
 
-whitelist ${HOME}/.config/Riot
+whitelist ~/.config/Riot
 include /etc/firejail/whitelist-common.inc
 
 # Redirect

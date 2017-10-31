@@ -5,8 +5,6 @@ include /etc/firejail/dia.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ~/.dia
 
 include /etc/firejail/disable-common.inc
@@ -15,7 +13,7 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 caps.drop all
-net none
+netfilter
 no3d
 nodvd
 nogroups
@@ -29,7 +27,6 @@ seccomp
 shell none
 
 disable-mnt
-#private-bin dia
 private-dev
 private-tmp
 

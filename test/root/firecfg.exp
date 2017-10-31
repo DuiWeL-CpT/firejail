@@ -17,8 +17,6 @@ expect {
 }
 sleep 1
 
-send -- "stty -echo\r"
-after 100
 send -- "file /usr/local/bin/firefox; echo done\r"
 expect {
 	timeout {puts "TESTING ERROR 1\n";exit}

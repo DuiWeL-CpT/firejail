@@ -11,7 +11,6 @@ noblacklist ${HOME}/.filezilla
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-programs.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -25,6 +24,6 @@ protocol unix,inet,inet6
 seccomp
 shell none
 
-private-bin filezilla,uname,sh,bash,python*,lsb_release,fzputtygen,fzsftp
+private-bin filezilla,uname,sh,bash,dash,python,lsb_release,fzputtygen,fzsftp
 private-dev
 private-tmp

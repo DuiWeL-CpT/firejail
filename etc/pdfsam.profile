@@ -5,8 +5,6 @@ include /etc/firejail/pdfsam.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.java
 
 include /etc/firejail/disable-common.inc
@@ -28,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin pdfsam,sh,bash,java,archlinux-java,grep,awk,dirname,uname,which,sort,find,readlink,expr,ls,java-config
+private-bin pdfsam,dash,sh,bash,java,archlinux-java,grep,awk,dirname,uname,which,sort,find,readlink,expr,ls,java-config
 private-dev
 private-tmp
 

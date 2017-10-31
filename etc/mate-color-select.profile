@@ -11,11 +11,6 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-whitelist ${HOME}/.config/gtk-3.0
-whitelist ${HOME}/.fonts
-whitelist ${HOME}/.icons
-whitelist ${HOME}/.themes
-
 caps.drop all
 netfilter
 no3d
@@ -31,12 +26,9 @@ seccomp
 shell none
 
 disable-mnt
-private-bin mate-color-select
-private-etc fonts
+private
 private-dev
-private-lib
 private-tmp
 
-memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp

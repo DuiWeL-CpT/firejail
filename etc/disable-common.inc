@@ -2,14 +2,13 @@
 # Persistent customizations should go in a .local file.
 include /etc/firejail/disable-common.local
 
-# History files in $HOME and clipboard managers
+# History files in $HOME
 blacklist-nolog ${HOME}/.*_history
 blacklist-nolog ${HOME}/.adobe
-blacklist-nolog ${HOME}/.cache/greenclip*
+blacklist-nolog ${HOME}/.bash_history
 blacklist-nolog ${HOME}/.history
 blacklist-nolog ${HOME}/.local/share/fish/fish_history
 blacklist-nolog ${HOME}/.macromedia
-blacklist-nolog /tmp/clipmenu*
 
 # X11 session autostart
 # blacklist ${HOME}/.xpra - this will kill --x11=xpra cmdline option for all programs
@@ -47,8 +46,6 @@ blacklist /etc/xdg/autostart
 blacklist ${HOME}/.config/*.notifyrc
 blacklist ${HOME}/.config/khotkeysrc
 blacklist ${HOME}/.config/krunnerrc
-blacklist ${HOME}/.config/kwinrc
-blacklist ${HOME}/.config/kwinrulesrc
 blacklist ${HOME}/.config/plasma-org.kde.plasma.desktop-appletsrc
 blacklist ${HOME}/.kde/share/apps/konsole
 blacklist ${HOME}/.kde/share/apps/kwin
@@ -57,46 +54,30 @@ blacklist ${HOME}/.kde/share/apps/solid
 blacklist ${HOME}/.kde/share/config/*.notifyrc
 blacklist ${HOME}/.kde/share/config/khotkeysrc
 blacklist ${HOME}/.kde/share/config/krunnerrc
-blacklist ${HOME}/.kde/share/config/kwinrc
-blacklist ${HOME}/.kde/share/config/kwinrulesrc
 blacklist ${HOME}/.kde/share/config/plasma-desktop-appletsrc
+blacklist ${HOME}/.kde4/share/apps/plasma
 blacklist ${HOME}/.kde4/share/apps/konsole
 blacklist ${HOME}/.kde4/share/apps/kwin
-blacklist ${HOME}/.kde4/share/apps/plasma
+blacklist ${HOME}/.kde4/share/config/krunnerrc
+blacklist ${HOME}/.kde4/share/config/plasma-desktop-appletsrc
+blacklist ${HOME}/.kde4/share/config/khotkeysrc
 blacklist ${HOME}/.kde4/share/apps/solid
 blacklist ${HOME}/.kde4/share/config/*.notifyrc
-blacklist ${HOME}/.kde4/share/config/khotkeysrc
-blacklist ${HOME}/.kde4/share/config/krunnerrc
-blacklist ${HOME}/.kde4/share/config/kwinrc
-blacklist ${HOME}/.kde4/share/config/kwinrulesrc
-blacklist ${HOME}/.kde4/share/config/plasma-desktop-appletsrc
 blacklist ${HOME}/.local/share/kglobalaccel
 blacklist ${HOME}/.local/share/konsole
 blacklist ${HOME}/.local/share/kwin
 blacklist ${HOME}/.local/share/plasma
 blacklist ${HOME}/.local/share/solid
 read-only ${HOME}/.config/kdeglobals
-read-only ${HOME}/.config/kioslaverc
 read-only ${HOME}/.kde/share/config/kdeglobals
-read-only ${HOME}/.kde/share/config/kioslaverc
 read-only ${HOME}/.kde/share/kde4/services
-read-only ${HOME}/.kde4/share/config/kdeglobals
-read-only ${HOME}/.kde4/share/config/kioslaverc
 read-only ${HOME}/.kde4/share/kde4/services
+read-only ${HOME}/.kde4/share/config/kdeglobals
 read-only ${HOME}/.local/share/kservices5
-
-# kdeinit socket
-blacklist /run/user/*/kdeinit5__*
-# blacklist /run/user/*/ksocket-*/kdeinit4__*
-# blacklist /tmp/ksocket-*/kdeinit4__*
-#  - causes issues when kdeinit4 gets killed; enable on KDE Plasma 4
 
 # systemd
 blacklist ${HOME}/.config/systemd
 blacklist ${HOME}/.local/share/systemd
-blacklist /var/lib/systemd
-# blacklist /var/run/systemd
-#  - creates problems on Arch where /etc/resolv.conf is a symlink to /var/run/systemd/resolve/resolv.conf
 
 # VirtualBox
 blacklist ${HOME}/.VirtualBox
@@ -134,9 +115,9 @@ blacklist /var/lib/dkms
 blacklist /var/lib/mysql/mysql.sock
 blacklist /var/lib/mysqld/mysql.sock
 blacklist /var/lib/pacman
+blacklist /var/lib/systemd
 blacklist /var/lib/upower
-# blacklist /var/log - a virtual /var/log directory (mostly empty) is buid up by default for
-#          every sandbox, unless --writeble-var-log switch is activated
+blacklist /var/log
 blacklist /var/mail
 blacklist /var/opt
 blacklist /var/run/acpid.socket
@@ -146,9 +127,9 @@ blacklist /var/run/mysql/mysqld.sock
 blacklist /var/run/mysqld/mysqld.sock
 blacklist /var/run/rpcbind.sock
 blacklist /var/run/screens
+blacklist /var/run/systemd
 blacklist /var/spool/anacron
 blacklist /var/spool/cron
-blacklist /var/spool/mail
 
 # etc
 blacklist /etc/anacrontab
@@ -244,6 +225,7 @@ blacklist ${HOME}/.mutt/muttrc
 blacklist ${HOME}/.muttrc
 blacklist ${HOME}/.netrc
 blacklist ${HOME}/.pki
+blacklist ${HOME}/.password-store
 blacklist ${HOME}/.smbcredentials
 blacklist ${HOME}/.ssh
 blacklist /etc/group+
@@ -305,7 +287,6 @@ blacklist /tmp/.lxterminal-socket*
 blacklist /tmp/tmux-*
 
 # disable terminals running as server resulting in sandbox escape
-blacklist ${PATH}/lxterminal
 blacklist ${PATH}/gnome-terminal
 blacklist ${PATH}/gnome-terminal.wrapper
 blacklist ${PATH}/lilyterm

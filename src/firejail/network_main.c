@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <net/if.h>
 #include <stdarg.h>
-#include <sys/wait.h>
 
 // configure bridge structure
 // - extract ip address and mask from the bridge interface
@@ -251,36 +250,24 @@ void net_dns_print(pid_t pid) {
 		free(comm);
 	}
 
+	char *fname;
 	EUID_ROOT();
-	if (join_namespace(pid, "mnt"))
-		exit(1);
+	if (asprintf(&fname, "/proc/%d/root/etc/resolv.conf", pid) == -1)
+		errExit("asprintf");
 
-	pid_t child = fork();
-	if (child < 0)
-		errExit("fork");
-	if (child == 0) {
-		caps_drop_all();
-		if (chdir("/") < 0)
-			errExit("chdir");
-		
-		// access /etc/resolv.conf
-		FILE *fp = fopen("/etc/resolv.conf", "r");
-		if (!fp) {
-			fprintf(stderr, "Error: cannot access /etc/resolv.conf\n");
-			exit(1);
-		}
-	
-		char buf[MAXBUF];
-		while (fgets(buf, MAXBUF, fp))
-			printf("%s", buf);
-		printf("\n");
-		fclose(fp);
-		exit(0);
+	// access /etc/resolv.conf
+	FILE *fp = fopen(fname, "r");
+	if (!fp) {
+		fprintf(stderr, "Error: cannot access /etc/resolv.conf\n");
+		exit(1);
 	}
 
-	// wait for the child to finish
-	waitpid(child, NULL, 0);
-	flush_stdin();
+	char buf[MAXBUF];
+	while (fgets(buf, MAXBUF, fp))
+		printf("%s", buf);
+	printf("\n");
+	fclose(fp);
+	free(fname);
 	exit(0);
 }
 

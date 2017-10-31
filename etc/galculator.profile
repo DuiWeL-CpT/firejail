@@ -5,8 +5,6 @@ include /etc/firejail/galculator.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ~/.config/galculator
 
 include /etc/firejail/disable-common.inc
@@ -17,7 +15,6 @@ include /etc/firejail/disable-programs.inc
 mkdir ~/.config/galculator
 whitelist ~/.config/galculator
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 net none
@@ -36,5 +33,4 @@ tracelog
 private-bin galculator
 private-dev
 private-etc fonts
-private-lib
 private-tmp

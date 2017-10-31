@@ -12,8 +12,6 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
 netfilter
 no3d
@@ -27,7 +25,7 @@ seccomp
 shell none
 tracelog
 
-private-bin gnome-music,python*
+# private-bin gnome-music,python3
 private-dev
 # private-etc fonts
 private-tmp

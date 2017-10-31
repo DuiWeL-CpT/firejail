@@ -87,6 +87,15 @@ Example:
 .br
 $ firejail  --allow-debuggers --profile=/etc/firejail/firefox.profile strace -f firefox
 .TP
+\fB\-\-allow-private-blacklist
+Allow blacklisting files in private home directory. By default these blacklists are disabled.
+.br
+
+.br
+Example:
+.br
+$ firejail  --allow-private-blacklist --private=~/priv-dir --blacklist=~/.mozilla
+.TP
 \fB\-\-allusers
 All directories under /home are visible inside the sandbox. By default, only current user home directory is visible.
 .br
@@ -100,7 +109,7 @@ $ firejail --allusers
 Enable AppArmor confinement. For more information, please see \fBAPPARMOR\fR section below.
 .TP
 \fB\-\-appimage
-Sandbox an AppImage (https://appimage.org/) application.
+Sandbox an AppImage (http://appimage.org/) application.
 .br
 
 .br
@@ -131,7 +140,7 @@ Example:
 # firejail \-\-bind=/config/etc/passwd,/etc/passwd
 .TP
 \fB\-\-blacklist=dirname_or_filename
-Blacklist directory or file. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
+Blacklist directory or file.
 .br
 
 .br
@@ -144,30 +153,6 @@ $ firejail \-\-blacklist=~/.mozilla
 $ firejail "\-\-blacklist=/home/username/My Virtual Machines"
 .br
 $ firejail \-\-blacklist=/home/username/My\\ Virtual\\ Machines
-.TP
-\fB\-\-build
-The command builds a whitelisted profile. The profile is printed on the screen. If /usr/bin/strace is installed on the system, it also
-builds a whitelisted seccomp profile. The program is run in a very relaxed sandbox,
-with only --caps.drop=all and --nonewprivs. Programs that raise user privileges are not supported
-in order to allow strace to run. Chromium and Chromium-based browsers will not work.
-.br
-
-.br
-Example:
-.br
-$ firejail --build=profile-file vlc ~/Videos/test.mp4
-.TP
-\fB\-\-build=profile-file
-The command builds a whitelisted profile, and saves it in profile-file. If /usr/bin/strace is installed on the system, it also
-builds a whitelisted seccomp profile. The program is run in a very relaxed sandbox,
-with only --caps.drop=all and --nonewprivs. Programs that raise user privileges are not supported
-in order to allow strace to run. Chromium and Chromium-based browsers will not work.
-.br
-
-.br
-Example:
-.br
-$ firejail --build=vlc.profile vlc ~/Videos/test.mp4
 .TP
 \fB\-c
 Execute command and exit.
@@ -1012,7 +997,7 @@ Example:
 $ firejail \-\-nodvd
 .TP
 \fB\-\-noexec=dirname_or_filename
-Remount directory or file noexec, nodev and nosuid. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
+Remount directory or file noexec, nodev and nosuid.
 .br
 
 .br
@@ -1146,7 +1131,7 @@ Disable whitelist for this directory or file.
 
 .TP
 \fB\-\-output=logfile
-stdout logging and log rotation. Copy stdout to logfile, and keep the size of the file under 500KB using log
+stdout logging and log rotation. Copy stdout and stderr to logfile, and keep the size of the file under 500KB using log
 rotation. Five files with prefixes .1 to .5 are used in rotation.
 .br
 
@@ -1278,8 +1263,7 @@ $ firejail \-\-private-home=.mozilla firefox
 Build a new /bin in a temporary filesystem, and copy the programs in the list.
 If no listed file is found, /bin directory will be empty.
 The same directory is also bind-mounted over /sbin, /usr/bin, /usr/sbin and /usr/local/bin.
-All modifications are discarded when the sandbox is closed. File globbing is supported,
-see \fBFILE GLOBBING\fR section for more details.
+All modifications are discarded when the sandbox is closed.
 .br
 
 .br
@@ -1342,13 +1326,13 @@ $ ps
 .br
    48 pts/0    00:00:00 ps
 .br
-$
+$ 
 .br
 
 
 .TP
 \fB\-\-private-dev
-Create a new /dev directory. Only disc, dri, null, full, zero, tty, pts, ptmx, random, snd, urandom, video, log and shm devices are available.
+Create a new /dev directory. Only dri, null, full, zero, tty, pts, ptmx, random, snd, urandom, video, log and shm devices are available.
 .br
 
 .br
@@ -1362,7 +1346,7 @@ Child process initialized
 .br
 $ ls /dev
 .br
-cdrom  cdrw  dri  dvd  dvdrw  full  log  null  ptmx  pts  random  shm  snd  sr0  tty  urandom  zero
+dri  full  log  null  ptmx  pts  random  shm  snd  tty  urandom  zero
 .br
 $
 .TP
@@ -1451,6 +1435,21 @@ $ firejail \-\-profile.print=browser
 .br
 /etc/firejail/firefox.profile
 .br
+
+.TP
+\fB\-\-profile-path=directory
+Use this directory to look for profile files. Use an absolute path or a path in the home directory starting with ~/.
+For more information, see \fBSECURITY PROFILES\fR section below and \fBRELOCATING PROFILE FILES\fR in
+\fBman 5 firejail-profile\fR.
+.br
+
+.br
+Example:
+.br
+$ firejail \-\-profile-path=~/myprofiles
+.br
+$ firejail \-\-profile-path=/home/netblue/myprofiles
+
 .TP
 \fB\-\-protocol=protocol,protocol,protocol
 Enable protocol filter. The filter is based on seccomp and checks the first argument to socket system call.
@@ -1494,7 +1493,7 @@ Put a file in sandbox container, see \fBFILE TRANSFER\fR section for more detail
 Turn off Firejail's output.
 .TP
 \fB\-\-read-only=dirname_or_filename
-Set directory or file read-only. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
+Set directory or file read-only.
 .br
 
 .br
@@ -1515,8 +1514,7 @@ $ firejail --whitelist=~/work --read-only=~ --read-only=~/work
 .TP
 \fB\-\-read-write=dirname_or_filename
 Set directory or file read-write. Only files or directories belonging to the current user are allowed for
-this operation. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
-Example:
+this operation. Example:
 .br
 
 .br
@@ -1526,19 +1524,6 @@ $ touch ~/test/a
 .br
 $ firejail --read-only=~/test --read-write=~/test/a
 
-
-.TP
-\fB\-\-rlimit-as=number
-Set the maximum size of the process's virtual memory (address space) in bytes.
-
-.TP
-\fB\-\-rlimit-cpu=number
-Set the maximum limit, in seconds, for the amount of CPU time each
-sandboxed process  can consume. When the limit is reached, the processes are killed.
-
-The CPU limit is a limit on CPU seconds rather than elapsed time. CPU seconds is basically how many seconds
-the CPU has been in use and does not necessarily directly relate to the elapsed time. Linux kernel keeps
-track of CPU seconds for each process independently.
 
 .TP
 \fB\-\-rlimit-fsize=number
@@ -1834,16 +1819,8 @@ $ firejail \-\-list
 .br
 $ firejail \-\-shutdown=3272
 .TP
-\fB\-\-timeout=hh:mm:ss
-Kill the sandbox automatically after the time has elapsed. The time is specified in hours/minutes/seconds format.
-.br
-
-.br
-$ firejail \-\-timeout=01:30:00 firefox
-.TP
 \fB\-\-tmpfs=dirname
 Mount a tmpfs filesystem on directory dirname. This option is available only when running the sandbox as root.
-File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -1988,16 +1965,6 @@ Example:
 $ sudo firejail --writable-etc
 
 .TP
-\fB\-\-writable-run-user
-Disable the default blacklisting of /run/user/$UID/systemd and /run/user/$UID/gnupg.
-.br
-
-.br
-Example:
-.br
-$ sudo firejail --writable-run-user
-
-.TP
 \fB\-\-writable-var
 Mount /var directory read-write.
 .br
@@ -2093,7 +2060,7 @@ $ firejail \-\-x11=xorg firefox
 
 .TP
 \fB\-\-x11=xpra
-Start Xpra (https://xpra.org) and attach the sandbox to this server.
+Start Xpra (http://xpra.org) and attach the sandbox to this server.
 Xpra is a persistent remote display server and client for forwarding X11 applications and desktop screens.
 A network namespace needs to be instantiated in order to deny access to X11 abstract Unix domain socket.
 .br
@@ -2245,40 +2212,6 @@ $ firejail --tree
 
 We provide a tool that automates all this integration, please see \fBman 1 firecfg\fR for more details.
 
-.SH FILE GLOBBING
-.TP
-Globbing is the operation that expands a wildcard pattern into the list of pathnames matching the pattern. Matching is defined by:
-.br
-
-.br
-- '?' matches any character
-.br
-- '*' matches any string
-.br
-- '[' denotes a range of characters
-.br
-.TP
-The gobing feature is implemented using glibc glob command. For more information on the wildcard syntax see man 7 glob.
-.br
-
-.br
-.TP
-The following command line options are supported: \-\-blacklist, \-\-private-bin, \-\-noexec, \-\-read-only, \-\-read-write, and \-\-tmpfs.
-.br
-
-.br
-.TP
-Examples:
-.br
-
-.br
-$ firejail --private-bin=sh,bash,python*
-.br
-$ firejail --blacklist=~/dir[1234]
-.br
-$ firejail --read-only=~/dir[1-4]
-.br
-
 .SH APPARMOR
 .TP
 AppArmor support is disabled by default at compile time. Use --enable-apparmor configuration option to enable it:
@@ -2307,13 +2240,8 @@ programs and scripts from user home or other directories writable by the user is
 .br
 
 .br
-- Allow access to files only in the following standard directories: /bin, /dev, /etc, /home, /lib*, /media, /mnt, /opt,
-/proc, /root, /run, /sbin, /srv, /sys, /tmp, /usr, and /var
-.br
-
-.br
 - Disable D-Bus. D-Bus has long been a huge security hole, and most programs don't use it anyway.
-You should have no problems running Chromium or Firefox. This feature is available only on Ubuntu kernels.
+You should have no problems running Chromium or Firefox.
 
 .TP
 To enable AppArmor confinement on top of your current Firejail security features, pass \fB\-\-apparmor\fR flag to Firejail command line. You can also include \fBapparmor\fR command in a Firejail profile file. Example:
@@ -2586,7 +2514,7 @@ List all sandboxed processes.
 .SH LICENSE
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 .PP
-Homepage: https://firejail.wordpress.com
+Homepage: http://firejail.wordpress.com
 .SH SEE ALSO
 \&\flfiremon\fR\|(1),
 \&\flfirecfg\fR\|(1),

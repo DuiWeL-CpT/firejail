@@ -14,8 +14,6 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
 no3d
 nodvd
@@ -32,8 +30,9 @@ tracelog
 
 private-bin xreader,xreader-previewer,xreader-thumbnailer
 private-dev
-private-etc fonts,ld.so.cache
-private-tmp
+# private-etc fonts,ld.so.cache
+# xreader needs access to /tmp/mozilla* to work in firefox
+# private-tmp
 
 memory-deny-write-execute
 noexec ${HOME}

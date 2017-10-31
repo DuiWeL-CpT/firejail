@@ -7,8 +7,7 @@ set timeout 4
 spawn $env(SHELL)
 match_max 100000
 
-send -- "stty -echo\r"
-after 100
+# check ip address
 send -- "firejail --quiet echo done\r"
 expect {
 	timeout {puts "TESTING ERROR 1\n";exit}

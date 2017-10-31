@@ -273,9 +273,6 @@ the same top directory. For user home, both the link and the real file should be
 \fBwritable-etc
 Mount /etc directory read-write.
 .TP
-\fBwritable-run-user
-Disable the default blacklisting of run/user/$UID/systemd and /run/user/$UID/gnupg.
-.TP
 \fBwritable-var
 Mount /var directory read-write.
 .TP
@@ -382,12 +379,6 @@ place the sandbox in an existing control group.
 Examples:
 
 .TP
-\fBrlimit-as 123456789012
-Set he maximum size of the process's virtual memory to 123456789012 bytes.
-.TP
-\fBrlimit-cpu 123
-Set he maximum CPU time in seconds.
-.TP
 \fBrlimit-fsize 1024
 Set the maximum file size that can be created by a process to 1024 bytes.
 .TP
@@ -408,9 +399,6 @@ Set a nice value of -5 to all processes running inside the sandbox.
 .TP
 \fBcgroup /sys/fs/cgroup/g1/tasks
 The sandbox is placed in g1 control group.
-.TP
-\fBtimeout hh:mm:ss
-Kill the sandbox automatically after the time has elapsed. The time is specified in hours/minutes/seconds format.
 
 .SH User Environment
 .TP
@@ -594,13 +582,44 @@ instead of the default one.
 Join the sandbox identified by name or start a new one.
 Same as "firejail --join=sandboxname" command if sandbox with specified name exists, otherwise same as "name sandboxname".
 
+.SH RELOCATING PROFILES
+For various reasons some users might want to keep the profile files in a different directory.
+Using \fB--profile-path\fR command line option, Firejail can be instructed to look for profiles
+into this directory.
+
+This is an example of relocating the profile files into a new
+directory, /home/netblue/myprofiles. Start by creating the new directory and copy all
+the profile files in:
+.br
+
+.br
+$ mkdir ~/myprofiles && cd ~/myprofiles && cp /etc/firejail/* .
+.br
+
+.br
+Using \fBsed\fR utility, modify the absolute paths for \fBinclude\fR commands:
+.br
+
+.br
+$ sed -i "s/\\/etc\\/firejail/\\/home\\/netblue\\/myprofiles/g" *.profile
+.br
+$ sed -i "s/\\/etc\\/firejail/\\/home\\/netblue\\/myprofiles/g" *.inc
+.br
+
+.br
+Start Firejail using the new path:
+.br
+
+.br
+$ firejail --profile-path=~/myprofiles
+
 .SH FILES
 /etc/firejail/filename.profile, $HOME/.config/firejail/filename.profile
 
 .SH LICENSE
 Firejail is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 .PP
-Homepage: https://firejail.wordpress.com
+Homepage: http://firejail.wordpress.com
 .SH SEE ALSO
 \&\flfirejail\fR\|(1),
 \&\flfiremon\fR\|(1),

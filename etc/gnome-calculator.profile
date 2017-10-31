@@ -1,6 +1,5 @@
 # Firejail profile for gnome-calculator
 # This file is overwritten after every install/update
-quiet
 # Persistent local customizations
 include /etc/firejail/gnome-calculator.local
 # Persistent global definitions
@@ -12,7 +11,6 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -29,9 +27,10 @@ seccomp
 shell none
 
 disable-mnt
+private
 private-bin gnome-calculator
 private-dev
-private-lib
+# private-etc fonts
 private-tmp
 
 memory-deny-write-execute

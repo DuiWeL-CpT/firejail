@@ -9,14 +9,10 @@ match_max 100000
 
 send -- "firejail transmission-gtk\r"
 expect {
-	timeout {puts "TESTING ERROR 0\n";exit}
-	"Reading profile /etc/firejail/transmission-gtk.profile"
-}
-expect {
 	timeout {puts "TESTING ERROR 1\n";exit}
 	"Child process initialized"
 }
-sleep 3
+sleep 5
 
 spawn $env(SHELL)
 send -- "firejail --list\r"
@@ -37,7 +33,6 @@ expect {
 	"grsecurity: directory" {puts "grsecurity present, exiting...\n";exit}
 	"cannot open" {puts "grsecurity not present\n"}
 }
-
 send -- "firejail --name=blablabla\r"
 expect {
 	timeout {puts "TESTING ERROR 4\n";exit}
@@ -68,7 +63,7 @@ expect {
 }
 expect {
 	timeout {puts "TESTING ERROR 6.1\n";exit}
-	"CapBnd:"
+	"CapBnd"
 }
 expect {
 	timeout {puts "TESTING ERROR 6.2\n";exit}

@@ -14,10 +14,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
-
 caps.drop all
-machine-id
 netfilter
 nodvd
 nogroups
@@ -30,7 +27,6 @@ shell none
 tracelog
 
 private-dev
-private-tmp
 
 noexec ${HOME}
 noexec /tmp

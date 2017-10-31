@@ -19,7 +19,6 @@ whitelist  ${DOWNLOADS}
 whitelist ~/.cache/transmission
 whitelist ~/.config/transmission
 include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -36,7 +35,6 @@ tracelog
 
 private-bin transmission-qt
 private-dev
-# private-lib - problems on Arch
 private-tmp
 
 memory-deny-write-execute

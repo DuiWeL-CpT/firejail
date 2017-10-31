@@ -5,8 +5,6 @@ include /etc/firejail/jd-gui.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.config/jd-gui.cfg
 noblacklist ${HOME}/.java
 
@@ -29,7 +27,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin jd-gui,sh,bash
+private-bin jd-gui,dash,sh,bash
 private-dev
 private-tmp
 
