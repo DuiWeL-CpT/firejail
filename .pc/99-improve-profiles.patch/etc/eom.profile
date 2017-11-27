@@ -1,16 +1,14 @@
-# Firejail profile for arduino
+# Firejail profile for eom
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/arduino.local
+include /etc/firejail/eom.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ${HOME}/.arduino15
-noblacklist ${HOME}/.java
-noblacklist ${HOME}/Arduino
-noblacklist ${HOME}/Downloads
-noblacklist ${HOME}/Documents
-noblacklist ${HOME}/Desktop
+noblacklist ~/.Steam
+noblacklist ~/.config/mate/eom
+noblacklist ~/.local/share/Trash
+noblacklist ~/.steam
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -18,7 +16,7 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 caps.drop all
-netfilter
+# net none - makes settings immutable
 no3d
 nodvd
 nogroups
@@ -27,11 +25,16 @@ noroot
 nosound
 notv
 novideo
-protocol unix,inet,inet6
+protocol unix
 seccomp
 shell none
+tracelog
 
+private-bin eom
+private-dev
+private-etc fonts
 private-tmp
 
+memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp

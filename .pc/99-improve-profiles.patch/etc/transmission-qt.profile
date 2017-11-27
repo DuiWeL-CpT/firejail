@@ -1,25 +1,23 @@
-# Firejail profile for uget-gtk
+# Firejail profile for transmission-qt
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/uget-gtk.local
+include /etc/firejail/transmission-qt.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ${HOME}/.config/uGet
+noblacklist ${HOME}/.cache/transmission
+noblacklist ${HOME}/.config/transmission
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-mkdir ~/.config/uGet
-whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Mucis
-whitelist ~/Video
-whitelist ~/Templates
-whitelist ~/.config/uGet
+mkdir ~/.cache/transmission
+mkdir ~/.config/transmission
+whitelist  ${DOWNLOADS}
+whitelist ~/.cache/transmission
+whitelist ~/.config/transmission
 include /etc/firejail/whitelist-common.inc
 
 caps.drop all
@@ -33,7 +31,10 @@ novideo
 protocol unix,inet,inet6
 seccomp
 shell none
+tracelog
 
-private-bin uget-gtk
+private-bin transmission-qt
 private-dev
 private-tmp
+
+memory-deny-write-execute

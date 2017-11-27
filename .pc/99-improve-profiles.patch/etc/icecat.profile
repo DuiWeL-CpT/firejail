@@ -16,12 +16,6 @@ include /etc/firejail/disable-programs.inc
 mkdir ~/.cache/mozilla/icecat
 mkdir ~/.mozilla
 whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Mucis
-whitelist ~/Video
-whitelist ~/Templates
 whitelist ~/.cache/gnome-mplayer/plugin
 whitelist ~/.cache/mozilla/icecat
 whitelist ~/.config/gnome-mplayer

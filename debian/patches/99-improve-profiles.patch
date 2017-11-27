@@ -1,0 +1,251 @@
+Description: Improve firejail profiles for some apps
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2017-11-27
+
+--- firejail-0.9.50.orig/etc/arduino.profile
++++ firejail-0.9.50/etc/arduino.profile
+@@ -8,6 +8,9 @@ include /etc/firejail/globals.local
+ noblacklist ${HOME}/.arduino15
+ noblacklist ${HOME}/.java
+ noblacklist ${HOME}/Arduino
++noblacklist ${HOME}/Downloads
++noblacklist ${HOME}/Documents
++noblacklist ${HOME}/Desktop
+ 
+ include /etc/firejail/disable-common.inc
+ include /etc/firejail/disable-devel.inc
+--- firejail-0.9.50.orig/etc/atom.profile
++++ firejail-0.9.50/etc/atom.profile
+@@ -8,10 +8,6 @@ include /etc/firejail/globals.local
+ noblacklist ~/.atom
+ noblacklist ~/.config/Atom
+ 
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+ caps.drop all
+ netfilter
+ nodvd
+--- firejail-0.9.50.orig/etc/bleachbit.profile
++++ firejail-0.9.50/etc/bleachbit.profile
+@@ -5,12 +5,6 @@ include /etc/firejail/bleachbit.local
+ # Persistent global definitions
+ include /etc/firejail/globals.local
+ 
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-# include /etc/firejail/disable-programs.inc
+-
+ caps.drop all
+ net none
+ no3d
+--- firejail-0.9.50.orig/etc/eom.profile
++++ firejail-0.9.50/etc/eom.profile
+@@ -10,10 +10,7 @@ noblacklist ~/.config/mate/eom
+ noblacklist ~/.local/share/Trash
+ noblacklist ~/.steam
+ 
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+ include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+ 
+ caps.drop all
+ # net none - makes settings immutable
+--- firejail-0.9.50.orig/etc/firefox.profile
++++ firejail-0.9.50/etc/firefox.profile
+@@ -29,6 +29,12 @@ mkdir ~/.cache/mozilla/firefox
+ mkdir ~/.mozilla
+ mkdir ~/.pki
+ whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/gnome-mplayer/plugin
+ whitelist ~/.cache/mozilla/firefox
+ whitelist ~/.config/gnome-mplayer
+--- firejail-0.9.50.orig/etc/geany.profile
++++ firejail-0.9.50/etc/geany.profile
+@@ -5,12 +5,6 @@ include /etc/firejail/geany.local
+ # Persistent global definitions
+ include /etc/firejail/globals.local
+ 
+-noblacklist ${HOME}/.config/geany
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+ caps.drop all
+ netfilter
+ no3d
+--- firejail-0.9.50.orig/etc/gedit.profile
++++ firejail-0.9.50/etc/gedit.profile
+@@ -5,14 +5,6 @@ include /etc/firejail/gedit.local
+ # Persistent global definitions
+ include /etc/firejail/globals.local
+ 
+-# when gedit is started via gnome-shell, firejail is not applied because systemd will start it
+-
+-noblacklist ~/.config/gedit
+-
+-include /etc/firejail/disable-common.inc
+-# include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+ 
+ caps.drop all
+ # net none - makes settings immutable
+--- firejail-0.9.50.orig/etc/icecat.profile
++++ firejail-0.9.50/etc/icecat.profile
+@@ -16,6 +16,12 @@ include /etc/firejail/disable-programs.i
+ mkdir ~/.cache/mozilla/icecat
+ mkdir ~/.mozilla
+ whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/gnome-mplayer/plugin
+ whitelist ~/.cache/mozilla/icecat
+ whitelist ~/.config/gnome-mplayer
+--- firejail-0.9.50.orig/etc/pluma.profile
++++ firejail-0.9.50/etc/pluma.profile
+@@ -7,11 +7,6 @@ include /etc/firejail/globals.local
+ 
+ noblacklist ${HOME}/.config/pluma
+ 
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+ caps.drop all
+ # net none - makes settings immutable
+ no3d
+--- firejail-0.9.50.orig/etc/qbittorrent.profile
++++ firejail-0.9.50/etc/qbittorrent.profile
+@@ -18,7 +18,13 @@ include /etc/firejail/disable-programs.i
+ mkdir ~/.cache/qBittorrent
+ mkdir ~/.config/qBittorrent
+ mkdir ~/.local/share/data/qBittorrent
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/qBittorrent
+ whitelist ~/.config/qBittorrent
+ whitelist ~/.config/qBittorrentrc
+--- firejail-0.9.50.orig/etc/steam.profile
++++ firejail-0.9.50/etc/steam.profile
+@@ -35,7 +35,7 @@ nonewprivs
+ noroot
+ notv
+ # novideo should be commented for VR
+-novideo
++#novideo
+ protocol unix,inet,inet6,netlink
+ seccomp
+ shell none
+@@ -43,6 +43,6 @@ shell none
+ # tracelog
+ 
+ # private-dev should be commented for controllers
+-private-dev
+-private-etc asound.conf,ca-certificates,dbus-1,drirc,fonts,group,gtk-2.0,gtk-3.0,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,lsb-release,machine-id,mime.types,passwd,pulse,resolv.conf,ssl
++#private-dev
++private-etc asound.conf,ca-certificates,dbus-1,drirc,fonts,group,gtk-2.0,gtk-3.0,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,lsb-release,machine-id,mime.types,passwd,pulse,resolv.conf,ssl,bumblebee,alternatives,nvidia
+ private-tmp
+--- firejail-0.9.50.orig/etc/thunderbird.profile
++++ firejail-0.9.50/etc/thunderbird.profile
+@@ -17,6 +17,13 @@ mkdir ~/.cache/thunderbird
+ mkdir ~/.gnupg
+ mkdir ~/.icedove
+ mkdir ~/.thunderbird
++whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/thunderbird
+ whitelist ~/.gnupg
+ whitelist ~/.icedove
+--- firejail-0.9.50.orig/etc/transmission-gtk.profile
++++ firejail-0.9.50/etc/transmission-gtk.profile
+@@ -15,7 +15,13 @@ include /etc/firejail/disable-programs.i
+ 
+ mkdir ~/.cache/transmission
+ mkdir ~/.config/transmission
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/transmission
+ whitelist ~/.config/transmission
+ include /etc/firejail/whitelist-common.inc
+--- firejail-0.9.50.orig/etc/transmission-qt.profile
++++ firejail-0.9.50/etc/transmission-qt.profile
+@@ -15,7 +15,13 @@ include /etc/firejail/disable-programs.i
+ 
+ mkdir ~/.cache/transmission
+ mkdir ~/.config/transmission
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.cache/transmission
+ whitelist ~/.config/transmission
+ include /etc/firejail/whitelist-common.inc
+--- firejail-0.9.50.orig/etc/uget-gtk.profile
++++ firejail-0.9.50/etc/uget-gtk.profile
+@@ -13,6 +13,12 @@ include /etc/firejail/disable-programs.i
+ 
+ mkdir ~/.config/uGet
+ whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ whitelist ~/.config/uGet
+ include /etc/firejail/whitelist-common.inc
+ 
+--- firejail-0.9.50.orig/etc/virtualbox.profile
++++ firejail-0.9.50/etc/virtualbox.profile
+@@ -20,6 +20,13 @@ mkdir ~/.config/VirtualBox
+ mkdir ~/VirtualBox VMs
+ whitelist ~/.config/VirtualBox
+ whitelist ~/VirtualBox VMs
++whitelist ${DOWNLOADS}
++whitelist ~/Desktop
++whitelist ~/Documents
++whitelist ~/Pictures
++whitelist ~/Mucis
++whitelist ~/Video
++whitelist ~/Templates
+ include /etc/firejail/whitelist-common.inc
+ 
+ caps.drop all

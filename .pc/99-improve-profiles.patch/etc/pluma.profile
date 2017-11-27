@@ -7,6 +7,11 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/pluma
 
+include /etc/firejail/disable-common.inc
+include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-passwdmgr.inc
+include /etc/firejail/disable-programs.inc
+
 caps.drop all
 # net none - makes settings immutable
 no3d

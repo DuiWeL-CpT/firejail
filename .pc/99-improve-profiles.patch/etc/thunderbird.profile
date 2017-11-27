@@ -17,13 +17,6 @@ mkdir ~/.cache/thunderbird
 mkdir ~/.gnupg
 mkdir ~/.icedove
 mkdir ~/.thunderbird
-whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Mucis
-whitelist ~/Video
-whitelist ~/Templates
 whitelist ~/.cache/thunderbird
 whitelist ~/.gnupg
 whitelist ~/.icedove
