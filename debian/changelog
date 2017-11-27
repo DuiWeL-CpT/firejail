@@ -1,4 +1,4 @@
-firejail (0.9.50-3parrot3) UNRELEASED; urgency=medium
+firejail (0.9.50-3parrot3) testing; urgency=medium
 
   * Fix thunderbird compatibility with icedove profiles.
 
