@@ -8,6 +8,10 @@ include /etc/firejail/globals.local
 noblacklist ~/.atom
 noblacklist ~/.config/Atom
 
+include /etc/firejail/disable-common.inc
+include /etc/firejail/disable-passwdmgr.inc
+include /etc/firejail/disable-programs.inc
+
 caps.drop all
 netfilter
 nodvd
