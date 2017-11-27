@@ -1,3 +1,9 @@
+firejail (0.9.50-3parrot3) UNRELEASED; urgency=medium
+
+  * Fix thunderbird compatibility with icedove profiles.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Nov 2017 23:15:30 +0100
+
 firejail (0.9.50-3parrot2) testing; urgency=medium
 
   * Update profiles.

@@ -15,7 +15,6 @@ noblacklist ~/.thunderbird
 
 mkdir ~/.cache/thunderbird
 mkdir ~/.gnupg
-mkdir ~/.icedove
 mkdir ~/.thunderbird
 whitelist ${DOWNLOADS}
 whitelist ~/Desktop
