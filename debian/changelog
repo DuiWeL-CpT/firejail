@@ -1,3 +1,9 @@
+firejail (0.9.50-3parrot4) testing; urgency=medium
+
+  * Disable libreoffice devel blacklist.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 01 Dec 2017 09:24:08 +0100
+
 firejail (0.9.50-3parrot3) testing; urgency=medium
 
   * Fix thunderbird compatibility with icedove profiles.
