@@ -10,19 +10,16 @@ include /etc/firejail/globals.local
 
 noblacklist ~/.cache/thunderbird
 noblacklist ~/.gnupg
+noblacklist ~/.icedove
 noblacklist ~/.thunderbird
 
 mkdir ~/.cache/thunderbird
 mkdir ~/.gnupg
+mkdir ~/.icedove
 mkdir ~/.thunderbird
-whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Music
-whitelist ~/Video
 whitelist ~/.cache/thunderbird
 whitelist ~/.gnupg
+whitelist ~/.icedove
 whitelist ~/.local/share/applications
 whitelist ~/.thunderbird
 include /etc/firejail/whitelist-common.inc

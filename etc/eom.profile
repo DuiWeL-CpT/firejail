@@ -10,7 +10,10 @@ noblacklist ~/.config/mate/eom
 noblacklist ~/.local/share/Trash
 noblacklist ~/.steam
 
+include /etc/firejail/disable-common.inc
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
+include /etc/firejail/disable-programs.inc
 
 caps.drop all
 # net none - makes settings immutable

@@ -8,9 +8,6 @@ include /etc/firejail/globals.local
 noblacklist ${HOME}/.arduino15
 noblacklist ${HOME}/.java
 noblacklist ${HOME}/Arduino
-noblacklist ${HOME}/Downloads
-noblacklist ${HOME}/Documents
-noblacklist ${HOME}/Desktop
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc

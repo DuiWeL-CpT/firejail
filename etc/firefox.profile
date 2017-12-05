@@ -29,12 +29,6 @@ mkdir ~/.cache/mozilla/firefox
 mkdir ~/.mozilla
 mkdir ~/.pki
 whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Music
-whitelist ~/Video
-whitelist ~/Templates
 whitelist ~/.cache/gnome-mplayer/plugin
 whitelist ~/.cache/mozilla/firefox
 whitelist ~/.config/gnome-mplayer

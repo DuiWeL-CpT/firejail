@@ -10,10 +10,7 @@ noblacklist /usr/local/sbin
 noblacklist ~/.config/libreoffice
 
 include /etc/firejail/disable-common.inc
-
-# libreoffice needs it at first boot
-#include /etc/firejail/disable-devel.inc
-
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
