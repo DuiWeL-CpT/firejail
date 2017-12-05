@@ -15,7 +15,12 @@ include /etc/firejail/disable-programs.inc
 
 mkdir ~/.cache/transmission
 mkdir ~/.config/transmission
-whitelist  ${DOWNLOADS}
+whitelist ${DOWNLOADS}
+whitelist ~/Desktop
+whitelist ~/Documents
+whitelist ~/Pictures
+whitelist ~/Music
+whitelist ~/Video
 whitelist ~/.cache/transmission
 whitelist ~/.config/transmission
 include /etc/firejail/whitelist-common.inc

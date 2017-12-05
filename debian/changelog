@@ -1,3 +1,10 @@
+firejail (0.9.50-3parrot5) testing; urgency=medium
+
+  * Fix typo.
+  * Refresh patches.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 05 Dec 2017 09:06:14 +0100
+
 firejail (0.9.50-3parrot4) testing; urgency=medium
 
   * Disable libreoffice devel blacklist.

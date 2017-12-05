@@ -1,7 +1,7 @@
-# Firejail profile for transmission-gtk
+# Firejail profile for transmission-qt
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/transmission-gtk.local
+include /etc/firejail/transmission-qt.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
@@ -15,12 +15,7 @@ include /etc/firejail/disable-programs.inc
 
 mkdir ~/.cache/transmission
 mkdir ~/.config/transmission
-whitelist ${DOWNLOADS}
-whitelist ~/Desktop
-whitelist ~/Documents
-whitelist ~/Pictures
-whitelist ~/Music
-whitelist ~/Video
+whitelist  ${DOWNLOADS}
 whitelist ~/.cache/transmission
 whitelist ~/.config/transmission
 include /etc/firejail/whitelist-common.inc
@@ -38,7 +33,7 @@ seccomp
 shell none
 tracelog
 
-private-bin transmission-gtk
+private-bin transmission-qt
 private-dev
 private-tmp
 

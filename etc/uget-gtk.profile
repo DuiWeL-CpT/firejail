@@ -13,6 +13,11 @@ include /etc/firejail/disable-programs.inc
 
 mkdir ~/.config/uGet
 whitelist ${DOWNLOADS}
+whitelist ~/Desktop
+whitelist ~/Documents
+whitelist ~/Pictures
+whitelist ~/Music
+whitelist ~/Video
 whitelist ~/.config/uGet
 include /etc/firejail/whitelist-common.inc
 
