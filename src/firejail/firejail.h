@@ -52,6 +52,8 @@
 #define RUN_LIB_DIR	"/run/firejail/mnt/lib"
 #define RUN_LIB_FILE	"/run/firejail/mnt/libfiles"
 #define RUN_LIB_BIN	"/run/firejail/mnt/binfiles"
+#define RUN_DNS_ETC	"/run/firejail/mnt/dns-etc"
+
 
 #define RUN_SECCOMP_PROTOCOL	"/run/firejail/mnt/seccomp.protocol"	// protocol filter
 #define RUN_SECCOMP_CFG	"/run/firejail/mnt/seccomp"			// configured filter
@@ -81,6 +83,8 @@
 #define RUN_WHITELIST_DEV_DIR	"/run/firejail/mnt/orig-dev"
 #define RUN_WHITELIST_OPT_DIR	"/run/firejail/mnt/orig-opt"
 #define RUN_WHITELIST_SRV_DIR   "/run/firejail/mnt/orig-srv"
+#define RUN_WHITELIST_ETC_DIR   "/run/firejail/mnt/orig-etc"
+#define RUN_WHITELIST_SHARE_DIR   "/run/firejail/mnt/orig-share"
 
 #define RUN_XAUTHORITY_FILE	"/run/firejail/mnt/.Xauthority"
 #define RUN_XAUTHORITY_SEC_FILE	"/run/firejail/mnt/sec.Xauthority"
@@ -197,7 +201,9 @@ typedef struct profile_entry_t {
 	unsigned var_dir:1;	// whitelist in /var directory
 	unsigned dev_dir:1;	// whitelist in /dev directory
 	unsigned opt_dir:1;	// whitelist in /opt directory
-        unsigned srv_dir:1;     // whitelist in /srv directory
+	unsigned srv_dir:1;	// whitelist in /srv directory
+	unsigned etc_dir:1;	// whitelist in /etc directory
+	unsigned share_dir:1;	// whitelist in /usr/share directory
 }ProfileEntry;
 
 typedef struct config_t {
@@ -245,10 +251,13 @@ typedef struct config_t {
 	char *protocol;			// protocol list
 
 	// rlimits
+	long long unsigned rlimit_cpu;
 	long long unsigned rlimit_nofile;
 	long long unsigned rlimit_nproc;
 	long long unsigned rlimit_fsize;
 	long long unsigned rlimit_sigpending;
+	long long unsigned rlimit_as;
+	unsigned timeout;	// maximum time elapsed before killing the sandbox
 
 	// cpu affinity, nice and control groups
 	uint32_t cpus;
@@ -297,11 +306,11 @@ void clear_run_files(pid_t pid);
 
 extern int arg_private;		// mount private /home
 extern int arg_private_template; // private /home template
-extern int arg_allow_private_blacklist;  // blacklist things in private directories
 extern int arg_debug;		// print debug messages
 extern int arg_debug_check_filename;		// print debug messages for filename checking
 extern int arg_debug_blacklists;	// print debug messages for blacklists
 extern int arg_debug_whitelists;	// print debug messages for whitelists
+extern int arg_debug_private_lib;	// print debug messages for private-lib
 extern int arg_nonetwork;	// --net=none
 extern int arg_command;	// -c
 extern int arg_overlay;		// overlay option
@@ -320,10 +329,12 @@ extern char *arg_caps_list;		// optional caps list
 
 extern int arg_trace;		// syscall tracing support
 extern int arg_tracelog;	// blacklist tracing support
+extern int arg_rlimit_cpu;	// rlimit cpu
 extern int arg_rlimit_nofile;	// rlimit nofile
 extern int arg_rlimit_nproc;	// rlimit nproc
 extern int arg_rlimit_fsize;	// rlimit fsize
 extern int arg_rlimit_sigpending;// rlimit sigpending
+extern int arg_rlimit_as;	//rlimit as
 extern int arg_nogroups;	// disable supplementary groups
 extern int arg_nonewprivs;	// set the NO_NEW_PRIVS prctl
 extern int arg_noroot;		// create a new user namespace and disable root user
@@ -353,6 +364,7 @@ extern int arg_nice;		// nice value configured
 extern int arg_ipc;		// enable ipc namespace
 extern int arg_writable_etc;	// writable etc
 extern int arg_writable_var;	// writable var
+extern int arg_writable_run_user;	// writable /run/user
 extern int arg_writable_var_log; // writable /var/log
 extern int arg_appimage;	// appimage
 extern int arg_audit;		// audit
@@ -386,7 +398,7 @@ char *guess_shell(void);
 
 // sandbox.c
 int sandbox(void* sandbox_arg);
-void start_application(void);
+void start_application(int no_sandbox);
 
 // network_main.c
 void net_configure_bridge(Bridge *br, char *dev_name);
@@ -496,7 +508,7 @@ void notify_other(int fd);
 char *expand_home(const char *path, const char* homedir);
 const char *gnu_basename(const char *path);
 uid_t pid_get_uid(pid_t pid);
-void invalid_filename(const char *fname);
+void invalid_filename(const char *fname, int globbing);
 uid_t get_group_id(const char *group);
 int remove_directory(const char *path);
 void flush_stdin(void);
@@ -504,7 +516,7 @@ void create_empty_dir_as_root(const char *dir, mode_t mode);
 void create_empty_file_as_root(const char *dir, mode_t mode);
 int set_perms(const char *fname, uid_t uid, gid_t gid, mode_t mode);
 void mkdir_attr(const char *fname, mode_t mode, uid_t uid, gid_t gid);
-char *read_text_file_or_exit(const char *fname);
+unsigned extract_timeout(const char *str);
 
 // fs_var.c
 void fs_var_log(void);	// mounting /var/log
@@ -594,6 +606,7 @@ void check_output(int argc, char **argv);
 void check_netfilter_file(const char *fname);
 void netfilter(const char *fname);
 void netfilter6(const char *fname);
+void netfilter_print(pid_t pid, int ipv6);
 
 // netns.c
 void check_netns(const char *nsname);
@@ -715,14 +728,12 @@ enum {
 	CFG_FORCE_NONEWPRIVS,
 	CFG_WHITELIST,
 	CFG_XEPHYR_WINDOW_TITLE,
-	CFG_REMOUNT_PROC_SYS,
 	CFG_OVERLAYFS,
 	CFG_CHROOT_DESKTOP,
 	CFG_PRIVATE_HOME,
 	CFG_PRIVATE_BIN_NO_LOCAL,
 	CFG_FIREJAIL_PROMPT,
 	CFG_FOLLOW_SYMLINK_AS_USER,
-	CFG_FOLLOW_SYMLINK_PRIVATE_BIN,
 	CFG_DISABLE_MNT,
 	CFG_JOIN,
 	CFG_ARP_PROBES,
@@ -755,6 +766,7 @@ void build_appimage_cmdline(char **command_line, char **window_title, int argc, 
 // sbox.c
 // programs
 #define PATH_FNET (LIBDIR "/firejail/fnet")
+#define PATH_FNETFILTER (LIBDIR "/firejail/fnetfilter")
 #define PATH_FIREMON (PREFIX "/bin/firemon")
 #define PATH_FIREJAIL (PREFIX "/bin/firejail")
 #define PATH_FSECCOMP (LIBDIR "/firejail/fseccomp")

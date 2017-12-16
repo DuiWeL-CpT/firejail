@@ -13,14 +13,16 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-mkdir ~/.cache/transmission
-mkdir ~/.config/transmission
+mkdir ${HOME}/.cache/transmission
+mkdir ${HOME}/.config/transmission
 whitelist  ${DOWNLOADS}
-whitelist ~/.cache/transmission
-whitelist ~/.config/transmission
+whitelist ${HOME}/.cache/transmission
+whitelist ${HOME}/.config/transmission
 include /etc/firejail/whitelist-common.inc
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
+machine-id
 netfilter
 nodvd
 nonewprivs
@@ -35,6 +37,7 @@ tracelog
 
 private-bin transmission-gtk
 private-dev
+private-lib
 private-tmp
 
 memory-deny-write-execute

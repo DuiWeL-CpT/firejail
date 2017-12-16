@@ -5,12 +5,14 @@ include /etc/firejail/dragon.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.config/dragonplayerrc
+noblacklist ${HOME}/.config/dragonplayerrc
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter

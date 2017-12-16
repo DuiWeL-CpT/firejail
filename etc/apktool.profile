@@ -6,6 +6,7 @@ include /etc/firejail/apktool.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
+blacklist /run/user/*/bus
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
@@ -25,7 +26,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin apktool,bash,dash,java,dirname,basename,expr,sh
+private-bin apktool,bash,java,dirname,basename,expr,sh
 private-dev
 
 noexec ${HOME}

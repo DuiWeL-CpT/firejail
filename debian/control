@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Reiner Herrmann <reiner@reiner-h.de>
 Build-Depends: debhelper (>= 10), libapparmor-dev
-Standards-Version: 4.1.0
+Standards-Version: 4.1.2
 Homepage: https://firejail.wordpress.com
 Vcs-Git: https://anonscm.debian.org/git/collab-maint/firejail.git
 Vcs-Browser: https://anonscm.debian.org/git/collab-maint/firejail.git

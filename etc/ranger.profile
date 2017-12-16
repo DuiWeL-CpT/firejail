@@ -5,11 +5,13 @@ include /etc/firejail/ranger.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
+blacklist /run/user/*/bus
+
 # noblacklist /usr/bin/cpan*
 noblacklist /usr/bin/perl
 noblacklist /usr/lib/perl*
 noblacklist /usr/share/perl*
-noblacklist ~/.config/ranger
+noblacklist ${HOME}/.config/ranger
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc

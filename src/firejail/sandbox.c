@@ -105,7 +105,7 @@ static void set_caps(void) {
 		caps_keep_list(arg_caps_list);
 	else if (arg_caps_default_filter)
 		caps_default_filter();
-	
+
 	// drop discretionary access control capabilities for root sandboxes
 	// if caps.keep, the user has to set it manually in the list
 	if (!arg_caps_keep)
@@ -201,6 +201,14 @@ static int monitor_application(pid_t app_pid) {
 	signal (SIGTERM, sandbox_handler);
 	EUID_USER();
 
+	// handle --timeout
+	int options = 0;;
+	unsigned timeout = 0;
+	if (cfg.timeout) {
+		options = WNOHANG;
+		timeout = cfg.timeout;
+	}
+
 	int status = 0;
 	while (monitored_pid) {
 		usleep(20000);
@@ -214,9 +222,21 @@ static int monitor_application(pid_t app_pid) {
 
 		pid_t rv;
 		do {
-			rv = waitpid(-1, &status, 0);
+			rv = waitpid(-1, &status, options);
 			if (rv == -1)
 				break;
+
+			// handle --timeout
+			if (options) {
+				if (--timeout == 0)  {
+					kill(-1, SIGTERM);
+					flush_stdin();
+					sleep(1);
+					_exit(1);
+				}
+				else
+					sleep(1);
+			}
 		}
 		while(rv != monitored_pid);
 		if (arg_debug)
@@ -226,12 +246,6 @@ static int monitor_application(pid_t app_pid) {
 				perror("waitpid");
 			sleep(1);
 		}
-
-		// if /proc is not remounted, we cannot check /proc directory,
-		// for now we just get out of here
-		// todo: find another way of checking child processes!
-		if (!checkcfg(CFG_REMOUNT_PROC_SYS))
-			break;
 
 		DIR *dir;
 		if (!(dir = opendir("/proc"))) {
@@ -350,10 +364,12 @@ static int ok_to_run(const char *program) {
 	return 0;
 }
 
-void start_application(void) {
+void start_application(int no_sandbox) {
 	// set environment
-	env_defaults();
-	env_apply();
+	if (no_sandbox == 0) {
+		env_defaults();
+		env_apply();
+	}
 	if (arg_debug) {
 		printf("starting application\n");
 		printf("LD_PRELOAD=%s\n", getenv("LD_PRELOAD"));
@@ -852,8 +868,7 @@ int sandbox(void* sandbox_arg) {
 	//****************************
 	// update /proc, /sys, /dev, /boot directory
 	//****************************
-	if (checkcfg(CFG_REMOUNT_PROC_SYS))
-		fs_proc_sys_dev_boot();
+	fs_proc_sys_dev_boot();
 
 	//****************************
 	// handle /mnt and /media
@@ -1082,7 +1097,7 @@ int sandbox(void* sandbox_arg) {
 		}
 #endif
 		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
-		start_application();	// start app
+		start_application(0);	// start app
 	}
 
 	int status = monitor_application(app_pid);	// monitor application

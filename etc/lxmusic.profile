@@ -5,13 +5,15 @@ include /etc/firejail/lxmusic.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.cache/xmms2
-noblacklist ~/.config/xmms2
+noblacklist ${HOME}/.cache/xmms2
+noblacklist ${HOME}/.config/xmms2
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter

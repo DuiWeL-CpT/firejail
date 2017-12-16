@@ -5,11 +5,16 @@ include /etc/firejail/konversation.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
+noblacklist ${HOME}/.config/konversationrc
+noblacklist ${HOME}/.kde/share/config/konversationrc
+noblacklist ${HOME}/.kde4/share/config/konversationrc
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -25,3 +30,7 @@ tracelog
 
 private-dev
 private-tmp
+
+# memory-deny-write-execute
+noexec ${HOME}
+noexec /tmp

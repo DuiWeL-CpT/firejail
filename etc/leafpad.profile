@@ -12,6 +12,8 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+include /etc/firejail/whitelist-var-common.inc
+
 caps.drop all
 netfilter
 no3d
@@ -26,7 +28,10 @@ protocol unix
 seccomp
 shell none
 
+private-bin leafpad
 private-dev
+private-lib
+private-tmp
 
 noexec ${HOME}
 noexec /tmp

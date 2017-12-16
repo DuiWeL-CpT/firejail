@@ -5,12 +5,14 @@ include /etc/firejail/knotes.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.config/knotesrc
+noblacklist ${HOME}/.config/knotesrc
 
 include /etc/firejail/disable-common.inc
 # include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
@@ -25,7 +27,5 @@ seccomp
 shell none
 tracelog
 
-# private-bin kate
 private-dev
-# private-etc fonts
-private-tmp
+#private-tmp - problems on kubuntu 17.04

@@ -7,28 +7,29 @@ include /etc/firejail/globals.local
 
 blacklist /tmp/.X11-unix
 
-noblacklist ~/.Mail
-noblacklist ~/.bogofilter
-noblacklist ~/.cache/mutt
-noblacklist ~/.elinks
-noblacklist ~/.emacs
-noblacklist ~/.emacs.d
-noblacklist ~/.gnupg
-noblacklist ~/.mail
-noblacklist ~/.mailcap
-noblacklist ~/.msmtprc
-noblacklist ~/.mutt
-noblacklist ~/.mutt/muttrc
-noblacklist ~/.muttrc
-noblacklist ~/.signature
-noblacklist ~/.vim
-noblacklist ~/.viminfo
-noblacklist ~/.vimrc
-noblacklist ~/.w3m
-noblacklist ~/Mail
-noblacklist ~/mail
-noblacklist ~/postponed
-noblacklist ~/sent
+noblacklist /var/mail
+noblacklist /var/spool/mail
+noblacklist ${HOME}/.Mail
+noblacklist ${HOME}/.bogofilter
+noblacklist ${HOME}/.cache/mutt
+noblacklist ${HOME}/.elinks
+noblacklist ${HOME}/.emacs
+noblacklist ${HOME}/.emacs.d
+noblacklist ${HOME}/.gnupg
+noblacklist ${HOME}/.mail
+noblacklist ${HOME}/.mailcap
+noblacklist ${HOME}/.msmtprc
+noblacklist ${HOME}/.mutt
+noblacklist ${HOME}/.muttrc
+noblacklist ${HOME}/.signature
+noblacklist ${HOME}/.vim
+noblacklist ${HOME}/.viminfo
+noblacklist ${HOME}/.vimrc
+noblacklist ${HOME}/.w3m
+noblacklist ${HOME}/Mail
+noblacklist ${HOME}/mail
+noblacklist ${HOME}/postponed
+noblacklist ${HOME}/sent
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -48,5 +49,6 @@ novideo
 protocol unix,inet,inet6
 seccomp
 shell none
+writable-run-user
 
 private-dev

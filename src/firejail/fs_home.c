@@ -50,6 +50,7 @@ static void skel(const char *homedir, uid_t u, gid_t g) {
 		if (stat("/etc/skel/.zshrc", &s) == 0) {
 			copy_file_as_user("/etc/skel/.zshrc", fname, u, g, 0644); // regular user
 			fs_logger("clone /etc/skel/.zshrc");
+			fs_logger2("clone", fname);
 		}
 		else {
 			touch_file_as_user(fname, u, g, 0644);
@@ -74,6 +75,7 @@ static void skel(const char *homedir, uid_t u, gid_t g) {
 		if (stat("/etc/skel/.cshrc", &s) == 0) {
 			copy_file_as_user("/etc/skel/.cshrc", fname, u, g, 0644); // regular user
 			fs_logger("clone /etc/skel/.cshrc");
+			fs_logger2("clone", fname);
 		}
 		else {
 			touch_file_as_user(fname, u, g, 0644);
@@ -97,6 +99,7 @@ static void skel(const char *homedir, uid_t u, gid_t g) {
 		if (stat("/etc/skel/.bashrc", &s) == 0) {
 			copy_file_as_user("/etc/skel/.bashrc", fname, u, g, 0644); // regular user
 			fs_logger("clone /etc/skel/.bashrc");
+			fs_logger2("clone", fname);
 		}
 		free(fname);
 	}
@@ -312,6 +315,7 @@ void fs_private(void) {
 		if (chown(homedir, u, g) < 0)
 			errExit("chown");
 		fs_logger2("mkdir", homedir);
+		fs_logger2("tmpfs", homedir);
 	}
 
 	skel(homedir, u, g);
@@ -325,7 +329,7 @@ void fs_private(void) {
 // check new private home directory (--private= option) - exit if it fails
 void fs_check_private_dir(void) {
 	EUID_ASSERT();
-	invalid_filename(cfg.home_private);
+	invalid_filename(cfg.home_private, 0); // no globbing
 
 	// Expand the home directory
 	char *tmp = expand_home(cfg.home_private, cfg.homedir);
@@ -367,7 +371,7 @@ static char *check_dir_or_file(const char *name) {
 	assert(name);
 
 	// basic checks
-	invalid_filename(name);
+	invalid_filename(name, 0); // no globbing
 	if (arg_debug)
 		printf("Private home: checking %s\n", name);
 
@@ -462,6 +466,8 @@ static void duplicate(char *name) {
 // 	set skel files,
 // 	restore .Xauthority
 void fs_private_home_list(void) {
+	timetrace_start();
+
 	char *homedir = cfg.homedir;
 	char *private_list = cfg.home_private_keep;
 	assert(homedir);
@@ -498,6 +504,7 @@ void fs_private_home_list(void) {
 
 	if (mount(RUN_HOME_DIR, homedir, NULL, MS_BIND|MS_REC, NULL) < 0)
 		errExit("mount bind");
+	fs_logger2("tmpfs", homedir);
 
 	if (uid != 0) {
 		// mask /root
@@ -519,4 +526,8 @@ void fs_private_home_list(void) {
 		copy_xauthority();
 	if (aflag)
 		copy_asoundrc();
+
+	if (!arg_quiet)
+		fprintf(stderr, "Home directory installed in %0.2f ms\n", timetrace_end());
+
 }

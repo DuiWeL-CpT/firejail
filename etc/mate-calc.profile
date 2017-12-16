@@ -5,6 +5,8 @@ include /etc/firejail/mate-calc.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
+blacklist /run/user/*/bus
+
 noblacklist ${HOME}/.config/mate-calc
 
 include /etc/firejail/disable-common.inc
@@ -12,8 +14,15 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+whitelist ${HOME}/.cache/mate-calc
+whitelist ${HOME}/.config/caja
+whitelist ${HOME}/.config/gtk-3.0
+whitelist ${HOME}/.config/dconf
+whitelist ${HOME}/.config/mate-menu
+whitelist ${HOME}/.themes
+
 caps.drop all
-netfilter
+net none
 no3d
 nodvd
 nogroups
@@ -27,8 +36,12 @@ seccomp
 shell none
 
 disable-mnt
+private-bin mate-calc,mate-calculator
+private-etc fonts
 private-dev
+private-opt none
 private-tmp
 
+memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp

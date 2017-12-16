@@ -8,11 +8,13 @@ include /etc/firejail/globals.local
 
 blacklist /tmp/.X11-unix
 
-noblacklist ~/.wgetrc
+noblacklist ${HOME}/.wgetrc
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter

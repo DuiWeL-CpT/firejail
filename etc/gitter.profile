@@ -5,15 +5,21 @@ include /etc/firejail/gitter.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.config/autostart
-noblacklist ~/.config/Gitter
+noblacklist ${HOME}/.config/autostart
+noblacklist ${HOME}/.config/Gitter
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+whitelist ${DOWNLOADS}
+whitelist ${HOME}/.config/autostart
+whitelist ${HOME}/.config/Gitter
+include /etc/firejail/whitelist-var-common.inc
+
 caps.drop all
+machine-id
 netfilter
 nodvd
 nogroups
@@ -25,6 +31,12 @@ protocol unix,inet,inet6,netlink
 seccomp
 shell none
 
-private-bin gitter
+disable-mnt
+private-bin bash,env,gitter
+private-etc fonts,pulse,resolv.conf
+private-opt Gitter
 private-dev
 private-tmp
+
+noexec ${HOME}
+noexec /tmp

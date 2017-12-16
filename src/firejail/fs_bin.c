@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <glob.h>
 
 static char *paths[] = {
 	"/usr/local/bin",
@@ -39,7 +40,6 @@ static char *paths[] = {
 // return 1 if found, 0 if not found
 static char *check_dir_or_file(const char *name) {
 	assert(name);
-
 	struct stat s;
 	char *fname = NULL;
 
@@ -94,22 +94,28 @@ static char *check_dir_or_file(const char *name) {
 	return paths[i];
 }
 
-
 // return 1 if the file is in paths[]
 static int valid_full_path_file(const char *name) {
 	assert(name);
 
-	char *full_name = realpath(name, NULL);
-	if (!full_name)
-		goto errexit;
-	char *fname = strrchr(full_name, '/');
-	if (!fname)
-		goto errexit;
-	if (*(++fname) == '\0')
-		goto errexit;
+	if (*name != '/')
+		return 0;
+	if (strstr(name, ".."))
+		return 0;
 
+	// do we have a file?
+	struct stat s;
+	if (stat(name, &s) == -1)
+		return 0;
+	// directories not allowed
+	if (S_ISDIR(s.st_mode))
+		return 0;
+	// checking access
+	if (access(name, X_OK) == -1)
+		return 0;
+
+	// check standard paths
 	int i = 0;
-	int found = 0;
 	while (paths[i]) {
 		// private-bin-no-local can be disabled in /etc/firejail/firejail.config
 		if (checkcfg(CFG_PRIVATE_BIN_NO_LOCAL) && strstr(paths[i], "local/")) {
@@ -117,54 +123,48 @@ static int valid_full_path_file(const char *name) {
 			continue;
 		}
 
-		// check file
-		char *full_name2;
-		if (asprintf(&full_name2, "%s/%s", paths[i], fname) == -1)
-			errExit("asprintf");
-
-		if (strcmp(full_name, full_name2) == 0) {
-			free(full_name2);
-			found = 1;
-			break;
-		}
-
-		free(full_name2);
+		int len = strlen(paths[i]);
+		if (strncmp(name, paths[i], len) == 0 && name[len] == '/' && name[len + 1] != '\0')
+			return 1;
 		i++;
 	}
-
-	if (!found)
-		goto errexit;
-
-	free(full_name);
-	return 1;
-
-errexit:
 	if (arg_debug)
-		fwarning("file %s not found\n", name);
-	if (full_name)
-		free(full_name);
+		printf("file %s not found\n", name);
 	return 0;
 }
 
+static void report_duplication(const char *fname) {
+	// report the file on all bin paths
+	int i = 0;
+	while (paths[i]) {
+		char *p;
+		if (asprintf(&p, "%s/%s", paths[i], fname) == -1)
+			errExit("asprintf");
+		fs_logger2("clone", p);
+		free(p);
+		i++;
+	}
+}
+
 static void duplicate(char *fname, FILE *fplist) {
+	assert(fname);
+
 	if (*fname == '~' || strstr(fname, "..")) {
 		fprintf(stderr, "Error: \"%s\" is an invalid filename\n", fname);
 		exit(1);
 	}
-	invalid_filename(fname);
+	invalid_filename(fname, 0); // no globbing
 
 	char *full_path;
 	if (*fname == '/') {
 		// If the absolute filename is indicated, directly use it. This
-		// is required for the following three cases:
+		// is required for the following cases:
 		//  - if user's $PATH order is not the same as the above
 		//    paths[] variable order
-		//  - if for example /usr/bin/which is a symlink to /bin/which,
-		//    because in this case the result is a symlink pointing to
-		//    itself due to the file name being the same.
-
-		if (!valid_full_path_file(fname))
+		if (!valid_full_path_file(fname)) {
+			fwarning("invalid private-bin path %s\n", fname);
 			return;
+		}
 
 		full_path = strdup(fname);
 		if (!full_path)
@@ -183,15 +183,74 @@ static void duplicate(char *fname, FILE *fplist) {
 	if (fplist)
 		fprintf(fplist, "%s\n", full_path);
 
-	// copy the file
-	if (checkcfg(CFG_FOLLOW_SYMLINK_PRIVATE_BIN))
-		sbox_run(SBOX_ROOT| SBOX_SECCOMP, 4, PATH_FCOPY, "--follow-link", full_path, RUN_BIN_DIR);
-	else
-		sbox_run(SBOX_ROOT| SBOX_SECCOMP, 3, PATH_FCOPY, full_path, RUN_BIN_DIR);
-	fs_logger2("clone", fname);
+	// if full_path is symlink, and the link is in our path, copy both the file and the symlink
+	if (is_link(full_path)) {
+		char *actual_path = realpath(full_path, NULL);
+		if (actual_path) {
+			if (valid_full_path_file(actual_path)) {
+				// solving problems such as /bin/sh -> /bin/dash
+				// copy the real file pointed by symlink
+				sbox_run(SBOX_ROOT| SBOX_SECCOMP, 3, PATH_FCOPY, actual_path, RUN_BIN_DIR);
+				char *f = strrchr(actual_path, '/');
+				if (f && *(++f) !='\0')
+					report_duplication(f);
+			}
+			free(actual_path);
+		}
+	}
+
+	// copy a file or a symlink
+	sbox_run(SBOX_ROOT| SBOX_SECCOMP, 3, PATH_FCOPY, full_path, RUN_BIN_DIR);
 	free(full_path);
+	report_duplication(fname);
 }
 
+static void globbing(char *fname, FILE *fplist) {
+	assert(fname);
+
+	// go directly to duplicate() if no globbing char is present - see man 7 glob
+	if (strrchr(fname, '*') == NULL &&
+	    strrchr(fname, '[') == NULL &&
+	    strrchr(fname, '?') == NULL)
+		return duplicate(fname, fplist);
+
+	// loop through paths[]
+	int i = 0;
+	while (paths[i]) {
+		// private-bin-no-local can be disabled in /etc/firejail/firejail.config
+		if (checkcfg(CFG_PRIVATE_BIN_NO_LOCAL) && strstr(paths[i], "local/")) {
+			i++;
+			continue;
+		}
+
+		// check file
+		char *pattern;
+		if (asprintf(&pattern, "%s/%s", paths[i], fname) == -1)
+			errExit("asprintf");
+
+		// globbing
+		glob_t globbuf;
+		int globerr = glob(pattern, GLOB_NOCHECK | GLOB_NOSORT | GLOB_PERIOD, NULL, &globbuf);
+		if (globerr) {
+			fprintf(stderr, "Error: failed to glob private-bin pattern %s\n", pattern);
+			exit(1);
+		}
+
+		size_t j;
+		for (j = 0; j < globbuf.gl_pathc; j++) {
+			assert(globbuf.gl_pathv[j]);
+			// testing for GLOB_NOCHECK - no pattern matched returns the original pattern
+			if (strcmp(globbuf.gl_pathv[j], pattern) == 0)
+				continue;
+
+			duplicate(globbuf.gl_pathv[j], fplist);
+		}
+
+		globfree(&globbuf);
+		free(pattern);
+		i++;
+	}
+}
 
 void fs_private_bin_list(void) {
 	char *private_list = cfg.bin_private_keep;
@@ -217,9 +276,9 @@ void fs_private_bin_list(void) {
 	}
 
 	char *ptr = strtok(dlist, ",");
-	duplicate(ptr, fplist);
+	globbing(ptr, fplist);
 	while ((ptr = strtok(NULL, ",")) != NULL)
-		duplicate(ptr, fplist);
+		globbing(ptr, fplist);
 	free(dlist);
 	fs_logger_print();
 	if (fplist)

@@ -183,9 +183,23 @@ static void disable_file(OPERATION op, const char *filename) {
 	free(fname);
 }
 
+// check noblacklist statements not matched by a proper blacklist in disable-*.inc files
+static int nbcheck_start = 0;
+static size_t nbcheck_size = 0;
+static int *nbcheck = NULL;
+
 // Treat pattern as a shell glob pattern and blacklist matching files
 static void globbing(OPERATION op, const char *pattern, const char *noblacklist[], size_t noblacklist_len) {
 	assert(pattern);
+
+	if (nbcheck_start == 0) {
+		nbcheck_start = 1;
+		nbcheck_size = noblacklist_len;
+		nbcheck = malloc(sizeof(int) * noblacklist_len);
+		if (nbcheck == NULL)
+			errExit("malloc");
+		memset(nbcheck, 0, sizeof(int) * noblacklist_len);
+	}
 
 	glob_t globbuf;
 	// Profiles contain blacklists for files that might not exist on a user's machine.
@@ -212,6 +226,8 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 				continue;
 			else if (result == 0) {
 				okay_to_blacklist = false;
+				if (j < nbcheck_size)	// noblacklist checking
+					nbcheck[j] = 1;
 				break;
 			}
 			else {
@@ -219,14 +235,6 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 				exit(1);
 			}
 		}
-
-		// We don't usually need to blacklist things in private home directories
-		if (okay_to_blacklist
-		 && cfg.homedir
-		 && arg_private
-		 && (!arg_allow_private_blacklist)
-		 && (strncmp(path, cfg.homedir, strlen(cfg.homedir)) == 0))
-			okay_to_blacklist = false;
 
 		if (okay_to_blacklist)
 			disable_file(op, path);
@@ -411,8 +419,21 @@ void fs_blacklist(void) {
 	}
 
 	size_t i;
-	for (i = 0; i < noblacklist_c; i++) free(noblacklist[i]);
-        free(noblacklist);
+	// noblacklist checking
+	for (i = 0; i < nbcheck_size; i++)
+		if (!arg_quiet && !nbcheck[i])
+			printf("TESTING warning: noblacklist %s not matched by a proper blacklist command in disable*.inc\n",
+				 noblacklist[i]);
+
+	// free memory
+	if (nbcheck) {
+		free(nbcheck);
+		nbcheck = NULL;
+		nbcheck_size = 0;
+	}
+	for (i = 0; i < noblacklist_c; i++)
+		free(noblacklist[i]);
+	free(noblacklist);
 }
 
 static int get_mount_flags(const char *path, unsigned long *flags) {
@@ -582,33 +603,35 @@ void fs_proc_sys_dev_boot(void) {
 
 
 	// disable various ipc sockets in /run/user
-	struct stat s;
+	if (!arg_writable_run_user) {
+		struct stat s;
 
-	char *fname;
-	if (asprintf(&fname, "/run/user/%d", getuid()) == -1)
-		errExit("asprintf");
-	if (is_dir(fname)) { // older distros don't have this directory
-		// disable /run/user/{uid}/gnupg
-		char *fnamegpg;
-		if (asprintf(&fnamegpg, "/run/user/%d/gnupg", getuid()) == -1)
+		char *fname;
+		if (asprintf(&fname, "/run/user/%d", getuid()) == -1)
 			errExit("asprintf");
-		if (stat(fnamegpg, &s) == -1)
-		    mkdir_attr(fnamegpg, 0700, getuid(), getgid());
-		if (stat(fnamegpg, &s) == 0)
-			disable_file(BLACKLIST_FILE, fnamegpg);
-		free(fnamegpg);
+		if (is_dir(fname)) { // older distros don't have this directory
+			// disable /run/user/{uid}/gnupg
+			char *fnamegpg;
+			if (asprintf(&fnamegpg, "/run/user/%d/gnupg", getuid()) == -1)
+				errExit("asprintf");
+			if (stat(fnamegpg, &s) == -1)
+			    mkdir_attr(fnamegpg, 0700, getuid(), getgid());
+			if (stat(fnamegpg, &s) == 0)
+				disable_file(BLACKLIST_FILE, fnamegpg);
+			free(fnamegpg);
 
-		// disable /run/user/{uid}/systemd
-		char *fnamesysd;
-		if (asprintf(&fnamesysd, "/run/user/%d/systemd", getuid()) == -1)
-			errExit("asprintf");
-		if (stat(fnamesysd, &s) == -1)
-			mkdir_attr(fnamesysd, 0755, getuid(), getgid());
-		if (stat(fnamesysd, &s) == 0)
-			disable_file(BLACKLIST_FILE, fnamesysd);
-		free(fnamesysd);
+			// disable /run/user/{uid}/systemd
+			char *fnamesysd;
+			if (asprintf(&fnamesysd, "/run/user/%d/systemd", getuid()) == -1)
+				errExit("asprintf");
+			if (stat(fnamesysd, &s) == -1)
+				mkdir_attr(fnamesysd, 0755, getuid(), getgid());
+			if (stat(fnamesysd, &s) == 0)
+				disable_file(BLACKLIST_FILE, fnamesysd);
+			free(fnamesysd);
+		}
+		free(fname);
 	}
-	free(fname);
 
 	if (getuid() != 0) {
 		// disable /dev/kmsg and /proc/kmsg
@@ -1100,7 +1123,9 @@ void fs_check_chroot_dir(const char *rootdir) {
 	}
 	free(name);
 
-	// check /etc/resolv.conf
+	// there should be no checking on <chrootdir>/etc/resolv.conf
+	// the file is replaced with the real /etc/resolv.conf anyway
+#if 0
 	if (asprintf(&name, "%s/etc/resolv.conf", rootdir) == -1)
 		errExit("asprintf");
 	if (stat(name, &s) == 0) {
@@ -1109,11 +1134,22 @@ void fs_check_chroot_dir(const char *rootdir) {
 			exit(1);
 		}
 	}
-	if (is_link(name)) {
-		fprintf(stderr, "Error: invalid %s file\n", name);
+	else {
+		fprintf(stderr, "Error: chroot /etc/resolv.conf not found\n");
 		exit(1);
 	}
+	// on Arch /etc/resolv.conf could be a symlink to /run/systemd/resolve/resolv.conf
+	// on Ubuntu 17.04 /etc/resolv.conf could be a symlink to /run/resolveconf/resolv.conf
+	if (is_link(name)) {
+		// check the link points in chroot
+		char *rname = realpath(name, NULL);
+		if (!rname || strncmp(rname, rootdir, strlen(rootdir)) != 0) {
+			fprintf(stderr, "Error: chroot /etc/resolv.conf is pointing outside chroot\n");
+			exit(1);
+		}
+	}
 	free(name);
+#endif
 
 	// check x11 socket directory
 	if (getenv("FIREJAIL_X11")) {
@@ -1184,17 +1220,12 @@ void fs_chroot(const char *rootdir) {
 			errExit("mount bind");
 
 		// copy /etc/resolv.conf in chroot directory
-		// if resolv.conf in chroot is a symbolic link, this will fail
-		// no exit on error, let the user deal with the problem
 		char *fname;
 		if (asprintf(&fname, "%s/etc/resolv.conf", rootdir) == -1)
 			errExit("asprintf");
 		if (arg_debug)
 			printf("Updating /etc/resolv.conf in %s\n", fname);
-		if (is_link(fname)) {
-			fprintf(stderr, "Error: invalid %s file\n", fname);
-			exit(1);
-		}
+		unlink(fname);
 		if (copy_file("/etc/resolv.conf", fname, 0, 0, 0644) == -1) // root needed
 			fwarning("/etc/resolv.conf not initialized\n");
 	}

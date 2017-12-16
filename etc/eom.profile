@@ -5,15 +5,19 @@ include /etc/firejail/eom.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.Steam
-noblacklist ~/.config/mate/eom
-noblacklist ~/.local/share/Trash
-noblacklist ~/.steam
+# blacklist /run/user/*/bus - makes settings immutable
+
+noblacklist ${HOME}/.Steam
+noblacklist ${HOME}/.config/mate/eom
+noblacklist ${HOME}/.local/share/Trash
+noblacklist ${HOME}/.steam
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 # net none - makes settings immutable
@@ -33,6 +37,7 @@ tracelog
 private-bin eom
 private-dev
 private-etc fonts
+private-lib
 private-tmp
 
 memory-deny-write-execute

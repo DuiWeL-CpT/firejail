@@ -24,7 +24,8 @@ seccomp
 shell none
 tracelog
 
-private-bin bash,dash,sh,grep,tail,env,gpg,id,readlink,dirname,test,mkdir,ln,sed,cp,rm,getconf
+disable-mnt
+private-bin bash,sh,grep,tail,env,gpg,id,readlink,dirname,test,mkdir,ln,sed,cp,rm,getconf
 private-dev
 private-etc fonts
 private-tmp

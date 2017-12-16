@@ -196,7 +196,7 @@ static int copy_file_by_fd(int src, int dst) {
 			done += rv;
 		}
 	}
-	fflush(0);
+//	fflush(0);
 	return 0;
 }
 
@@ -747,7 +747,7 @@ uid_t pid_get_uid(pid_t pid) {
 }
 
 
-void invalid_filename(const char *fname) {
+void invalid_filename(const char *fname, int globbing) {
 //	EUID_ASSERT();
 	assert(fname);
 	const char *ptr = fname;
@@ -763,10 +763,19 @@ void invalid_filename(const char *fname) {
 		return;
 
 	int len = strlen(ptr);
-	// file globbing ('*') is allowed
-	if (strcspn(ptr, "\\&!?\"'<>%^(){}[];,") != (size_t)len) {
-		fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
-		exit(1);
+
+	if (globbing) {
+		// file globbing ('*?[]') is allowed
+		if (strcspn(ptr, "\\&!\"'<>%^(){};,") != (size_t)len) {
+			fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
+			exit(1);
+		}
+	}
+	else {
+		if (strcspn(ptr, "\\&!?\"'<>%^(){};,*[]") != (size_t)len) {
+			fprintf(stderr, "Error: \"%s\" is an invalid filename\n", ptr);
+			exit(1);
+		}
 	}
 }
 
@@ -899,44 +908,15 @@ void mkdir_attr(const char *fname, mode_t mode, uid_t uid, gid_t gid) {
 	ASSERT_PERMS(fname, uid, gid, mode);
 }
 
-char *read_text_file_or_exit(const char *fname) {
-	assert(fname);
-
-	// open file
-	int fd = open(fname, O_RDONLY);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot read %s\n", fname);
+unsigned extract_timeout(const char *str) {
+	unsigned s;
+	unsigned m;
+	unsigned h;
+	int rv = sscanf(str, "%02u:%02u:%02u", &h, &m, &s);
+	if (rv != 3) {
+		fprintf(stderr, "Error: invalid timeout, please use a hh:mm:ss format\n");
 		exit(1);
 	}
 
-	int size = lseek(fd, 0, SEEK_END);
-	if (size == -1)
-		goto errexit;
-	if (lseek(fd, 0 , SEEK_SET) == -1)
-		goto errexit;
-
-	// allocate memory
-	char *data = malloc(size + 1);	  // + '\0'
-	if (data == NULL)
-		goto errexit;
-	memset(data, 0, size + 1);
-
-	// read file
-	int rd = 0;
-	while (rd < size) {
-		int rv = read(fd, (unsigned char *) data + rd, size - rd);
-		if (rv == -1) {
-			goto errexit;
-		}
-		rd += rv;
-	}
-
-	// close file
-	close(fd);
-	return data;
-
-errexit:
-	close(fd);
-	fprintf(stderr, "Error: cannot read %s\n", fname);
-	exit(1);
+	return h * 3600 + m * 60 + s;
 }

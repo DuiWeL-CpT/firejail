@@ -49,6 +49,7 @@ int arg_debug = 0;				// print debug messages
 int arg_debug_check_filename = 0;		// print debug messages for filename checking
 int arg_debug_blacklists = 0;			// print debug messages for blacklists
 int arg_debug_whitelists = 0;			// print debug messages for whitelists
+int arg_debug_private_lib = 0;			// print debug messages for private-lib
 int arg_nonetwork = 0;				// --net=none
 int arg_command = 0;				// -c
 int arg_overlay = 0;				// overlay option
@@ -67,10 +68,12 @@ char *arg_caps_list = NULL;			// optional caps list
 
 int arg_trace = 0;				// syscall tracing support
 int arg_tracelog = 0;				// blacklist tracing support
+int arg_rlimit_cpu = 0;				// rlimit max cpu time
 int arg_rlimit_nofile = 0;			// rlimit nofile
 int arg_rlimit_nproc = 0;			// rlimit nproc
 int arg_rlimit_fsize = 0;				// rlimit fsize
 int arg_rlimit_sigpending = 0;			// rlimit fsize
+int arg_rlimit_as = 0;				// rlimit as
 int arg_nogroups = 0;				// disable supplementary groups
 int arg_nonewprivs = 0;			// set the NO_NEW_PRIVS prctl
 int arg_noroot = 0;				// create a new user namespace and disable root user
@@ -100,6 +103,8 @@ int arg_nice = 0;				// nice value configured
 int arg_ipc = 0;					// enable ipc namespace
 int arg_writable_etc = 0;			// writable etc
 int arg_writable_var = 0;			// writable var
+int arg_writable_run_user = 0;			// writable /run/user
+int arg_writable_var_log = 0;		// writable /var/log
 int arg_appimage = 0;				// appimage
 int arg_audit = 0;				// audit
 char *arg_audit_prog = NULL;			// audit
@@ -110,7 +115,6 @@ int arg_x11_xorg = 0;				// use X11 security extention
 int arg_allusers = 0;				// all user home directories visible
 int arg_machineid = 0;				// preserve /etc/machine-id
 int arg_allow_private_blacklist = 0; 		// blacklist things in private directories
-int arg_writable_var_log = 0;		// writable /var/log
 int arg_disable_mnt = 0;			// disable /mnt and /media
 int arg_noprofile = 0; // use default.profile if none other found/specified
 int arg_memory_deny_write_execute = 0;		// block writable and executable memory
@@ -425,6 +429,18 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 			exit_err_feature("networking");
 		exit(0);
 	}
+	else if (strncmp(argv[i], "--netfilter.print=", 18) == 0) {
+		// extract pid or sandbox name
+		pid_t pid = read_pid(argv[i] + 18);
+		netfilter_print(pid, 0);
+		exit(0);
+	}
+	else if (strncmp(argv[i], "--netfilter6.print=", 19) == 0) {
+		// extract pid or sandbox name
+		pid_t pid = read_pid(argv[i] + 19);
+		netfilter_print(pid, 1);
+		exit(0);
+	}
 #endif
 	//*************************************
 	// independent commands - the program will exit!
@@ -490,7 +506,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 			printf("%s", buf);
 		fclose(fp);
 		exit(0);
-		
+
 	}
 	else if (strncmp(argv[i], "--cpu.print=", 12) == 0) {
 		// join sandbox by pid or by name
@@ -570,7 +586,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 				exit(1);
 			}
 			char *path = argv[i + 1];
-			 invalid_filename(path);
+			 invalid_filename(path, 0); // no globbing
 			 if (strstr(path, "..")) {
 			 	fprintf(stderr, "Error: invalid file name %s\n", path);
 			 	exit(1);
@@ -594,13 +610,13 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 				exit(1);
 			}
 			char *path1 = argv[i + 1];
-			 invalid_filename(path1);
+			 invalid_filename(path1, 0); // no globbing
 			 if (strstr(path1, "..")) {
 			 	fprintf(stderr, "Error: invalid file name %s\n", path1);
 			 	exit(1);
 			 }
 			char *path2 = argv[i + 2];
-			 invalid_filename(path2);
+			 invalid_filename(path2, 0); // no globbing
 			 if (strstr(path2, "..")) {
 			 	fprintf(stderr, "Error: invalid file name %s\n", path2);
 			 	exit(1);
@@ -624,7 +640,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 				exit(1);
 			}
 			char *path = argv[i + 1];
-			 invalid_filename(path);
+			 invalid_filename(path, 0); // no globbing
 			 if (strstr(path, "..")) {
 			 	fprintf(stderr, "Error: invalid file name %s\n", path);
 			 	exit(1);
@@ -829,13 +845,21 @@ char *guess_shell(void) {
 	return shell;
 }
 
-static int check_arg(int argc, char **argv, const char *argument) {
+static int check_arg(int argc, char **argv, const char *argument, int strict) {
 	int i;
 	int found = 0;
 	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], argument) == 0) {
-			found = 1;
-			break;
+		if (strict) {
+			if (strcmp(argv[i], argument) == 0) {
+				found = 1;
+				break;
+			}
+		}
+		else {
+			if (strncmp(argv[i], argument, strlen(argument)) == 0) {
+				found = 1;
+				break;
+			}
 		}
 
 		// detect end of firejail params
@@ -848,6 +872,25 @@ static int check_arg(int argc, char **argv, const char *argument) {
 	return found;
 }
 
+static void run_builder(int argc, char **argv) {
+	EUID_ASSERT();
+	(void) argc;
+
+	// drop privileges
+	if (setgid(getgid()) < 0)
+		errExit("setgid/getgid");
+	if (setuid(getuid()) < 0)
+		errExit("setuid/getuid");
+	assert(getenv("LD_PRELOAD") == NULL);
+
+	argv[0] = LIBDIR "/firejail/fbuilder";
+	execvp(argv[0], argv);
+
+	perror("execvp");
+	exit(1);
+}
+
+
 //*******************************************
 // Main program
 //*******************************************
@@ -858,8 +901,6 @@ int main(int argc, char **argv) {
 	int option_cgroup = 0;
 	int option_force = 0;
 	int custom_profile = 0;	// custom profile loaded
-	char *custom_profile_dir = NULL; // custom profile directory
-
 
 	atexit(clear_atexit);
 
@@ -870,9 +911,9 @@ int main(int argc, char **argv) {
 	preproc_build_firejail_dir();
 	preproc_clean_run();
 
-	if (check_arg(argc, argv, "--quiet"))
+	if (check_arg(argc, argv, "--quiet", 1))
 		arg_quiet = 1;
-	if (check_arg(argc, argv, "--allow-debuggers")) {
+	if (check_arg(argc, argv, "--allow-debuggers", 1)) {
 		// check kernel version
 		struct utsname u;
 		int rv = uname(&u);
@@ -900,15 +941,19 @@ int main(int argc, char **argv) {
 
 #ifdef HAVE_GIT_INSTALL
 	// process git-install and git-uninstall
-	if (check_arg(argc, argv, "--git-install"))
+	if (check_arg(argc, argv, "--git-install", 1))
 		git_install(); // this function will not return
-	if (check_arg(argc, argv, "--git-uninstall"))
+	if (check_arg(argc, argv, "--git-uninstall", 1))
 		git_uninstall(); // this function will not return
 #endif
 
+	// profile builder
+	if (check_arg(argc, argv, "--build", 0)) // supports both --build and --build=filename
+		run_builder(argc, argv); // this function will not return
+
 	// check argv[0] symlink wrapper if this is not a login shell
 	if (*argv[0] != '-')
-		run_symlink(argc, argv); // this function will not return
+		run_symlink(argc, argv); // if symlink detected, this function will not return
 
 	// check if we already have a sandbox running
 	// If LXC is detected, start firejail sandbox
@@ -921,10 +966,10 @@ int main(int argc, char **argv) {
 		EUID_USER();
 		if (rv == 0) {
 			// if --force option is passed to the program, disregard the existing sandbox
-			if (check_arg(argc, argv, "--force"))
+			if (check_arg(argc, argv, "--force", 1))
 				option_force = 1;
 			else {
-				if (check_arg(argc, argv, "--version")) {
+				if (check_arg(argc, argv, "--version", 1)) {
 					printf("firejail version %s\n", VERSION);
 					exit(0);
 				}
@@ -941,7 +986,7 @@ int main(int argc, char **argv) {
 	EUID_ROOT();
 	if (geteuid()) {
 		// only --version is supported without SUID support
-		if (check_arg(argc, argv, "--version")) {
+		if (check_arg(argc, argv, "--version", 1)) {
 			printf("firejail version %s\n", VERSION);
 			exit(0);
 		}
@@ -1093,6 +1138,8 @@ int main(int argc, char **argv) {
 			arg_debug_blacklists = 1;
 		else if (strcmp(argv[i], "--debug-whitelists") == 0)
 			arg_debug_whitelists = 1;
+		else if (strcmp(argv[i], "--debug-private-lib") == 0)
+			arg_debug_private_lib = 1;
 		else if (strcmp(argv[i], "--quiet") == 0) {
 			arg_quiet = 1;
 			arg_debug = 0;
@@ -1226,6 +1273,11 @@ int main(int argc, char **argv) {
 			arg_trace = 1;
 		else if (strcmp(argv[i], "--tracelog") == 0)
 			arg_tracelog = 1;
+		else if (strncmp(argv[i], "--rlimit-cpu=", 13) == 0) {
+			check_unsigned(argv[i] + 13, "Error: invalid rlimit");
+			sscanf(argv[i] + 13, "%llu", &cfg.rlimit_cpu);
+			arg_rlimit_cpu = 1;
+		}
 		else if (strncmp(argv[i], "--rlimit-nofile=", 16) == 0) {
 			check_unsigned(argv[i] + 16, "Error: invalid rlimit");
 			sscanf(argv[i] + 16, "%llu", &cfg.rlimit_nofile);
@@ -1245,6 +1297,11 @@ int main(int argc, char **argv) {
 			check_unsigned(argv[i] + 20, "Error: invalid rlimit");
 			sscanf(argv[i] + 20, "%llu", &cfg.rlimit_sigpending);
 			arg_rlimit_sigpending = 1;
+		}
+		else if (strncmp(argv[i], "--rlimit-as=", 12) == 0) {
+			check_unsigned(argv[i] + 12, "Error: invalid rlimit");
+			sscanf(argv[i] + 12, "%llu", &cfg.rlimit_as);
+			arg_rlimit_as = 1;
 		}
 		else if (strncmp(argv[i], "--ipc-namespace", 15) == 0)
 			arg_ipc = 1;
@@ -1409,7 +1466,7 @@ int main(int argc, char **argv) {
 				}
 
 				// check name
-				invalid_filename(subdirname);
+				invalid_filename(subdirname, 0); // no globbing
 				if (strstr(subdirname, "..") || strstr(subdirname, "/")) {
 					fprintf(stderr, "Error: invalid overlay name\n");
 					exit(1);
@@ -1453,22 +1510,8 @@ int main(int argc, char **argv) {
 			free(ppath);
 		}
 		else if (strncmp(argv[i], "--profile-path=", 15) == 0) {
-			if (arg_noprofile) {
-				fprintf(stderr, "Error: --noprofile and --profile-path options are mutually exclusive\n");
-				exit(1);
-			}
-			custom_profile_dir = expand_home(argv[i] + 15, cfg.homedir);
-			invalid_filename(custom_profile_dir);
-			if (!is_dir(custom_profile_dir) || is_link(custom_profile_dir) || strstr(custom_profile_dir, "..")) {
-				fprintf(stderr, "Error: invalid profile path\n");
-				exit(1);
-			}
-
-			// access call checks as real UID/GID, not as effective UID/GID
-			if (access(custom_profile_dir, R_OK)) {
-				fprintf(stderr, "Error: cannot access profile directory\n");
-				return 1;
-			}
+			if (!arg_quiet)
+				fprintf(stderr, "Warning: --profile-path has been deprecated\n");
 		}
 		else if (strcmp(argv[i], "--noprofile") == 0) {
 			if (custom_profile) {
@@ -1517,7 +1560,7 @@ int main(int argc, char **argv) {
 				}
 
 
-				invalid_filename(argv[i] + 9);
+				invalid_filename(argv[i] + 9, 0); // no globbing
 
 				// extract chroot dirname
 				cfg.chrootdir = argv[i] + 9;
@@ -1560,6 +1603,9 @@ int main(int argc, char **argv) {
 		else if (strcmp(argv[i], "--writable-var") == 0) {
 			arg_writable_var = 1;
 		}
+		else if (strcmp(argv[i], "--writable-run-user") == 0) {
+			arg_writable_run_user = 1;
+		}
 		else if (strcmp(argv[i], "--writable-var-log") == 0) {
 			arg_writable_var_log = 1;
 		}
@@ -1567,7 +1613,8 @@ int main(int argc, char **argv) {
 			arg_machineid = 1;
 		}
 		else if (strcmp(argv[i], "--allow-private-blacklist") == 0) {
-			arg_allow_private_blacklist = 1;
+			if (!arg_quiet)
+				fprintf(stderr, "Warning: --allow-private-blacklist was deprecated\n");
 		}
 		else if (strcmp(argv[i], "--private") == 0) {
 			arg_private = 1;
@@ -2108,6 +2155,8 @@ int main(int argc, char **argv) {
 		//*************************************
 		// command
 		//*************************************
+		else if (strncmp(argv[i], "--timeout=", 10) == 0)
+			cfg.timeout = extract_timeout(argv[i] + 10);
 		else if (strcmp(argv[i], "--audit") == 0) {
 			arg_audit_prog = LIBDIR "/firejail/faudit";
 			arg_audit = 1;
@@ -2165,7 +2214,7 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "Error: --shell=none was already specified.\n");
 				return 1;
 			}
-			invalid_filename(argv[i] + 8);
+			invalid_filename(argv[i] + 8, 0); // no globbing
 
 			if (cfg.shell) {
 				fprintf(stderr, "Error: only one user shell can be specified\n");
@@ -2348,11 +2397,7 @@ int main(int argc, char **argv) {
 		}
 		if (!custom_profile) {
 			// look for a user profile in /etc/firejail directory
-			int rv;
-			if (custom_profile_dir)
-				rv = profile_find(cfg.command_name, custom_profile_dir);
-			else
-				rv = profile_find(cfg.command_name, SYSCONFDIR);
+			int rv = profile_find(cfg.command_name, SYSCONFDIR);
 			custom_profile = rv;
 		}
 	}
@@ -2380,13 +2425,10 @@ int main(int argc, char **argv) {
 			custom_profile = profile_find(profile_name, usercfgdir);
 			free(usercfgdir);
 
-			if (!custom_profile) {
+			if (!custom_profile)
 				// look for the profile in /etc/firejail directory
-				if (custom_profile_dir)
-					custom_profile = profile_find(profile_name, custom_profile_dir);
-				else
-					custom_profile = profile_find(profile_name, SYSCONFDIR);
-			}
+				custom_profile = profile_find(profile_name, SYSCONFDIR);
+
 			if (!custom_profile) {
 				fprintf(stderr, "Error: no default.profile installed\n");
 				exit(1);

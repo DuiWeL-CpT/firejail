@@ -27,9 +27,11 @@ whitelist ${HOME}/.cache/spotify
 whitelist ${HOME}/.config/spotify
 whitelist ${HOME}/.local/share/spotify
 include /etc/firejail/whitelist-common.inc
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter
+nodvd
 nogroups
 nonewprivs
 noroot
@@ -37,11 +39,13 @@ notv
 protocol unix,inet,inet6,netlink
 seccomp
 shell none
+tracelog
 
 disable-mnt
-private-bin spotify,bash,sh,dash
+private-bin spotify,bash,sh
 private-dev
 private-etc fonts,machine-id,pulse,resolv.conf
+private-opt spotify
 private-tmp
 
 noexec ${HOME}
