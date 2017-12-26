@@ -5,8 +5,8 @@ include /etc/firejail/darktable.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.cache/darktable
-noblacklist ~/.config/darktable
+noblacklist ${HOME}/.cache/darktable
+noblacklist ${HOME}/.config/darktable
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -26,6 +26,7 @@ protocol unix,inet,inet6
 seccomp
 shell none
 
+#private-bin darktable
 private-dev
 private-tmp
 

@@ -5,12 +5,11 @@ include /etc/firejail/bibletime.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist ~/.Xauthority
-blacklist ~/.bashrc
+blacklist ${HOME}/.Xauthority
+blacklist ${HOME}/.bashrc
 
-noblacklist ~/.bibletime
-noblacklist ~/.config/qt5ct
-noblacklist ~/.sword
+noblacklist ${HOME}/.bibletime
+noblacklist ${HOME}/.sword
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
@@ -18,7 +17,6 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 whitelist ${HOME}/.bibletime
-whitelist ${HOME}/.config/qt5ct
 whitelist ${HOME}/.sword
 include /etc/firejail/whitelist-common.inc
 

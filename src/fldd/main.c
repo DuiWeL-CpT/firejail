@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr
@@ -51,15 +52,19 @@ static const char * const default_lib_paths[] = {
 	"/usr/lib/x86_64-linux-gnu",
 	LIBDIR,
 	"/usr/local/lib",
+	"/usr/lib/x86_64-linux-gnu/mesa", // libGL.so is sometimes a symlink into this directory
+	"/usr/lib/x86_64-linux-gnu/mesa-egl", // libGL.so is sometimes a symlink into this directory
+//    "/usr/lib/x86_64-linux-gnu/plasma-discover",
 	NULL
-}; // Note: this array is duplicated in src/firejail/fs_lib.c
+};
 
 
 typedef struct storage_t {
 	struct storage_t *next;
 	const char *name;
 } Storage;
-static Storage *libs, *lib_paths;
+static Storage *libs = NULL;
+static Storage *lib_paths = NULL;
 
 // return 1 if found
 static int storage_find(Storage *ptr, const char *name) {
@@ -96,10 +101,9 @@ static void storage_print(Storage *ptr, int fd) {
 
 static bool ptr_ok(const void *ptr, const void *base, const void *end, const char *name) {
 	bool r;
+	(void) name;
 
-	r = (ptr >= base && ptr <= end);
-	if (!r && !arg_quiet)
-		fprintf(stderr, "Warning: fldd: bad pointer %s\n", name);
+	r = (ptr >= base && ptr < end);
 	return r;
 }
 
@@ -111,7 +115,7 @@ static void copy_libs_for_exe(const char *exe) {
 			fprintf(stderr, "Warning fldd: cannot open %s, skipping...\n", exe);
 		return;
 	}
-	
+
 	struct stat s;
 	char *base = NULL, *end;
 	if (fstat(f, &s) == -1)
@@ -169,6 +173,9 @@ static void copy_libs_for_exe(const char *exe) {
 // crash on accessing memory location sbuf->sh_type if sbuf->sh_type in the previous section was 0 (SHT_NULL)
 // for now we just exit the while loop - this is probably incorrect
 // printf("sbuf %p #%s#, sections %d, type %u\n", sbuf, exe, sections, sbuf->sh_type);
+		if (!ptr_ok(sbuf, base, end, "sbuf"))
+			goto close;
+
 		if (sbuf->sh_type == SHT_NULL)
 			break;
 		if (sbuf->sh_type == SHT_DYNAMIC) {
@@ -210,7 +217,7 @@ static void copy_libs_for_exe(const char *exe) {
  close:
 	if (base)
 		munmap(base, s.st_size);
-			
+
 	close(f);
 }
 
@@ -243,9 +250,53 @@ static void lib_paths_init(void) {
 		storage_add(&lib_paths, default_lib_paths[i]);
 }
 
+
+static void walk_directory(const char *dirname) {
+	assert(dirname);
+
+	DIR *dir = opendir(dirname);
+	if (dir) {
+		struct dirent *entry;
+		while ((entry = readdir(dir)) != NULL) {
+			if (strcmp(entry->d_name, ".") == 0)
+				continue;
+			if (strcmp(entry->d_name, "..") == 0)
+				continue;
+
+			// build full path
+			char *path;
+			if (asprintf(&path, "%s/%s", dirname, entry->d_name) == -1)
+				errExit("asprintf");
+
+			// check regular so library
+			char *ptr = strstr(entry->d_name, ".so");
+			if (ptr) {
+				if (*(ptr + 3) == '\0' || *(ptr + 3) == '.') {
+					copy_libs_for_exe(path);
+					free(path);
+					continue;
+				}
+			}
+
+			// check directory
+			// entry->d_type field is supported  in glibc since version 2.19 (Feb 2014)
+			// we'll use stat to check for directories
+			struct stat s;
+			if (stat(path, &s) == -1)
+				errExit("stat");
+			if (S_ISDIR(s.st_mode))
+				walk_directory(path);
+		}
+		closedir(dir);
+	}
+}
+
+
+
 static void usage(void) {
-	printf("Usage: fldd program [file]\n");
-	printf("print a list of libraries used by program or store it in the file.\n");
+	printf("Usage: fldd program_or_directory [file]\n");
+	printf("Print a list of libraries used by program or store it in the file.\n");
+	printf("Print a list of libraries used by all .so files in a directory or store it in the file.\n");
 }
 
 int main(int argc, char **argv) {
@@ -284,7 +335,7 @@ printf("\n");
 		usage();
 		return 0;
 	}
-	
+
 	int fd = STDOUT_FILENO;
 	// attempt to open the file
 	if (argc == 3) {
@@ -296,11 +347,22 @@ printf("\n");
 		}
 	}
 
+	// initialize local storage
 	lib_paths_init();
-	copy_libs_for_exe(argv[1]);
+
+	// process files
+	struct stat s;
+	if (stat(argv[1], &s) == -1)
+		errExit("stat");
+	if (S_ISDIR(s.st_mode))
+		walk_directory(argv[1]);
+	else
+		copy_libs_for_exe(argv[1]);
+
+
+	// print libraries and exit
 	storage_print(libs, fd);
 	if (argc == 3)
 		close(fd);
-		
 	return 0;
 }

@@ -13,11 +13,13 @@ include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-programs.inc
 
-mkdir ~/.config/hexchat
-whitelist ~/.config/hexchat
+mkdir ${HOME}/.config/hexchat
+whitelist ${HOME}/.config/hexchat
 include /etc/firejail/whitelist-common.inc
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
+machine-id
 netfilter
 no3d
 nodvd
@@ -34,9 +36,11 @@ tracelog
 
 disable-mnt
 # debug note: private-bin requires perl, python, etc on some systems
-private-bin hexchat
+private-bin hexchat,python*
 private-dev
+#private-lib - python problems
 private-tmp
 
+# memory-deny-write-execute - breaks python
 noexec ${HOME}
 noexec /tmp

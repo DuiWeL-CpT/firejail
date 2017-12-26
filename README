@@ -35,6 +35,8 @@ Maintainer:
 Committers
 - Fred-Barclay (https://github.com/Fred-Barclay)
 - Reiner Herrmann (https://github.com/reinerh)
+- smithsohu (https://github.com/smitsohu)
+- SpotComms (https://github.com/SpotComms)
 - startx2017 (https://github.com/startx2017) - 0.9.38-LTS and *bugfixes branches maintainer
 - Topi Miettinen (https://github.com/topimiettinen)
 - netblue30 (netblue30@yahoo.com)
@@ -76,6 +78,8 @@ andrew160 (https://github.com/andrew160)
 	- profile and man pages fixes
 announ (https://github.com/announ)
 	- mpv and youtube-dl profile fixes
+Antonio Russo (https://github.com/aerusso)
+	- enumerate root directories in apparmor profile
 Austin S. Hemmelgarn (https://github.com/Ferroin)
 	- unbound profile update
 avoidr (https://github.com/avoidr)
@@ -112,9 +116,15 @@ creideiki (https://github.com/creideiki)
 	- make the sandbox process reap all children
 chiraag-nataraj (https://github.com/chiraag-nataraj)
 	- support for newer Xpra versions (2.1+)
+	- added Viber, amule, ardour5, brackets, calligra, cin, fetchmail profiles
+	- added freecad, google-earth, imagej, kdenlive, linphone, lmms profiles
+	- added macrofusion, mpd, natron, ricochet, shotcut, tor-browser-en profiles
+	- added tor, x-terminal-emulator, zart profiles
 Christian Stadelmann (https://github.com/genodeftest)
 	- profile fixes
 	- evolution profile fix
+Clayton Williams (https://github.com/gosre)
+	- addition of RLIMIT_AS
 curiosity-seeker (https://github.com/curiosity-seeker)
 	- tightening unbound and dnscrypt-proxy profiles
 	- correct and tighten QuiteRss profile
@@ -130,6 +140,9 @@ da2x (https://github.com/da2x)
 	- matched RPM license tag
 Daan Bakker (https://github.com/dbakker)
 	- protect shell startup files
+Danil Semelenov (https://github.com/sgtpep)
+	- blacklist the Electron Cash Wallet
+	- blacklist s3cmd and s3fs configs
 Dara Adib (https://github.com/daradib)
 	- ssh profile fix
 	- evince profile fix
@@ -241,12 +254,16 @@ Impyy (https://github.com/Impyy)
 	- added mumble profile
 irregulator (https://github.com/irregulator)
 	- thunderbird profile fixes for debian stretch
+Irvine (https://github.com/Irvinehimself)
+	- added conky profile
+	- added ping, bsdtar, makepkg (Arch), archaudit-report, cower (Arch) profiles
 Ivan Kozik (https://github.com/ivan)
 	- speed up sandbox exit
 Jaykishan Mutkawoa (https://github.com/jmutkawoa)
 	- cpio profile
 James Elford (https://github.com/jelford)
 	- pass password manager support
+	- removed shell none from ssh-agent configuration, fixing the infinit loop
 Jericho (https://github.com/attritionorg)
 	- spelling
 Jesse Smith (https://github.com/slicer69)
@@ -259,12 +276,19 @@ Joan Figueras (https://github.com/figue)
 	- added cyberfox profile
 John Mullee (https://github.com/jmullee)
 	- fix empty-string assignment in whitelisting code
+Jonas Heinrich (https://github.com/onny)
+	- added signal-desktop profile
+	- fixed franz profile
 jrabe (https://github.com/jrabe)
 	- disallow access to kdbx files
 	- Epiphany profile
 	- Polari profile
 	- qTox profile
 	- X11 fixes
+juan (https://github.com/nyancat18)
+	- fixed Kdenlive, Shotcut profiles
+	- new profiles for Cinelerra, Cliqz, Bluefish
+	- profile hardening
 Kaan Genç (https://github.com/SeriousBug)
 	- dynamic allocation of noblacklist buffer
 KellerFuchs (https://github.com/KellerFuchs)
@@ -277,6 +301,8 @@ KellerFuchs (https://github.com/KellerFuchs)
 	- make ~/.local read-only
 KOLANICH (https://github.com/KOLANICH)
 	- added symlink fixer fix_private-bin.py in contrib section
+Kunal Mehta (https://github.com/legoktm)
+	- converted all links to https in manpages
 laniakea64 (https://github.com/laniakea64)
 	- added fj-mkdeb.py script to build deb packages
 Lari Rauno (https://github.com/tuutti)
@@ -306,6 +332,8 @@ Mattias Wadman (https://github.com/wader)
 	- seccomp errno filter support
 Matthew Gyurgyik (https://github.com/pyther)
 	- rpm spec and several fixes
+melvinvermeeren (https://github.com/melvinvermeeren)
+	- added teamspeak3 profile
 Michael Haas (https://github.com/mhaas)
 	- bugfixes
 Mike Frysinger (vapier@gentoo.org)
@@ -319,6 +347,8 @@ n1trux (https://github.com/n1trux)
 netblue30 (netblue30@yahoo.com)
 Niklas Haas (https://github.com/haasn)
 	- blacklisting for keybase.io's client
+nyancat18 (https://github.com/nyancat18)
+	- added ardour4, dooble, karbon, krita profiles
 Ondra Nekola (https://github.com/satai)
 	- allow firefox theming with non-global themes
 Panzerfather (https://github.com/Panzerfather)
@@ -342,6 +372,9 @@ Peter Hogg (https://github.com/pigmonkey)
 	- fixes for youtube-dl in mpv profile
 Petter Reinholdtsen (pere@hungry.com)
 	- Opera profile patch
+PharmaceuticalCobweb (https://github.com/PharmaceuticalCobweb)
+	- fix quiterss profile
+	- added profile for gnome-ring
 pirate486743186 (https://github.com/pirate486743186)
 	- KMail profile
 Pixel Fairy (https://github.com/xahare)
@@ -413,8 +446,12 @@ smithsohu (https://github.com/smitsohu)
 	- improve server profiles, harden musescore
 	- snap profile cleanup
 	- tighten some capability sets further
+	- enhance mutt, goobox, baloo and clementine profiles
 soredake (https://github.com/soredake)
 	- fix steam startup with >=llvm-4
+	- fix handling of STEAM_RUNTIME_PREFER_HOST_LIBRARIES in steam profile
+	- fix keepassxc.profile
+	- fix qtox.profile
 SpotComms (https://github.com/SpotComms)
 	- added Bless, Gnome 2048, Gnome Calculator, Gnome Contacts, JD-GUI, Lollypop, MultiMC5 profiles
 	- added PDFSam, Pithos, and Xonotic profiles
@@ -506,6 +543,10 @@ Topi Miettinen (https://github.com/topimiettinen)
 	- seccomp default list update
 	- improve loading of seccomp filter and memory-deny-write-execute feature
 	- private-lib feature
+user1024 (user1024@tut.by)
+	- electron profile whitelisting
+	- fixed Rocket.Chat profile
+	- nheko profile
 valoq (https://github.com/valoq)
 	- lots of profile fixes
 	- added support for /srv in --whitelist feature

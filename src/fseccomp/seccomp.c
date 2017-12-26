@@ -165,7 +165,7 @@ void seccomp_default_drop(const char *fname1, const char *fname2, char *list, in
 
 void seccomp_keep(const char *fname1, const char *fname2, char *list) {
 	(void) fname2;
-	
+
 	// open file for pre-exec filter
 	int fd = open(fname1, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (fd < 0) {
@@ -239,6 +239,16 @@ void memory_deny_write_execute(const char *fname) {
 		BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, PROT_EXEC, 0, 1),
 		KILL_PROCESS,
 		RETURN_ALLOW,
+
+		// same for pkey_mprotect(,,PROT_EXEC), where available
+#ifdef SYS_pkey_mprotect
+		BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, SYS_pkey_mprotect, 0, 5),
+		EXAMINE_ARGUMENT(2),
+		BPF_STMT(BPF_ALU+BPF_AND+BPF_K, PROT_EXEC),
+		BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, PROT_EXEC, 0, 1),
+		KILL_PROCESS,
+		RETURN_ALLOW,
+#endif
 
 // shmat is not implemented as a syscall on some platforms (i386, powerpc64, powerpc64le)
 #ifdef SYS_shmat

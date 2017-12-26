@@ -1,6 +1,6 @@
 all: apps man filters
 MYLIBS = src/lib
-APPS = src/firejail src/firemon src/firecfg src/libtrace src/libtracelog src/ftee src/faudit src/fnet src/fseccomp src/fcopy src/fldd src/libpostexecseccomp
+APPS = src/firejail src/firemon src/firecfg src/fnetfilter src/libtrace src/libtracelog src/ftee src/faudit src/fnet src/fseccomp src/fbuilder src/fcopy src/fldd src/libpostexecseccomp
 MANPAGES = firejail.1 firemon.1 firecfg.1 firejail-profile.5 firejail-login.5
 SECCOMP_FILTERS = seccomp seccomp.debug seccomp.32 seccomp.64 seccomp.block_secondary seccomp.mdwx
 
@@ -97,8 +97,10 @@ endif
 	install -c -m 0644 src/firecfg/firecfg.config $(DESTDIR)/$(libdir)/firejail/.
 	install -c -m 0755 src/faudit/faudit $(DESTDIR)/$(libdir)/firejail/.
 	install -c -m 0755 src/fnet/fnet $(DESTDIR)/$(libdir)/firejail/.
+	install -c -m 0755 src/fnetfilter/fnetfilter $(DESTDIR)/$(libdir)/firejail/.
 	install -c -m 0755 src/fcopy/fcopy $(DESTDIR)/$(libdir)/firejail/.
 	install -c -m 0755 src/fldd/fldd $(DESTDIR)/$(libdir)/firejail/.
+	install -c -m 0755 src/fbuilder/fbuilder $(DESTDIR)/$(libdir)/firejail/.
 ifeq ($(HAVE_SECCOMP),-DHAVE_SECCOMP)
 	install -c -m 0755 src/fseccomp/fseccomp $(DESTDIR)/$(libdir)/firejail/.
 	install -c -m 0644 seccomp $(DESTDIR)/$(libdir)/firejail/.
@@ -166,9 +168,11 @@ install-strip: all
 	strip src/ftee/ftee
 	strip src/faudit/faudit
 	strip src/fnet/fnet
+	strip src/fnetfilter/fnetfilter
 	strip src/fseccomp/fseccomp
 	strip src/fcopy/fcopy
 	strip src/fldd/fldd
+	strip src/fbuilder/fbuilder
 	$(MAKE) realinstall
 
 uninstall:
@@ -237,6 +241,9 @@ scan-build: clean
 test-profiles:
 	cd test/profiles; ./profiles.sh | grep TESTING
 
+test-private-lib:
+	cd test/private-lib; ./private-lib.sh | grep TESTING
+
 test-apps:
 	cd test/apps; ./apps.sh | grep TESTING
 
@@ -269,10 +276,13 @@ test-fs:
 test-fcopy:
 	cd test/fcopy; ./fcopy.sh | grep TESTING
 
-test: test-profiles test-fcopy test-fs test-utils test-sysutils test-environment test-apps test-apps-x11 test-apps-x11-xorg test-filters test-arguments
+test-fnetfilter:
+	cd test/fnetfilter; ./fnetfilter.sh | grep TESTING
+
+test: test-profiles test-private-lib test-fcopy test-fnetfilter test-fs test-utils test-sysutils test-environment test-apps test-apps-x11 test-apps-x11-xorg test-filters test-arguments
 	echo "TEST COMPLETE"
 
-test-travis: test-profiles test-fcopy test-fs test-utils test-sysutils test-environment test-filters test-arguments
+test-travis: test-profiles test-fcopy test-fnetfilter test-fs test-utils test-sysutils test-environment test-filters test-arguments
 	echo "TEST COMPLETE"
 
 ##########################################

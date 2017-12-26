@@ -84,14 +84,14 @@ static void deventry_mount(void) {
 	while (dev[i].dev_fname != NULL) {
 		struct stat s;
 		if (stat(dev[i].run_fname, &s) == 0) {
-			
+
 			// check device type and subsystem configuration
 			if ((dev[i].type == DEV_SOUND && arg_nosound == 0) ||
 			    (dev[i].type == DEV_3D && arg_no3d == 0) ||
 			    (dev[i].type == DEV_VIDEO && arg_novideo == 0) ||
 			    (dev[i].type == DEV_TV && arg_notv == 0) ||
 			    (dev[i].type == DEV_DVD && arg_nodvd == 0)) {
-			
+
 				int dir = is_dir(dev[i].run_fname);
 				if (arg_debug)
 					printf("mounting %s %s\n", dev[i].run_fname, (dir)? "directory": "file");
@@ -113,7 +113,7 @@ static void deventry_mount(void) {
 						fclose(fp);
 					}
 				}
-	
+
 				if (mount(dev[i].run_fname, dev[i].dev_fname, NULL, MS_BIND|MS_REC, NULL) < 0)
 					errExit("mounting dev file");
 				fs_logger2("whitelist", dev[i].dev_fname);
@@ -131,6 +131,7 @@ static void create_char_dev(const char *path, mode_t mode, int major, int minor)
 	if (chmod(path, mode) < 0)
 		goto errexit;
 	ASSERT_PERMS(path, 0, 0, mode);
+	fs_logger2("create", path);
 
 	return;
 
@@ -144,6 +145,7 @@ static void create_link(const char *oldpath, const char *newpath) {
 		goto errexit;
 	if (chown(newpath, 0, 0) < 0)
 		goto errexit;
+	fs_logger2("create", newpath);
 	return;
 
 errexit:
@@ -205,6 +207,7 @@ void fs_private_dev(void){
 		printf("Create /dev/shm directory\n");
 	mkdir_attr("/dev/shm", 01777, 0, 0);
 	fs_logger("mkdir /dev/shm");
+	fs_logger("create /dev/shm");
 
 	// create default devices
 	create_char_dev("/dev/zero", 0666, 1, 5); // mknod -m 666 /dev/zero c 1 5
@@ -227,6 +230,7 @@ void fs_private_dev(void){
 	// pseudo-terminal
 	mkdir_attr("/dev/pts", 0755, 0, 0);
 	fs_logger("mkdir /dev/pts");
+	fs_logger("create /dev/pts");
 	create_char_dev("/dev/pts/ptmx", 0666, 5, 2); //"mknod -m 666 /dev/pts/ptmx c 5 2");
 	fs_logger("mknod /dev/pts/ptmx");
 	create_link("/dev/pts/ptmx", "/dev/ptmx");

@@ -5,13 +5,15 @@ include /etc/firejail/xplayer.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.config/xplayer
-noblacklist ~/.local/share/xplayer
+noblacklist ${HOME}/.config/xplayer
+noblacklist ${HOME}/.local/share/xplayer
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 netfilter

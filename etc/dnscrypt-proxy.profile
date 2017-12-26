@@ -9,15 +9,13 @@ blacklist /tmp/.X11-unix
 
 noblacklist /sbin
 noblacklist /usr/sbin
-noblacklist /var/log
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
-caps
-# caps.keep ipc_lock,net_bind_service,setgid,setuid,sys_chroot
+caps.keep ipc_lock,net_bind_service,setgid,setuid,sys_chroot
 no3d
 nodvd
 nonewprivs
@@ -31,4 +29,4 @@ private
 private-dev
 
 # mdwe can break modules/plugins
-# memory-deny-write-execute
+memory-deny-write-execute

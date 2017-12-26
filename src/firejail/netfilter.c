@@ -24,35 +24,24 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-static char *client_filter =
-"*filter\n"
-":INPUT DROP [0:0]\n"
-":FORWARD DROP [0:0]\n"
-":OUTPUT ACCEPT [0:0]\n"
-"-A INPUT -i lo -j ACCEPT\n"
-"-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT\n"
-"# echo replay is handled by -m state RELATED/ESTABLISHED below\n"
-"#-A INPUT -p icmp --icmp-type echo-reply -j ACCEPT\n"
-"-A INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT\n"
-"-A INPUT -p icmp --icmp-type time-exceeded -j ACCEPT\n"
-"-A INPUT -p icmp --icmp-type echo-request -j ACCEPT \n"
-"# disable STUN\n"
-"-A OUTPUT -p udp --dport 3478 -j DROP\n"
-"-A OUTPUT -p udp --dport 3479 -j DROP\n"
-"-A OUTPUT -p tcp --dport 3478 -j DROP\n"
-"-A OUTPUT -p tcp --dport 3479 -j DROP\n"
-"COMMIT\n";
-
 void check_netfilter_file(const char *fname) {
 	EUID_ASSERT();
-	invalid_filename(fname);
 
-	if (is_dir(fname) || is_link(fname) || strstr(fname, "..") || access(fname, R_OK )) {
-		fprintf(stderr, "Error: invalid network filter file %s\n", fname);
+	char *tmp = strdup(fname);
+	if (!tmp)
+		errExit("strdup");
+	char *ptr = strchr(tmp, ',');
+	if (ptr)
+		*ptr = '\0';
+
+	invalid_filename(tmp, 0); // no globbing
+
+	if (is_dir(tmp) || is_link(tmp) || strstr(tmp, "..") || access(tmp, R_OK )) {
+		fprintf(stderr, "Error: invalid network filter file %s\n", tmp);
 		exit(1);
 	}
+	free(tmp);
 }
-
 
 void netfilter(const char *fname) {
 	// find iptables command
@@ -72,41 +61,28 @@ void netfilter(const char *fname) {
 		return;
 	}
 
-	// read filter
-	char *filter = client_filter;
-	int allocated = 0;
-	if (netfilter_default)
-		fname = netfilter_default;
-	if (fname) {
-		filter = read_text_file_or_exit(fname);
-		allocated = 1;
-	}
-
-	// create the filter file
-	FILE *fp = fopen(SBOX_STDIN_FILE, "w");
-	if (!fp) {
-		fprintf(stderr, "Error: cannot open %s\n", SBOX_STDIN_FILE);
-		exit(1);
-	}
-	fprintf(fp, "%s\n", filter);
-	fclose(fp);
-
-
-	// push filter
 	if (arg_debug)
-		printf("Installing network filter:\n%s\n", filter);
+		printf("Installing firewall\n");
+
+	// create an empty user-owned SBOX_STDIN_FILE
+	create_empty_file_as_root(SBOX_STDIN_FILE, 0644);
+	if (set_perms(SBOX_STDIN_FILE, getuid(), getgid(), 0644))
+		errExit("set_perms");
+
+	if (fname == NULL)
+		sbox_run(SBOX_USER| SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FNETFILTER, SBOX_STDIN_FILE);
+	else
+		sbox_run(SBOX_USER| SBOX_CAPS_NONE | SBOX_SECCOMP, 3, PATH_FNETFILTER, fname, SBOX_STDIN_FILE);
 
 	// first run of iptables on this platform installs a number of kernel modules such as ip_tables, x_tables, iptable_filter
 	// we run this command with caps and seccomp disabled in order to allow the loading of these modules
-	sbox_run(SBOX_ROOT /* | SBOX_CAPS_NETWORK | SBOX_SECCOMP*/ | SBOX_STDIN_FROM_FILE, 1, iptables_restore);
+	sbox_run(SBOX_ROOT | SBOX_STDIN_FROM_FILE, 1, iptables_restore);
 	unlink(SBOX_STDIN_FILE);
 
 	// debug
 	if (arg_debug)
 		sbox_run(SBOX_ROOT | SBOX_CAPS_NETWORK | SBOX_SECCOMP, 2, iptables, "-vL");
 
-	if (allocated)
-		free(filter);
 	return;
 }
 
@@ -131,29 +107,100 @@ void netfilter6(const char *fname) {
 		return;
 	}
 
-	// create the filter file
-	char *filter = read_text_file_or_exit(fname);
-	FILE *fp = fopen(SBOX_STDIN_FILE, "w");
-	if (!fp) {
-		fprintf(stderr, "Error: cannot open %s\n", SBOX_STDIN_FILE);
-		exit(1);
-	}
-	fprintf(fp, "%s\n", filter);
-	fclose(fp);
-
-	// push filter
 	if (arg_debug)
-		printf("Installing network filter:\n%s\n", filter);
+		printf("Installing IPv6 firewall\n");
+
+	// create an empty user-owned SBOX_STDIN_FILE
+	create_empty_file_as_root(SBOX_STDIN_FILE, 0644);
+	if (set_perms(SBOX_STDIN_FILE, getuid(), getgid(), 0644))
+		errExit("set_perms");
+
+	sbox_run(SBOX_USER| SBOX_CAPS_NONE | SBOX_SECCOMP, 3, PATH_FNETFILTER, fname, SBOX_STDIN_FILE);
 
 	// first run of iptables on this platform installs a number of kernel modules such as ip_tables, x_tables, iptable_filter
 	// we run this command with caps and seccomp disabled in order to allow the loading of these modules
-	sbox_run(SBOX_ROOT | /* SBOX_CAPS_NETWORK | SBOX_SECCOMP | */ SBOX_STDIN_FROM_FILE, 1, ip6tables_restore);
+	sbox_run(SBOX_ROOT | SBOX_STDIN_FROM_FILE, 1, ip6tables_restore);
 	unlink(SBOX_STDIN_FILE);
 
 	// debug
 	if (arg_debug)
 		sbox_run(SBOX_ROOT | SBOX_CAPS_NETWORK | SBOX_SECCOMP, 2, ip6tables, "-vL");
 
-	free(filter);
 	return;
+}
+
+void netfilter_print(pid_t pid, int ipv6) {
+	EUID_ASSERT();
+
+	// verify sandbox
+	EUID_ROOT();
+	char *comm = pid_proc_comm(pid);
+	EUID_USER();
+	if (!comm) {
+		fprintf(stderr, "Error: cannot find sandbox\n");
+		exit(1);
+	}
+
+	// check for firejail sandbox
+	if (strcmp(comm, "firejail") != 0) {
+		fprintf(stderr, "Error: cannot find sandbox\n");
+		exit(1);
+	}
+	free(comm);
+
+	// check privileges for non-root users
+	uid_t uid = getuid();
+	if (uid != 0) {
+		uid_t sandbox_uid = pid_get_uid(pid);
+		if (uid != sandbox_uid) {
+			fprintf(stderr, "Error: permission is denied to join a sandbox created by a different user.\n");
+			exit(1);
+		}
+	}
+
+	// check network namespace
+	char *name;
+	if (asprintf(&name, "/run/firejail/network/%d-netmap", pid) == -1)
+		errExit("asprintf");
+	struct stat s;
+	if (stat(name, &s) == -1) {
+		fprintf(stderr, "Error: the sandbox doesn't use a new network namespace\n");
+		exit(1);
+	}
+
+	// join the network namespace
+	pid_t child;
+	if (find_child(pid, &child) == -1) {
+		fprintf(stderr, "Error: cannot join the network namespace\n");
+		exit(1);
+	}
+
+	EUID_ROOT();
+	if (join_namespace(child, "net")) {
+		fprintf(stderr, "Error: cannot join the network namespace\n");
+		exit(1);
+	}
+
+	// find iptables executable
+	char *iptables = NULL;
+//	char *iptables_restore = NULL;
+	if (ipv6) {
+		if (stat("/sbin/ip6tables", &s) == 0)
+			iptables = "/sbin/ip6tables";
+		else if (stat("/usr/sbin/ip6tables", &s) == 0)
+			iptables = "/usr/sbin/ip6tables";
+	}
+	else {
+		if (stat("/sbin/iptables", &s) == 0)
+			iptables = "/sbin/iptables";
+		else if (stat("/usr/sbin/iptables", &s) == 0)
+			iptables = "/usr/sbin/iptables";
+	}
+
+	if (iptables == NULL) {
+		fprintf(stderr, "Error: iptables command not found\n");
+		exit(1);
+	}
+
+	sbox_run(SBOX_ROOT | SBOX_CAPS_NETWORK | SBOX_SECCOMP, 2, iptables, "-vL");
 }

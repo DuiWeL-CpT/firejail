@@ -11,6 +11,15 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+mkfile ${HOME}/.config/kcalcrc
+mkfile ${HOME}/.kde/share/config/kcalcrc
+mkfile ${HOME}/.kde4/share/config/kcalcrc
+whitelist ${HOME}/.config/kcalcrc
+whitelist ${HOME}/.kde/share/config/kcalcrc
+whitelist ${HOME}/.kde4/share/config/kcalcrc
+include /etc/firejail/whitelist-common.inc
+include /etc/firejail/whitelist-var-common.inc
+
 caps.drop all
 netfilter
 no3d
@@ -26,8 +35,9 @@ seccomp
 shell none
 
 disable-mnt
-private
+private-bin kcalc
 private-dev
+# private-lib - problems on Arch
 private-tmp
 
 noexec ${HOME}

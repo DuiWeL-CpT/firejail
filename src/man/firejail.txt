@@ -87,15 +87,6 @@ Example:
 .br
 $ firejail  --allow-debuggers --profile=/etc/firejail/firefox.profile strace -f firefox
 .TP
-\fB\-\-allow-private-blacklist
-Allow blacklisting files in private home directory. By default these blacklists are disabled.
-.br
-
-.br
-Example:
-.br
-$ firejail  --allow-private-blacklist --private=~/priv-dir --blacklist=~/.mozilla
-.TP
 \fB\-\-allusers
 All directories under /home are visible inside the sandbox. By default, only current user home directory is visible.
 .br
@@ -109,7 +100,7 @@ $ firejail --allusers
 Enable AppArmor confinement. For more information, please see \fBAPPARMOR\fR section below.
 .TP
 \fB\-\-appimage
-Sandbox an AppImage (http://appimage.org/) application.
+Sandbox an AppImage (https://appimage.org/) application.
 .br
 
 .br
@@ -140,7 +131,7 @@ Example:
 # firejail \-\-bind=/config/etc/passwd,/etc/passwd
 .TP
 \fB\-\-blacklist=dirname_or_filename
-Blacklist directory or file.
+Blacklist directory or file. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -153,6 +144,30 @@ $ firejail \-\-blacklist=~/.mozilla
 $ firejail "\-\-blacklist=/home/username/My Virtual Machines"
 .br
 $ firejail \-\-blacklist=/home/username/My\\ Virtual\\ Machines
+.TP
+\fB\-\-build
+The command builds a whitelisted profile. The profile is printed on the screen. If /usr/bin/strace is installed on the system, it also
+builds a whitelisted seccomp profile. The program is run in a very relaxed sandbox,
+with only --caps.drop=all and --nonewprivs. Programs that raise user privileges are not supported
+in order to allow strace to run. Chromium and Chromium-based browsers will not work.
+.br
+
+.br
+Example:
+.br
+$ firejail --build=profile-file vlc ~/Videos/test.mp4
+.TP
+\fB\-\-build=profile-file
+The command builds a whitelisted profile, and saves it in profile-file. If /usr/bin/strace is installed on the system, it also
+builds a whitelisted seccomp profile. The program is run in a very relaxed sandbox,
+with only --caps.drop=all and --nonewprivs. Programs that raise user privileges are not supported
+in order to allow strace to run. Chromium and Chromium-based browsers will not work.
+.br
+
+.br
+Example:
+.br
+$ firejail --build=vlc.profile vlc ~/Videos/test.mp4
 .TP
 \fB\-c
 Execute command and exit.
@@ -341,6 +356,9 @@ Example:
 .br
 $ firejail \-\-debug-errnos
 .TP
+\fB\-\-debug-private-lib
+Debug messages for --private-lib option.
+.TP
 \fB\-\-debug-protocols
 Print all recognized protocols in the current Firejail software build and exit.
 .br
@@ -398,7 +416,10 @@ Use this option if you don't trust the DNS setup on your network.
 Example:
 .br
 $ firejail \-\-dns=8.8.8.8 \-\-dns=8.8.4.4 firefox
+.br
 
+.br
+Note: this feature is not supported on systemd-resolved setups.
 .TP
 \fB\-\-dns.print=name|pid
 Print DNS configuration for a sandbox identified by name or by PID.
@@ -745,8 +766,8 @@ $ firejail \-\-machine-id
 Install a seccomp filter to block attempts to create memory mappings
 that are both writable and executable, to change mappings to be
 executable, or to create executable shared memory. The filter examines
-the arguments of mmap, mmap2, mprotect and shmat system calls
-and kills the process if necessary.
+the arguments of mmap, mmap2, mprotect, pkey_mprotect and shmat system
+calls and kills the process if necessary.
 .br
 
 .br
@@ -840,10 +861,13 @@ be created and configured using "ip netns".
 
 .TP
 \fB\-\-netfilter
-Enable a default client network filter in the new network namespace.
-New network namespaces are created using \-\-net option. If a new network namespaces is not created,
-\-\-netfilter option does nothing.
-The default filter is as follows:
+Enable a default firewall if a new network namespace is created inside the sandbox.
+This option has no effect for sandboxes using the system network namespace.
+.br
+
+.br
+The default firewall is optimized for regular desktop applications. No incoming
+connections are accepted:
 .br
 
 .br
@@ -886,19 +910,18 @@ Example:
 $ firejail \-\-net=eth0 \-\-netfilter firefox
 .TP
 \fB\-\-netfilter=filename
-Enable the network filter specified by filename in the new network namespace. The filter file format
-is the format of iptables-save and iptable-restore commands.
-New network namespaces are created using \-\-net option. If a new network namespaces is not created,
-\-\-netfilter option does nothing.
+Enable the firewall specified by filename if a new network namespace is created inside the sandbox.
+This option has no effect for sandboxes using the system network namespace.
 .br
 
 .br
-The following filters are available in /etc/firejail directory:
+Please use the regular iptables-save/iptables-restore format for the filter file. The following
+examples are available in /etc/firejail directory:
 .br
 
 .br
 .B webserver.net
-is a webserver filter that allows access only to TCP ports 80 and 443.
+is a webserver firewall that allows access only to TCP ports 80 and 443.
 Example:
 .br
 
@@ -910,19 +933,58 @@ $ firejail --netfilter=/etc/firejail/webserver.net --net=eth0 \\
 
 .br
 .B nolocal.net
-is a client filter that disable access to local network. Example:
+is a desktop client firewall that disable access to local network. Example:
 .br
 
 .br
 $ firejail --netfilter=/etc/firejail/nolocal.net \\
 .br
 --net=eth0 firefox
+
+
+
+
+.TP
+\fB\-\-netfilter=filename,arg1,arg2,arg3 ...
+This is the template version of the previous command. $ARG1, $ARG2, $ARG3 ... in the firewall script
+are replaced with arg1, arg2, arg3 ... passed on the command line. Up to 16 arguments are supported.
+Example:
+.br
+
+.br
+$ firejail --net=eth0 --ip=192.168.1.105 \\
+.br
+--netfilter=/etc/firejail/tcpserver.net,5001 server-program
+.br
+
+
+
+.TP
+\fB\-\-netfilter.print=name|pid
+Print the firewall installed in the sandbox specified by name or PID. Example:
+.br
+
+.br
+$ firejail --name=browser --net=eth0 --netfilter firefox &
+.br
+$ firejail --netfilter.print=browser
+
 .TP
 \fB\-\-netfilter6=filename
-Enable the IPv6 network filter specified by filename in the new network namespace. The filter file format
-is the format of ip6tables-save and ip6table-restore commands.
-New network namespaces are created using \-\-net option. If a new network namespaces is not created,
-\-\-netfilter6 option does nothing.
+Enable the IPv6 firewall specified by filename if a new network namespace is created inside the sandbox.
+This option has no effect for sandboxes using the system network namespace.
+Please use the regular iptables-save/iptables-restore format for the filter file.
+
+.TP
+\fB\-\-netfilter6.print=name|pid
+Print the IPv6 firewall installed in the sandbox specified by name or PID. Example:
+.br
+
+.br
+$ firejail --name=browser --net=eth0 --netfilter firefox &
+.br
+$ firejail --netfilter6.print=browser
+
 .TP
 \fB\-\-netstats
 Monitor network namespace statistics, see \fBMONITORING\fR section for more details.
@@ -997,7 +1059,7 @@ Example:
 $ firejail \-\-nodvd
 .TP
 \fB\-\-noexec=dirname_or_filename
-Remount directory or file noexec, nodev and nosuid.
+Remount directory or file noexec, nodev and nosuid. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -1131,7 +1193,7 @@ Disable whitelist for this directory or file.
 
 .TP
 \fB\-\-output=logfile
-stdout logging and log rotation. Copy stdout and stderr to logfile, and keep the size of the file under 500KB using log
+stdout logging and log rotation. Copy stdout to logfile, and keep the size of the file under 500KB using log
 rotation. Five files with prefixes .1 to .5 are used in rotation.
 .br
 
@@ -1263,7 +1325,8 @@ $ firejail \-\-private-home=.mozilla firefox
 Build a new /bin in a temporary filesystem, and copy the programs in the list.
 If no listed file is found, /bin directory will be empty.
 The same directory is also bind-mounted over /sbin, /usr/bin, /usr/sbin and /usr/local/bin.
-All modifications are discarded when the sandbox is closed.
+All modifications are discarded when the sandbox is closed. File globbing is supported,
+see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -1326,13 +1389,13 @@ $ ps
 .br
    48 pts/0    00:00:00 ps
 .br
-$ 
+$
 .br
 
 
 .TP
 \fB\-\-private-dev
-Create a new /dev directory. Only dri, null, full, zero, tty, pts, ptmx, random, snd, urandom, video, log and shm devices are available.
+Create a new /dev directory. Only disc, dri, null, full, zero, tty, pts, ptmx, random, snd, urandom, video, log and shm devices are available.
 .br
 
 .br
@@ -1346,7 +1409,7 @@ Child process initialized
 .br
 $ ls /dev
 .br
-dri  full  log  null  ptmx  pts  random  shm  snd  tty  urandom  zero
+cdrom  cdrw  dri  dvd  dvdrw  full  log  null  ptmx  pts  random  shm  snd  sr0  tty  urandom  zero
 .br
 $
 .TP
@@ -1435,21 +1498,6 @@ $ firejail \-\-profile.print=browser
 .br
 /etc/firejail/firefox.profile
 .br
-
-.TP
-\fB\-\-profile-path=directory
-Use this directory to look for profile files. Use an absolute path or a path in the home directory starting with ~/.
-For more information, see \fBSECURITY PROFILES\fR section below and \fBRELOCATING PROFILE FILES\fR in
-\fBman 5 firejail-profile\fR.
-.br
-
-.br
-Example:
-.br
-$ firejail \-\-profile-path=~/myprofiles
-.br
-$ firejail \-\-profile-path=/home/netblue/myprofiles
-
 .TP
 \fB\-\-protocol=protocol,protocol,protocol
 Enable protocol filter. The filter is based on seccomp and checks the first argument to socket system call.
@@ -1493,7 +1541,7 @@ Put a file in sandbox container, see \fBFILE TRANSFER\fR section for more detail
 Turn off Firejail's output.
 .TP
 \fB\-\-read-only=dirname_or_filename
-Set directory or file read-only.
+Set directory or file read-only. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -1514,7 +1562,8 @@ $ firejail --whitelist=~/work --read-only=~ --read-only=~/work
 .TP
 \fB\-\-read-write=dirname_or_filename
 Set directory or file read-write. Only files or directories belonging to the current user are allowed for
-this operation. Example:
+this operation. File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
+Example:
 .br
 
 .br
@@ -1524,6 +1573,19 @@ $ touch ~/test/a
 .br
 $ firejail --read-only=~/test --read-write=~/test/a
 
+
+.TP
+\fB\-\-rlimit-as=number
+Set the maximum size of the process's virtual memory (address space) in bytes.
+
+.TP
+\fB\-\-rlimit-cpu=number
+Set the maximum limit, in seconds, for the amount of CPU time each
+sandboxed process  can consume. When the limit is reached, the processes are killed.
+
+The CPU limit is a limit on CPU seconds rather than elapsed time. CPU seconds is basically how many seconds
+the CPU has been in use and does not necessarily directly relate to the elapsed time. Linux kernel keeps
+track of CPU seconds for each process independently.
 
 .TP
 \fB\-\-rlimit-fsize=number
@@ -1819,8 +1881,16 @@ $ firejail \-\-list
 .br
 $ firejail \-\-shutdown=3272
 .TP
+\fB\-\-timeout=hh:mm:ss
+Kill the sandbox automatically after the time has elapsed. The time is specified in hours/minutes/seconds format.
+.br
+
+.br
+$ firejail \-\-timeout=01:30:00 firefox
+.TP
 \fB\-\-tmpfs=dirname
 Mount a tmpfs filesystem on directory dirname. This option is available only when running the sandbox as root.
+File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
 .br
@@ -1965,6 +2035,16 @@ Example:
 $ sudo firejail --writable-etc
 
 .TP
+\fB\-\-writable-run-user
+Disable the default blacklisting of /run/user/$UID/systemd and /run/user/$UID/gnupg.
+.br
+
+.br
+Example:
+.br
+$ sudo firejail --writable-run-user
+
+.TP
 \fB\-\-writable-var
 Mount /var directory read-write.
 .br
@@ -2060,7 +2140,7 @@ $ firejail \-\-x11=xorg firefox
 
 .TP
 \fB\-\-x11=xpra
-Start Xpra (http://xpra.org) and attach the sandbox to this server.
+Start Xpra (https://xpra.org) and attach the sandbox to this server.
 Xpra is a persistent remote display server and client for forwarding X11 applications and desktop screens.
 A network namespace needs to be instantiated in order to deny access to X11 abstract Unix domain socket.
 .br
@@ -2212,6 +2292,40 @@ $ firejail --tree
 
 We provide a tool that automates all this integration, please see \fBman 1 firecfg\fR for more details.
 
+.SH FILE GLOBBING
+.TP
+Globbing is the operation that expands a wildcard pattern into the list of pathnames matching the pattern. Matching is defined by:
+.br
+
+.br
+- '?' matches any character
+.br
+- '*' matches any string
+.br
+- '[' denotes a range of characters
+.br
+.TP
+The gobing feature is implemented using glibc glob command. For more information on the wildcard syntax see man 7 glob.
+.br
+
+.br
+.TP
+The following command line options are supported: \-\-blacklist, \-\-private-bin, \-\-noexec, \-\-read-only, \-\-read-write, and \-\-tmpfs.
+.br
+
+.br
+.TP
+Examples:
+.br
+
+.br
+$ firejail --private-bin=sh,bash,python*
+.br
+$ firejail --blacklist=~/dir[1234]
+.br
+$ firejail --read-only=~/dir[1-4]
+.br
+
 .SH APPARMOR
 .TP
 AppArmor support is disabled by default at compile time. Use --enable-apparmor configuration option to enable it:
@@ -2240,8 +2354,13 @@ programs and scripts from user home or other directories writable by the user is
 .br
 
 .br
+- Allow access to files only in the following standard directories: /bin, /dev, /etc, /home, /lib*, /media, /mnt, /opt,
+/proc, /root, /run, /sbin, /srv, /sys, /tmp, /usr, and /var
+.br
+
+.br
 - Disable D-Bus. D-Bus has long been a huge security hole, and most programs don't use it anyway.
-You should have no problems running Chromium or Firefox.
+You should have no problems running Chromium or Firefox. This feature is available only on Ubuntu kernels.
 
 .TP
 To enable AppArmor confinement on top of your current Firejail security features, pass \fB\-\-apparmor\fR flag to Firejail command line. You can also include \fBapparmor\fR command in a Firejail profile file. Example:
@@ -2514,7 +2633,7 @@ List all sandboxed processes.
 .SH LICENSE
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 .PP
-Homepage: http://firejail.wordpress.com
+Homepage: https://firejail.wordpress.com
 .SH SEE ALSO
 \&\flfiremon\fR\|(1),
 \&\flfirecfg\fR\|(1),

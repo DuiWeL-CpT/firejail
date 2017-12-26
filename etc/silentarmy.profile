@@ -11,6 +11,8 @@ include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+include /etc/firejail/whitelist-var-common.inc
+
 caps.drop all
 netfilter
 nodvd
@@ -26,8 +28,9 @@ shell none
 
 disable-mnt
 private
-# private-bin silentarmy,sa-solver,python3
+private-bin silentarmy,sa-solver,python*
 private-dev
+private-opt none
 private-tmp
 
 noexec ${HOME}

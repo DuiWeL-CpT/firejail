@@ -28,7 +28,7 @@ void check_output(int argc, char **argv) {
 	int i;
 	int outindex = 0;
 	int enable_stderr = 0;
-	
+
 	for (i = 1; i < argc; i++) {
 		if (strncmp(argv[i], "--output=", 9) == 0) {
 			outindex = i;
@@ -48,7 +48,7 @@ void check_output(int argc, char **argv) {
 	drop_privs(0);
 	char *outfile = argv[outindex];
 	outfile += (enable_stderr)? 16:9;
-	invalid_filename(outfile);
+	invalid_filename(outfile, 0); // no globbing
 
 	// do not accept directories, links, and files with ".."
 	if (strstr(outfile, "..") || is_link(outfile) || is_dir(outfile)) {
@@ -90,7 +90,7 @@ void check_output(int argc, char **argv) {
 			continue;
 		ptr += sprintf(ptr, "%s ", argv[i]);
 	}
-	
+
 	if (enable_stderr)
 		sprintf(ptr, "2>&1 | %s/firejail/ftee %s", LIBDIR, outfile);
 	else

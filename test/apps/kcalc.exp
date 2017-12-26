@@ -7,12 +7,16 @@ set timeout 10
 spawn $env(SHELL)
 match_max 100000
 
-send -- "firejail transmission-gtk\r"
+send -- "firejail kcalc\r"
+expect {
+	timeout {puts "TESTING ERROR 0\n";exit}
+	"Reading profile /etc/firejail/kcalc.profile"
+}
 expect {
 	timeout {puts "TESTING ERROR 1\n";exit}
 	"Child process initialized"
 }
-sleep 5
+sleep 3
 
 spawn $env(SHELL)
 send -- "firejail --list\r"
@@ -22,7 +26,7 @@ expect {
 }
 expect {
 	timeout {puts "TESTING ERROR 3.1\n";exit}
-	"transmission-gtk"
+	"kcalc"
 }
 after 100
 
@@ -33,6 +37,7 @@ expect {
 	"grsecurity: directory" {puts "grsecurity present, exiting...\n";exit}
 	"cannot open" {puts "grsecurity not present\n"}
 }
+
 send -- "firejail --name=blablabla\r"
 expect {
 	timeout {puts "TESTING ERROR 4\n";exit}
@@ -45,7 +50,7 @@ send -- "firemon --seccomp\r"
 expect {
 	timeout {puts "TESTING ERROR 5\n";exit}
 	"need to be root" {puts "/proc mounted as hidepid, exiting...\n"; exit}
-	":firejail transmission-gtk"
+	":firejail kcalc"
 }
 expect {
 	timeout {puts "TESTING ERROR 5.1 (seccomp)\n";exit}
@@ -59,11 +64,11 @@ after 100
 send -- "firemon --caps\r"
 expect {
 	timeout {puts "TESTING ERROR 6\n";exit}
-	":firejail transmission-gtk"
+	":firejail kcalc"
 }
 expect {
 	timeout {puts "TESTING ERROR 6.1\n";exit}
-	"CapBnd"
+	"CapBnd:"
 }
 expect {
 	timeout {puts "TESTING ERROR 6.2\n";exit}

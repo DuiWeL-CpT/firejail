@@ -5,20 +5,23 @@ include /etc/firejail/musescore.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-noblacklist ~/.config/MusE
-noblacklist ~/.config/MuseScore
-noblacklist ~/.local/share/data/MusE
-noblacklist ~/.local/share/data/MuseScore
+noblacklist ${HOME}/.config/MusE
+noblacklist ${HOME}/.config/MuseScore
+noblacklist ${HOME}/.local/share/data/MusE
+noblacklist ${HOME}/.local/share/data/MuseScore
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+include /etc/firejail/whitelist-var-common.inc
+
 caps.drop all
 netfilter
 no3d
 nodvd
+nogroups
 nonewprivs
 noroot
 notv

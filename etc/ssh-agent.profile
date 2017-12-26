@@ -10,12 +10,13 @@ blacklist /tmp/.X11-unix
 
 noblacklist /etc/ssh
 noblacklist /tmp/ssh-*
-noblacklist ~/.ssh
+noblacklist ${HOME}/.ssh
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
+shell none
 caps.drop all
 netfilter
 no3d
@@ -25,3 +26,4 @@ noroot
 notv
 protocol unix,inet,inet6
 seccomp
+writable-run-user

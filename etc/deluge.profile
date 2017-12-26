@@ -16,8 +16,10 @@ mkdir ${HOME}/.config/deluge
 whitelist  ${DOWNLOADS}
 whitelist ${HOME}/.config/deluge
 include /etc/firejail/whitelist-common.inc
+include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
+machine-id
 netfilter
 nodvd
 nonewprivs
@@ -30,6 +32,6 @@ seccomp
 shell none
 
 # deluge is using python on Debian
-# private-bin deluge,sh,python,uname
+private-bin deluge,sh,python*,uname
 private-dev
 private-tmp
