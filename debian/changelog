@@ -1,3 +1,16 @@
+firejail (0.9.52-2parrot0) testing; urgency=medium
+
+  * Remove bleachbit from firecfg config.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 28 Dec 2017 15:26:15 +0100
+
+firejail (0.9.52-2) unstable; urgency=medium
+
+  * Cleanup removed conffile in correct binary package. (Closes: #884915)
+  * Bump debhelper compatibility/dependency to 11.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 21 Dec 2017 18:53:32 +0100
+
 firejail (0.9.52-1parrot0) testing; urgency=medium
 
   * Import new Debian release.

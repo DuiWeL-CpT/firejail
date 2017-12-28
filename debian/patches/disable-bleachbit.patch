@@ -1,0 +1,15 @@
+Description: Remove bleachbit from firecfg.
+ Firejail prevents bleachbit from working properly in root mode.
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2017-12-28
+
+--- firejail-0.9.52.orig/src/firecfg/firecfg.config
++++ firejail-0.9.52/src/firecfg/firecfg.config
+@@ -37,7 +37,6 @@ baloo_file
+ baobab
+ bibletime
+ bitlbee
+-bleachbit
+ blender
+ bless
+ bluefish

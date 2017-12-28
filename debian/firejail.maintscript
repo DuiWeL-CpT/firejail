@@ -159,4 +159,3 @@ rm_conffile /etc/firejail/xviewer.profile       0.9.46~rc1~
 rm_conffile /etc/firejail/xz.profile            0.9.46~rc1~
 rm_conffile /etc/firejail/xzdec.profile         0.9.46~rc1~
 rm_conffile /etc/firejail/zathura.profile       0.9.46~rc1~
-rm_conffile /etc/firejail/lxterminal.profile    0.9.52-1~
