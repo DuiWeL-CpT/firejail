@@ -23,12 +23,12 @@ machine-id
 netfilter
 nodvd
 nogroups
-#nonewprivs
+nonewprivs
 noroot
 notv
-#protocol unix,inet,inet6
-seccomp.block-secondary
-#shell none
+protocol unix,inet,inet6
+seccomp
+shell none
 tracelog
 
 private-dev

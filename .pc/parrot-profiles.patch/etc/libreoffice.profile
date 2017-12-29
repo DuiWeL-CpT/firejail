@@ -8,11 +8,9 @@ include /etc/firejail/globals.local
 noblacklist ${HOME}/.java
 noblacklist /usr/local/sbin
 noblacklist ${HOME}/.config/libreoffice
-noblacklist ${HOME}/.cache
 
 include /etc/firejail/disable-common.inc
-# libreoffice needs it at first run
-#include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -23,25 +21,16 @@ machine-id
 netfilter
 nodvd
 nogroups
-#nonewprivs
+nonewprivs
 noroot
 notv
-#protocol unix,inet,inet6
-seccomp.block-secondary
-#shell none
+protocol unix,inet,inet6
+seccomp
+shell none
 tracelog
 
 private-dev
 private-tmp
 
-#noexec ${HOME}
-noexec ${HOME}/Desktop
-noexec ${HOME}/Documents
-noexec ${HOME}/Downloads
-noexec ${HOME}/Music
-noexec ${HOME}/Pictures
-noexec ${HOME}/Public
-noexec ${HOME}/Templates
-noexec ${HOME}/Videos
-noexec ${HOME}/.local
+noexec ${HOME}
 noexec /tmp
