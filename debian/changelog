@@ -1,3 +1,9 @@
+firejail (0.9.52-2parrot1) testing; urgency=medium
+
+  * fix libreoffice javaldx startup crash
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 30 Dec 2017 00:35:11 +0100
+
 firejail (0.9.52-2parrot0) testing; urgency=medium
 
   * Remove bleachbit from firecfg config.
