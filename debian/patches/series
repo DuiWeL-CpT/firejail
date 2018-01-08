@@ -1,3 +1,5 @@
 parrot-profiles.patch
 disable-bleachbit.patch
 fix-libreoffice-javaldx-startup-crash.patch
+fix-atril-profile.patch
+fix-geany-profile.patch

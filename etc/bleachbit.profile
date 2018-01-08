@@ -18,6 +18,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
+noroot
 nosound
 notv
 novideo

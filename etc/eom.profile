@@ -12,10 +12,10 @@ noblacklist ${HOME}/.config/mate/eom
 noblacklist ${HOME}/.local/share/Trash
 noblacklist ${HOME}/.steam
 
-#include /etc/firejail/disable-common.inc
-#include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-common.inc
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
-#include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-programs.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
@@ -37,8 +37,8 @@ tracelog
 private-bin eom
 private-dev
 private-etc fonts
-#private-lib
-#private-tmp
+private-lib
+private-tmp
 
 memory-deny-write-execute
 noexec ${HOME}

@@ -33,12 +33,6 @@ mkdir ${HOME}/.cache/mozilla/firefox
 mkdir ${HOME}/.mozilla
 mkdir ${HOME}/.pki
 whitelist ${DOWNLOADS}
-whitelist ${HOME}/Downloads
-whitelist ${HOME}/Documents
-whitelist ${HOME}/Desktop
-whitelist ${HOME}/Pictures
-whitelist ${HOME}/Music
-whitelist ${HOME}/Video
 whitelist ${HOME}/.cache/gnome-mplayer/plugin
 whitelist ${HOME}/.cache/mozilla/firefox
 whitelist ${HOME}/.config/gnome-mplayer
