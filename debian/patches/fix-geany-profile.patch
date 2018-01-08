@@ -1,0 +1,21 @@
+Description: Fix geany profile
+Author: Lorenzo "Palinuro" Faletra <palinuro@localhost.localdomain>
+Last-Update: 2018-01-08
+
+--- firejail-0.9.52.orig/etc/geany.profile
++++ firejail-0.9.52/etc/geany.profile
+@@ -7,7 +7,7 @@ include /etc/firejail/globals.local
+ 
+ noblacklist ${HOME}/.config/geany
+ 
+-include /etc/firejail/disable-common.inc
++#include /etc/firejail/disable-common.inc
+ include /etc/firejail/disable-passwdmgr.inc
+ include /etc/firejail/disable-programs.inc
+ 
+@@ -26,4 +26,4 @@ seccomp
+ shell none
+ 
+ private-dev
+-private-tmp
++#private-tmp
