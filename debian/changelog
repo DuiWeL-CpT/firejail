@@ -1,3 +1,9 @@
+firejail (0.9.52-2parrot3) testing; urgency=medium
+
+  * Fix keepassxc missing libraries.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 16 Apr 2018 09:46:37 +0200
+
 firejail (0.9.52-2parrot2) testing; urgency=medium
 
   * Update atril profile.
