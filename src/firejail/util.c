@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -21,6 +21,7 @@
 #include "firejail.h"
 #include <ftw.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <fcntl.h>
 #include <syslog.h>
 #include <errno.h>
@@ -31,47 +32,104 @@
 #include <sys/wait.h>
 
 #define MAX_GROUPS 1024
+
+// send the error to /var/log/auth.log and exit after a small delay
+void errLogExit(char* fmt, ...) {
+	va_list args;
+	va_start(args,fmt);
+	openlog("firejail", LOG_NDELAY | LOG_PID, LOG_AUTH);
+	MountData *m = get_last_mount();
+
+	char *msg1;
+	char *msg2  = "Access error";
+	if (vasprintf(&msg1, fmt, args) != -1 &&
+	    asprintf(&msg2, "Access error: pid %d, last mount name:%s dir:%s type:%s - %s", getuid(), m->fsname, m->dir, m->fstype, msg1) != -1)
+		syslog(LOG_CRIT, "%s", msg2);
+	va_end(args);
+	closelog();
+
+	sleep(2);
+	fprintf(stderr, "%s\n", msg2);
+	exit(1);
+}
+
+static void clean_supplementary_groups(gid_t gid) {
+	assert(cfg.username);
+	gid_t groups[MAX_GROUPS];
+	int ngroups = MAX_GROUPS;
+	int rv = getgrouplist(cfg.username, gid, groups, &ngroups);
+	if (rv == -1)
+		goto clean_all;
+
+	// clean supplementary group list
+	// allow only tty, audio, video, games
+	gid_t new_groups[MAX_GROUPS];
+	int new_ngroups = 0;
+	char *allowed[] = {
+		"tty",
+		"audio",
+		"video",
+		"games",
+		NULL
+	};
+
+	int i = 0;
+	while (allowed[i]) {
+		gid_t g = get_group_id(allowed[i]);
+	 	if (g) {
+			int j;
+			for (j = 0; j < ngroups; j++) {
+				if (g == groups[j]) {
+					new_groups[new_ngroups] = g;
+					new_ngroups++;
+					break;
+				}
+			}
+		}
+		i++;
+	}
+
+	if (new_ngroups) {
+		rv = setgroups(new_ngroups, new_groups);
+		if (rv)
+			goto clean_all;
+
+		if (arg_debug) {
+			printf("Supplementary groups: ");
+			for (i = 0; i < new_ngroups; i++)
+				printf("%d ", new_groups[i]);
+			printf("\n");
+		}
+	}
+	else
+		goto clean_all;
+
+	return;
+
+clean_all:
+	fwarning("cleaning all supplementary groups\n");
+	if (setgroups(0, NULL) < 0)
+		errExit("setgroups");
+}
+
+
 // drop privileges
 // - for root group or if nogroups is set, supplementary groups are not configured
 void drop_privs(int nogroups) {
 	EUID_ROOT();
 	gid_t gid = getgid();
+	if (arg_debug)
+		printf("Drop privileges: pid %d, uid %d, gid %d, nogroups %d\n",  getpid(), getuid(), gid, nogroups);
 
 	// configure supplementary groups
 	if (gid == 0 || nogroups) {
 		if (setgroups(0, NULL) < 0)
 			errExit("setgroups");
 		if (arg_debug)
-			printf("Username %s, no supplementary groups\n", cfg.username);
+			printf("No supplementary groups\n");
 	}
-	else {
-		assert(cfg.username);
-		gid_t groups[MAX_GROUPS];
-		int ngroups = MAX_GROUPS;
-		int rv = getgrouplist(cfg.username, gid, groups, &ngroups);
-
-		if (arg_debug && rv) {
-			printf("Username %s, groups ", cfg.username);
-			int i;
-			for (i = 0; i < ngroups; i++)
-				printf("%u, ", groups[i]);
-			printf("\n");
-		}
-
-		if (rv == -1) {
-			fwarning("cannot extract supplementary group list, dropping them\n");
-			if (setgroups(0, NULL) < 0)
-				errExit("setgroups");
-		}
-		else {
-			rv = setgroups(ngroups, groups);
-			if (rv) {
-				fwarning("cannot set supplementary group list, dropping them\n");
-				if (setgroups(0, NULL) < 0)
-					errExit("setgroups");
-			}
-		}
-	}
+	else if (arg_noroot)
+		clean_supplementary_groups(gid);
 
 	// set uid/gid
 	if (setgid(getgid()) < 0)
@@ -126,6 +184,16 @@ void fwarning(char* fmt, ...) {
 	va_end(args);
 }
 
+void fmessage(char* fmt, ...) { // TODO: this function is duplicated in src/fnet/interface.c
+	if (arg_quiet)
+		return;
+
+	va_list args;
+	va_start(args,fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+	fflush(0);
+}
 
 void logsignal(int s) {
 	if (!arg_debug)
@@ -752,9 +820,6 @@ void invalid_filename(const char *fname, int globbing) {
 	assert(fname);
 	const char *ptr = fname;
 
-	if (arg_debug_check_filename)
-		printf("Checking filename %s\n", fname);
-
 	if (strncmp(ptr, "${HOME}", 7) == 0)
 		ptr = fname + 7;
 	else if (strncmp(ptr, "${PATH}", 7) == 0)
@@ -790,21 +855,51 @@ uid_t get_group_id(const char *group) {
 	return gid;
 }
 
-
+static int len_homedir = 0;
 static int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
 	(void) sb;
 	(void) typeflag;
 	(void) ftwbuf;
+	assert(fpath);
 
-	int rv = remove(fpath);
-	if (rv)
-		perror(fpath);
+	if (len_homedir == 0)
+		len_homedir = strlen(cfg.homedir);
 
-	return rv;
+	char *rp = realpath(fpath, NULL);	// this should never fail!
+	if (!rp)
+		return 1;
+	if (strncmp(rp, cfg.homedir, len_homedir) != 0)
+		return 1;
+	free(rp);
+
+	if (remove(fpath)) {	// removes the link not the actual file
+		fprintf(stderr, "Error: cannot remove file %s\n", fpath);
+		exit(1);
+	}
+
+	return 0;
 }
 
 
-int remove_directory(const char *path) {
+int remove_overlay_directory(void) {
+	sleep(1);
+
+	char *path;
+	if (asprintf(&path, "%s/.firejail", cfg.homedir) == -1)
+		errExit("asprintf");
+
+	// deal with obvious problems such as symlinks and root ownership
+	if (is_link(path))
+		errLogExit("overlay directory is a symlink\n");
+	if (access(path, R_OK | W_OK | X_OK) == -1)
+		errLogExit("no access to overlay directory\n");
+
+	EUID_ROOT();
+	if (setreuid(0, 0) < 0 ||
+	    setregid(0, 0) < 0)
+		errExit("setreuid/setregid");
+	errno = 0;
+
 	// FTW_PHYS - do not follow symbolic links
 	return nftw(path, remove_callback, 64, FTW_DEPTH | FTW_PHYS);
 }
@@ -919,4 +1014,100 @@ unsigned extract_timeout(const char *str) {
 	}
 
 	return h * 3600 + m * 60 + s;
+}
+
+void disable_file_or_dir(const char *fname) {
+	if (arg_debug)
+		printf("blacklist %s\n", fname);
+	struct stat s;
+	if (stat(fname, &s) != -1) {
+		if (is_dir(fname)) {
+			if (mount(RUN_RO_DIR, fname, "none", MS_BIND, "mode=400,gid=0") < 0)
+				errExit("disable directory");
+		}
+		else {
+			if (mount(RUN_RO_FILE, fname, "none", MS_BIND, "mode=400,gid=0") < 0)
+				errExit("disable file");
+		}
+	}
+	fs_logger2("blacklist", fname);
+}
+
+void disable_file_path(const char *path, const char *file) {
+	assert(file);
+	assert(path);
+
+	char *fname;
+	if (asprintf(&fname, "%s/%s", path, file) == -1)
+		errExit("asprintf");
+
+	disable_file_or_dir(fname);
+	free(fname);
+}
+
+#define MAX_BUF 4096
+static char mbuf[MAX_BUF];
+static MountData mdata;
+
+// Get info regarding the last kernel mount operation.
+// The return value points to a static area, and will be overwritten by subsequent calls.
+// The function does an exit(1) if anything goes wrong.
+MountData *get_last_mount(void) {
+	// open /proc/self/mountinfo
+	FILE *fp = fopen("/proc/self/mountinfo", "r");
+	if (!fp)
+		goto errexit;
+
+	mbuf[0] = '\0';
+	while (fgets(mbuf, MAX_BUF, fp));
+	fclose(fp);
+	if (arg_debug)
+		printf("%s", mbuf);
+
+	// extract filesystem name, directory and filesystem type
+	// examples:
+	//	587 543 8:1 /tmp /etc rw,relatime master:1 - ext4 /dev/sda1 rw,errors=remount-ro,data=ordered
+	//		mdata.fsname: /tmp
+	//		mdata.dir: /etc
+	//		mdata.fstype: ext4
+	//	585 564 0:76 / /home/netblue/.cache rw,nosuid,nodev - tmpfs tmpfs rw
+	//		mdata.fsname: /
+	//		mdata.dir: /home/netblue/.cache
+	//		mdata.fstype: tmpfs
+	memset(&mdata, 0, sizeof(mdata));
+	char *ptr = strtok(mbuf, " ");
+	if (!ptr)
+		goto errexit;
+
+	int cnt = 1;
+	while ((ptr = strtok(NULL, " ")) != NULL) {
+		cnt++;
+		if (cnt == 4)
+			mdata.fsname = ptr;
+		else if (cnt == 5) {
+			mdata.dir = ptr;
+			break;
+		}
+	}
+
+	ptr = strtok(NULL, "-");
+	if (!ptr)
+		goto errexit;
+
+	ptr = strtok(NULL, " ");
+	if (!ptr)
+		goto errexit;
+	mdata.fstype = ptr++;
+
+	if (mdata.fsname == NULL ||
+	    mdata.dir == NULL ||
+	    mdata.fstype == NULL)
+		goto errexit;
+	if (arg_debug)
+		printf("fsname=%s dir=%s fstype=%s\n", mdata.fsname, mdata.dir, mdata.fstype);
+	return &mdata;
+
+errexit:
+	fprintf(stderr, "Error: cannot read /proc/self/mountinfo\n");
+	exit(1);
 }

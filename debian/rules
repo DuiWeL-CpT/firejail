@@ -26,8 +26,10 @@ override_dh_auto_install:
 	rm --verbose -rf debian/tmp/usr/share/doc/firejail
 
 override_dh_install:
-	dh_install -pfirejail --fail-missing
-	dh_install -pfirejail-profiles --fail-missing -Xdefault.profile -Xserver.profile
+	dh_install -pfirejail
+	dh_install -pfirejail-profiles -Xdefault.profile -Xserver.profile
+	dh_missing -pfirejail --fail-missing
+	dh_missing -pfirejail-profiles --fail-missing -Xdefault.profile -Xserver.profile
 
 override_dh_auto_test:
 	# skip tests here as they are run as autopkgtest

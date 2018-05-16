@@ -10,25 +10,25 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.cache/thunderbird
 noblacklist ${HOME}/.gnupg
-noblacklist ${HOME}/.icedove
+# noblacklist ${HOME}/.icedove
 noblacklist ${HOME}/.thunderbird
 
 mkdir ${HOME}/.cache/thunderbird
 mkdir ${HOME}/.gnupg
-mkdir ${HOME}/.icedove
+# mkdir ${HOME}/.icedove
 mkdir ${HOME}/.thunderbird
 whitelist ${HOME}/.cache/thunderbird
 whitelist ${HOME}/.gnupg
-whitelist ${HOME}/.icedove
+# whitelist ${HOME}/.icedove
 whitelist ${HOME}/.thunderbird
-include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
 
 # We need the real /tmp for data exchange when xdg-open handles email attachments on KDE
 ignore private-tmp
-# machine-id breaks pulse audio; it should work fine in setups where sound is not required
-#machine-id
+# machine-id breaks audio in browsers; enable it when sound is not required
+# machine-id
 read-only ${HOME}/.config/mimeapps.list
+# writable-run-user is needed for signing and encrypting emails
+writable-run-user
 
 # allow browsers
 # Redirect

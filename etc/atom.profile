@@ -5,8 +5,6 @@ include /etc/firejail/atom.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-# blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.atom
 noblacklist ${HOME}/.config/Atom
 
@@ -17,6 +15,7 @@ include /etc/firejail/disable-programs.inc
 caps.drop all
 # net none
 netfilter
+nodbus
 nodvd
 nogroups
 nonewprivs

@@ -11,11 +11,13 @@ noblacklist ${HOME}/.config/xreader
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
+# apparmor
 caps.drop all
 no3d
 nodvd

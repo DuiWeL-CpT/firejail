@@ -14,6 +14,7 @@ noblacklist ${HOME}/.local/share/baloo
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -34,7 +35,7 @@ seccomp.drop @cpu-emulation,@debug,@obsolete,@privileged,@resources,add_key,fano
 shell none
 # x11 xorg
 
-private-bin baloo_file,baloo_file_extractor,kbuildsycoca4
+private-bin baloo_file,baloo_file_extractor,baloo_filemetadata_temp_extractor,kbuildsycoca4
 private-dev
 private-tmp
 

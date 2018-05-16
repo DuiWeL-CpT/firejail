@@ -12,6 +12,7 @@ noblacklist ${HOME}/Downloads
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -36,5 +37,5 @@ shell none
 disable-mnt
 private-bin slack
 private-dev
-private-etc asound.conf,ca-certificates,fonts,group,passwd,pulse,resolv.conf,ssl,ld.so.conf,ld.so.cache,localtime
+private-etc asound.conf,ca-certificates,fonts,group,passwd,pulse,resolv.conf,ssl,ld.so.conf,ld.so.cache,localtime,pki,crypto-policies
 private-tmp

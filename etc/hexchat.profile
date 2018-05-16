@@ -6,11 +6,18 @@ include /etc/firejail/hexchat.local
 include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/hexchat
-# noblacklist /usr/lib/python2*
-# noblacklist /usr/lib/python3*
+noblacklist /usr/share/perl*
+
+# Allow python (blacklisted by disable-interpreters.inc)
+noblacklist ${PATH}/python2*
+noblacklist ${PATH}/python3*
+noblacklist /usr/lib/python2*
+noblacklist /usr/lib/python3*
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
+include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 mkdir ${HOME}/.config/hexchat

@@ -1,3 +1,13 @@
+firejail (0.9.54~rc1-1) experimental; urgency=low
+
+  This version of firejail includes support for restricting the users that are
+  allowed to start jailed programs. If the file /etc/firejail/firejail.users
+  does not exist, it behaves as in previous versions (all users allowed),
+  otherwise only the listed users can run it.
+  See firejail-users(5) for more information.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 07 May 2018 22:17:14 +0200
+
 firejail (0.9.46~rc1-1) experimental; urgency=low
 
   The application profiles are now included in a separate package.

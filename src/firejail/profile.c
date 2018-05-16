@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -233,6 +233,10 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		arg_nosound = 1;
 		return 0;
 	}
+	else if (strcmp(ptr, "noautopulse") == 0) {
+		arg_noautopulse = 1;
+		return 0;
+	}
 	else if (strcmp(ptr, "notv") == 0) {
 		arg_notv = 1;
 		return 0;
@@ -249,9 +253,8 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		arg_no3d = 1;
 		return 0;
 	}
-	else if (strcmp(ptr, "allow-private-blacklist") == 0) {
-		if (!arg_quiet)
-			fprintf(stderr, "Warning: --allow-private-blacklist was deprecated\n");
+	else if (strcmp(ptr, "nodbus") == 0) {
+		arg_nodbus = 1;
 		return 0;
 	}
 	else if (strcmp(ptr, "netfilter") == 0) {
@@ -503,18 +506,20 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 				fprintf(stderr, "Error: no network device configured\n");
 				exit(1);
 			}
-			if (br->arg_ip_none || br->ip6sandbox) {
+			if (br->ip6sandbox) {
 				fprintf(stderr, "Error: cannot configure the IP address twice for the same interface\n");
 				exit(1);
 			}
 
 			// configure this IP address for the last bridge defined
-			// todo: verify ipv6 syntax
-			br->ip6sandbox = ptr + 4;
-//			if (atoip(argv[i] + 5, &br->ipsandbox)) {
-//				fprintf(stderr, "Error: invalid IP address\n");
-//				exit(1);
-//			}
+			if (check_ip46_address(ptr + 4) == 0) {
+				fprintf(stderr, "Error: invalid IPv6 address\n");
+				exit(1);
+			}
+
+			br->ip6sandbox = strdup(ptr + 4);
+			if (br->ip6sandbox == NULL)
+				errExit("strdup");
 
 		}
 		else
@@ -548,7 +553,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 #ifdef HAVE_SECCOMP
 		if (checkcfg(CFG_SECCOMP)) {
 			if (cfg.protocol) {
-				fwarning("a protocol list is present, the new list \"%s\" will not be installed\n", ptr + 9);
+				fwarning("two protocol lists are present, \"%s\" will be installed\n", cfg.protocol);
 				return 0;
 			}
 
@@ -669,20 +674,25 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 
 	// dns
 	if (strncmp(ptr, "dns ", 4) == 0) {
-		uint32_t dns;
-		if (atoip(ptr + 4, &dns)) {
-			fprintf(stderr, "Error: invalid DNS server IP address\n");
-			return 1;
-		}
 
-		if (cfg.dns1 == 0)
+		if (check_ip46_address(ptr + 4) == 0) {
+			fprintf(stderr, "Error: invalid DNS server IPv4 or IPv6 address\n");
+			exit(1);
+		}
+		char *dns = strdup(ptr + 4);
+		if (!dns)
+			errExit("strdup");
+
+		if (cfg.dns1 == NULL)
 			cfg.dns1 = dns;
-		else if (cfg.dns2 == 0)
+		else if (cfg.dns2 == NULL)
 			cfg.dns2 = dns;
-		else if (cfg.dns3 == 0)
+		else if (cfg.dns3 == NULL)
 			cfg.dns3 = dns;
+		else if (cfg.dns4 == NULL)
+			cfg.dns4 = dns;
 		else {
-			fprintf(stderr, "Error: up to 3 DNS servers can be specified\n");
+			fprintf(stderr, "Error: up to 4 DNS servers can be specified\n");
 			return 1;
 		}
 		return 0;
@@ -726,6 +736,11 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 	// writable-var
 	if (strcmp(ptr, "writable-var") == 0) {
 		arg_writable_var = 1;
+		return 0;
+	}
+	// don't overwrite /var/tmp
+	if (strcmp(ptr, "keep-var-tmp") == 0) {
+		arg_keep_var_tmp = 1;
 		return 0;
 	}
 	// writable-run-user
@@ -914,6 +929,10 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 #ifdef HAVE_OVERLAYFS
 	if (strncmp(ptr, "overlay-named ", 14) == 0) {
 		if (checkcfg(CFG_OVERLAYFS)) {
+			if (arg_overlay) {
+				fprintf(stderr, "Error: only one overlay command is allowed\n");
+				exit(1);
+			}
 			if (cfg.chrootdir) {
 				fprintf(stderr, "Error: --overlay and --chroot options are mutually exclusive\n");
 				exit(1);
@@ -945,6 +964,10 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		return 0;
 	} else if (strcmp(ptr, "overlay-tmpfs") == 0) {
 		if (checkcfg(CFG_OVERLAYFS)) {
+			if (arg_overlay) {
+				fprintf(stderr, "Error: only one overlay command is allowed\n");
+				exit(1);
+			}
 			if (cfg.chrootdir) {
 				fprintf(stderr, "Error: --overlay and --chroot options are mutually exclusive\n");
 				exit(1);
@@ -960,6 +983,10 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		}
 	} else if (strcmp(ptr, "overlay") == 0) {
 		if (checkcfg(CFG_OVERLAYFS)) {
+			if (arg_overlay) {
+				fprintf(stderr, "Error: only one overlay command is allowed\n");
+				exit(1);
+			}
 			if (cfg.chrootdir) {
 				fprintf(stderr, "Error: --overlay and --chroot options are mutually exclusive\n");
 				exit(1);
@@ -1223,27 +1250,8 @@ void profile_read(const char *fname) {
 	}
 
 	// save the name of the file for --profile.print option
-	if (include_level == 0) {
-		char *runfile;
-		if (asprintf(&runfile, "%s/%d", RUN_FIREJAIL_PROFILE_DIR, getpid()) == -1)
-			errExit("asprintf");
-
-		EUID_ROOT();
-		// the file is deleted first
-		FILE *fp = fopen(runfile, "w");
-		if (!fp) {
-			fprintf(stderr, "Error: cannot create %s\n", runfile);
-			exit(1);
-		}
-		fprintf(fp, "%s\n", fname);
-
-		// mode and ownership
-		SET_PERMS_STREAM(fp, 0, 0, 0644);
-		fclose(fp);
-		EUID_USER();
-		free(runfile);
-	}
-
+	if (include_level == 0)
+		set_profile_run_file(getpid(), fname);
 
 	int msg_printed = 0;
 
@@ -1274,8 +1282,7 @@ void profile_read(const char *fname) {
 			continue;
 		}
 		if (!msg_printed) {
-			if (!arg_quiet)
-				fprintf(stderr, "Reading profile %s\n", fname);
+			fmessage("Reading profile %s\n", fname);
 			msg_printed = 1;
 		}
 

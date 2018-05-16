@@ -3,7 +3,8 @@ Upstream-Name: firejail
 Source: https://sourceforge.net/projects/firejail/files/firejail/
 
 Files: *
-Copyright: 2014-2017 netblue30 <netblue30@yahoo.com>
+Copyright: 2014-2018 Firejail Authors
+           2014-2018 netblue30 <netblue30@yahoo.com>
 License: GPL-2+
 
 Files: src/lib/libnetlink.c
@@ -20,7 +21,7 @@ Copyright: KOLANICH <kolan_n@mail.ru>
 License: Unlicense
 
 Files: debian/*
-Copyright: 2015-2017 Reiner Herrmann <reiner@reiner-h.de>
+Copyright: 2015-2018 Reiner Herrmann <reiner@reiner-h.de>
 License: GPL-2+
 
 License: GPL-2+

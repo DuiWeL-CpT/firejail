@@ -9,6 +9,7 @@ noblacklist ${HOME}/.minetest
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -32,7 +33,8 @@ shell none
 disable-mnt
 private-bin minetest
 private-dev
-private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl
+# private-etc needs to be updated, see #1702
+#private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies
 private-tmp
 
 noexec ${HOME}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -109,10 +109,12 @@ void appimage_set(const char *appimage) {
 	EUID_ROOT();
 
 	if (size == 0) {
+		fmessage("Mounting appimage type 1\n");
 		if (mount(devloop, mntdir, "iso9660",MS_MGC_VAL|MS_RDONLY,  mode) < 0)
 			errExit("mounting appimage");
 	}
 	else {
+		fmessage("Mounting appimage type 2\n");
 		if (mount(devloop, mntdir, "squashfs",MS_MGC_VAL|MS_RDONLY,  mode) < 0)
 			errExit("mounting appimage");
 	}
@@ -151,8 +153,7 @@ void appimage_clear(void) {
 		for (i = 0; i < 5; i++) {
 			rv = umount2(mntdir, MNT_FORCE);
 			if (rv == 0) {
-				if (!arg_quiet)
-					printf("AppImage unmounted\n");
+				fmessage("AppImage unmounted\n");
 
 				break;
 			}

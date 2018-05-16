@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -65,10 +65,14 @@ static int have_profile(const char *filename, const char *homedir) {
 
 	// check .desktop extension
 	int len = strlen(tmpfname);
-	if (len <= 8)
+	if (len <= 8) {
+		free(tmpfname);
 		return 0;
-	if (strcmp(tmpfname + len - 8, ".desktop"))
+	}
+	if (strcmp(tmpfname + len - 8, ".desktop")) {
+		free(tmpfname);
 		return 0;
+	}
 	tmpfname[len - 8] = '\0';
 
 	// extract last word
@@ -136,15 +140,9 @@ void fix_desktop_files(char *homedir) {
 
 	// source
 	DIR *dir = opendir("/usr/share/applications");
-	if (!dir) {
+	if (!dir || chdir("/usr/share/applications")) {
 		perror("opendir");
-		fprintf(stderr, "Warning: cannot open /usr/share/applications directory, desktop files fixing skipped...\n");
-		free(user_apps_dir);
-		return;
-	}
-	if (chdir("/usr/share/applications")) {
-		perror("chdir");
-		fprintf(stderr, "Warning: cannot chdir to /usr/share/applications, desktop files fixing skipped...\n");
+		fprintf(stderr, "Warning: cannot access /usr/share/applications directory, desktop files fixing skipped...\n");
 		free(user_apps_dir);
 		return;
 	}
@@ -169,8 +167,6 @@ void fix_desktop_files(char *homedir) {
 		// skip links
 		if (is_link(filename))
 			continue;
-		if (stat(filename, &sb) == -1)
-			errExit("stat");
 
 		// no profile in /etc/firejail, no desktop file fixing
 		if (!have_profile(filename, homedir))
@@ -179,23 +175,33 @@ void fix_desktop_files(char *homedir) {
 		//****************************************************
 		// load the file in memory and do some basic checking
 		//****************************************************
-		/* coverity[toctou] */
-		int fd = open(filename, O_RDONLY);
-		if (fd == -1) {
+		FILE *fp = fopen(filename, "r");
+		if (!fp) {
 			fprintf(stderr, "Warning: cannot open /usr/share/applications/%s\n", filename);
 			continue;
 		}
 
-		char *buf = mmap(NULL, sb.st_size + 1, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-		if (buf == MAP_FAILED)
-			errExit("mmap");
-		close(fd);
+		fseek(fp, 0, SEEK_END);
+		size_t size = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+		char *buf = malloc(size + 1);
+		if (!buf)
+			errExit("malloc");
+
+		size_t loaded = fread(buf, size, 1, fp);
+		fclose(fp);
+		if (loaded != 1) {
+			fprintf(stderr, "Warning: cannot read /usr/share/applications/%s\n", filename);
+			free(buf);
+			continue;
+		}
+		buf[size] = '\0';
 
 		// check format
 		if (strstr(buf, "[Desktop Entry]\n") == NULL) {
 			if (arg_debug)
 				printf("   %s - skipped: wrong format?\n", filename);
-			munmap(buf, sb.st_size + 1);
+			free(buf);
 			continue;
 		}
 
@@ -204,7 +210,7 @@ void fix_desktop_files(char *homedir) {
 		if (!ptr || strlen(ptr) < 7) {
 			if (arg_debug)
 				printf("   %s - skipped: wrong format?\n", filename);
-			munmap(buf, sb.st_size + 1);
+			free(buf);
 			continue;
 		}
 
@@ -213,7 +219,7 @@ void fix_desktop_files(char *homedir) {
 		if (execname[0] == '"') {
 			if (arg_debug)
 				printf("   %s - skipped: path quoting unsupported\n", filename);
-			munmap(buf, sb.st_size + 1);
+			free(buf);
 			continue;
 		}
 
@@ -247,12 +253,9 @@ void fix_desktop_files(char *homedir) {
 			}
 		}
 
-		if (change_exec == NULL && change_dbus == 0) {
-			munmap(buf, sb.st_size + 1);
+		free(buf);
+		if (change_exec == NULL && change_dbus == 0)
 			continue;
-		}
-
-		munmap(buf, sb.st_size + 1);
 
 		//****************************************************
 		// generate output file

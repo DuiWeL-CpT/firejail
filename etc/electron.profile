@@ -11,8 +11,10 @@ include /etc/firejail/disable-programs.inc
 
 whitelist ${DOWNLOADS}
 
+apparmor
 caps.drop all
 netfilter
+nodbus
 nodvd
 nogroups
 nonewprivs

@@ -11,6 +11,7 @@ noblacklist ${HOME}/.kde4/share/config/konversationrc
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -26,8 +27,10 @@ notv
 novideo
 protocol unix,inet,inet6
 seccomp
+shell none
 tracelog
 
+private-bin konversation,kbuildsycoca4
 private-dev
 private-tmp
 

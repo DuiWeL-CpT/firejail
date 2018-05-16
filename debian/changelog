@@ -1,8 +1,26 @@
-firejail (0.9.52-3parrot1) testing; urgency=medium
+firejail (0.9.54-1) unstable; urgency=medium
 
-  * Rebuild for Parrot.
+  * New upstream release.
 
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 04 May 2018 15:02:40 +0200
+ -- Reiner Herrmann <reiner@reiner-h.de>  Wed, 16 May 2018 20:30:01 +0200
+
+firejail (0.9.54~rc2-1) experimental; urgency=medium
+
+  * New upstream release candidate.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Sun, 13 May 2018 21:11:28 +0200
+
+firejail (0.9.54~rc1-1) experimental; urgency=low
+
+  * New upstream release candidate.
+    - mark ~/.homesick as read-only by default (Closes: #884579)
+      Thanks to Alexander Gerasiov for the patch.
+  * Add NEWS entry about new user restriction feature.
+  * Add renamed profile to maintscript helper.
+  * Use dh_missing for missed file detection instead of dh_install.
+  * Bump copyright years.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 07 May 2018 22:42:16 +0200
 
 firejail (0.9.52-3) unstable; urgency=medium
 
@@ -12,44 +30,12 @@ firejail (0.9.52-3) unstable; urgency=medium
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Fri, 27 Apr 2018 19:42:28 +0200
 
-firejail (0.9.52-2parrot3) testing; urgency=medium
-
-  * Fix keepassxc missing libraries.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 16 Apr 2018 09:46:37 +0200
-
-firejail (0.9.52-2parrot2) testing; urgency=medium
-
-  * Update atril profile.
-  * Update geany profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@localhost.localdomain>  Mon, 08 Jan 2018 23:05:20 +0100
-
-firejail (0.9.52-2parrot1) testing; urgency=medium
-
-  * fix libreoffice javaldx startup crash
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 30 Dec 2017 00:35:11 +0100
-
-firejail (0.9.52-2parrot0) testing; urgency=medium
-
-  * Remove bleachbit from firecfg config.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 28 Dec 2017 15:26:15 +0100
-
 firejail (0.9.52-2) unstable; urgency=medium
 
   * Cleanup removed conffile in correct binary package. (Closes: #884915)
   * Bump debhelper compatibility/dependency to 11.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 21 Dec 2017 18:53:32 +0100
-
-firejail (0.9.52-1parrot0) testing; urgency=medium
-
-  * Import new Debian release.
-  * Reinclude profile patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 26 Dec 2017 11:30:12 +0100
 
 firejail (0.9.52-1) unstable; urgency=medium
 
@@ -60,52 +46,6 @@ firejail (0.9.52-1) unstable; urgency=medium
   * Bump Standards-Version to 4.1.2.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Sat, 16 Dec 2017 14:07:29 +0100
-
-firejail (0.9.50-3parrot6) testing; urgency=medium
-
-  * Fix libreoffice cache path.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 11 Dec 2017 00:23:19 +0100
-
-firejail (0.9.50-3parrot5) testing; urgency=medium
-
-  * Fix typo.
-  * Refresh patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 05 Dec 2017 09:06:14 +0100
-
-firejail (0.9.50-3parrot4) testing; urgency=medium
-
-  * Disable libreoffice devel blacklist.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 01 Dec 2017 09:24:08 +0100
-
-firejail (0.9.50-3parrot3) testing; urgency=medium
-
-  * Fix thunderbird compatibility with icedove profiles.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Nov 2017 23:15:30 +0100
-
-firejail (0.9.50-3parrot2) testing; urgency=medium
-
-  * Update profiles.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Nov 2017 03:22:17 +0100
-
-firejail (0.9.50-3parrot1) testing; urgency=medium
-
-  * Fix firefox rules.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 31 Oct 2017 22:29:40 +0100
-
-firejail (0.9.50-3parrot0) testing; urgency=medium
-
-  * Non-maintainer upload.
-  * Fix thunderbird rules.
-  * Fix display rules.
-  * Fix libreoffice rules.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 30 Oct 2017 12:06:09 +0100
 
 firejail (0.9.50-3) unstable; urgency=medium
 

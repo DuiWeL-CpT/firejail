@@ -11,6 +11,7 @@ noblacklist ${HOME}/.w3m
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -31,5 +32,5 @@ tracelog
 
 # private-bin w3m
 private-dev
-private-etc resolv.conf,ssl
+private-etc resolv.conf,ssl,pki,ca-certificates,crypto-policies
 private-tmp

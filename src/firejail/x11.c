@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -347,12 +347,6 @@ void x11_start_xvfb(int argc, char **argv) {
 	}
 	free(fname);
 
-	if (arg_debug) {
-		printf("X11 sockets: "); fflush(0);
-		int rv = system("ls /tmp/.X11-unix");
-		(void) rv;
-	}
-
 	assert(display_str);
 	setenv("DISPLAY", display_str, 1);
 	// run attach command
@@ -360,8 +354,7 @@ void x11_start_xvfb(int argc, char **argv) {
 	if (jail < 0)
 		errExit("fork");
 	if (jail == 0) {
-		if (!arg_quiet)
-			printf("\n*** Attaching to Xvfb display %d ***\n\n", display);
+		fmessage("\n*** Attaching to Xvfb display %d ***\n\n", display);
 
 		// running without privileges - see drop_privs call above
 		assert(getenv("LD_PRELOAD") == NULL);
@@ -583,12 +576,6 @@ void x11_start_xephyr(int argc, char **argv) {
 	}
 	free(fname);
 
-	if (arg_debug) {
-		printf("X11 sockets: "); fflush(0);
-		int rv = system("ls /tmp/.X11-unix");
-		(void) rv;
-	}
-
 	assert(display_str);
 	setenv("DISPLAY", display_str, 1);
 	// run attach command
@@ -756,12 +743,6 @@ void x11_start_xpra_old(int argc, char **argv, int display, char *display_str) {
 	}
 	free(fname);
 
-	if (arg_debug) {
-		printf("X11 sockets: "); fflush(0);
-		int rv = system("ls /tmp/.X11-unix");
-		(void) rv;
-	}
-
 	// build attach command
 	char *attach_argv[] = { "xpra", "--title=\"firejail x11 sandbox\"", "attach", display_str, NULL };
 
@@ -776,8 +757,7 @@ void x11_start_xpra_old(int argc, char **argv, int display, char *display_str) {
 			dup2(fd_null,2);
 		}
 
-		if (!arg_quiet)
-			printf("\n*** Attaching to xpra display %d ***\n\n", display);
+		fmessage("\n*** Attaching to xpra display %d ***\n\n", display);
 
 		// running without privileges - see drop_privs call above
 		assert(getenv("LD_PRELOAD") == NULL);
@@ -816,8 +796,7 @@ void x11_start_xpra_old(int argc, char **argv, int display, char *display_str) {
 		exit(1);
 	}
 
-	if (!arg_quiet)
-		printf("Xpra server pid %d, xpra client pid %d, jail %d\n", server, client, jail);
+	fmessage("Xpra server pid %d, xpra client pid %d, jail %d\n", server, client, jail);
 
 	sleep(1);				  // adding a delay in order to let the server start
 
@@ -1099,7 +1078,7 @@ void x11_xorg(void) {
 	// check xauth utility is present in the system
 	struct stat s;
 	if (stat("/usr/bin/xauth", &s) == -1) {
-		fprintf(stderr, "Error: xauth utility not found in PATH.  Please install it:\n"
+		fprintf(stderr, "Error: xauth utility not found in /usr/bin. Please install it:\n"
 			"   Debian/Ubuntu/Mint: sudo apt-get install xauth\n");
 		exit(1);
 	}
@@ -1214,6 +1193,14 @@ void x11_xorg(void) {
 	// just  in case...
 	if (set_perms(dest, getuid(), getgid(), 0600))
 		errExit("set_perms");
+
+	// check /proc/self/mountinfo to confirm the mount is ok
+	MountData *mptr = get_last_mount();
+	if (strcmp(mptr->dir, dest) != 0)
+		errLogExit("invalid .Xauthority mount");
+	if (strcmp(mptr->fstype, "tmpfs") != 0)
+		errLogExit("invalid .Xauthority mount");
+
 	free(dest);
 #endif
 }

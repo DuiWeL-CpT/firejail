@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -28,6 +28,11 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
+
+// check noblacklist statements not matched by a proper blacklist in disable-*.inc files
+//#define TEST_NO_BLACKLIST_MATCHING
+
+
 
 static void fs_rdwr(const char *dir);
 
@@ -183,15 +188,17 @@ static void disable_file(OPERATION op, const char *filename) {
 	free(fname);
 }
 
-// check noblacklist statements not matched by a proper blacklist in disable-*.inc files
+#ifdef TEST_NO_BLACKLIST_MATCHING
 static int nbcheck_start = 0;
 static size_t nbcheck_size = 0;
 static int *nbcheck = NULL;
+#endif
 
 // Treat pattern as a shell glob pattern and blacklist matching files
 static void globbing(OPERATION op, const char *pattern, const char *noblacklist[], size_t noblacklist_len) {
 	assert(pattern);
 
+#ifdef TEST_NO_BLACKLIST_MATCHING
 	if (nbcheck_start == 0) {
 		nbcheck_start = 1;
 		nbcheck_size = noblacklist_len;
@@ -200,6 +207,7 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 			errExit("malloc");
 		memset(nbcheck, 0, sizeof(int) * noblacklist_len);
 	}
+#endif
 
 	glob_t globbuf;
 	// Profiles contain blacklists for files that might not exist on a user's machine.
@@ -226,8 +234,10 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 				continue;
 			else if (result == 0) {
 				okay_to_blacklist = false;
+#ifdef TEST_NO_BLACKLIST_MATCHING
 				if (j < nbcheck_size)	// noblacklist checking
 					nbcheck[j] = 1;
+#endif
 				break;
 			}
 			else {
@@ -419,6 +429,7 @@ void fs_blacklist(void) {
 	}
 
 	size_t i;
+#ifdef TEST_NO_BLACKLIST_MATCHING
 	// noblacklist checking
 	for (i = 0; i < nbcheck_size; i++)
 		if (!arg_quiet && !nbcheck[i])
@@ -431,6 +442,7 @@ void fs_blacklist(void) {
 		nbcheck = NULL;
 		nbcheck_size = 0;
 	}
+#endif
 	for (i = 0; i < noblacklist_c; i++)
 		free(noblacklist[i]);
 	free(noblacklist);
@@ -472,29 +484,44 @@ void fs_rdonly(const char *dir) {
 
 static void fs_rdwr(const char *dir) {
 	assert(dir);
-	// check directory exists
+	// check directory exists and ensure we have a resolved path
+	// the resolved path allows to run a sanity check after the mount
+	char *path = realpath(dir, NULL);
+	if (path == NULL)
+		return;
+	// allow only user owned directories, except the user is root
+	uid_t u = getuid();
 	struct stat s;
-	int rv = stat(dir, &s);
-	if (rv == 0) {
-		// if the file is outside /home directory, allow only root user
-		uid_t u = getuid();
-		if (u != 0 && s.st_uid != u) {
-			fwarning("you are not allowed to change %s to read-write\n", dir);
-			return;
-		}
-
-		// mount --bind /bin /bin
-		// mount --bind -o remount,rw /bin
-		unsigned long flags = 0;
-		get_mount_flags(dir, &flags);
-		if ((flags & MS_RDONLY) == 0)
-			return;
-		flags &= ~MS_RDONLY;
-		if (mount(dir, dir, NULL, MS_BIND|MS_REC, NULL) < 0 ||
-		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT|MS_REC, NULL) < 0)
-			errExit("mount read-write");
-		fs_logger2("read-write", dir);
+	int rv = stat(path, &s);
+	if (rv) {
+		free(path);
+		return;
 	}
+	if (u != 0 && s.st_uid != u) {
+		fwarning("you are not allowed to change %s to read-write\n", path);
+		free(path);
+		return;
+	}
+	// mount --bind /bin /bin
+	// mount --bind -o remount,rw /bin
+	unsigned long flags = 0;
+	get_mount_flags(path, &flags);
+	if ((flags & MS_RDONLY) == 0) {
+		free(path);
+		return;
+	}
+	flags &= ~MS_RDONLY;
+	if (mount(path, path, NULL, MS_BIND|MS_REC, NULL) < 0 ||
+	    mount(NULL, path, NULL, flags|MS_BIND|MS_REMOUNT|MS_REC, NULL) < 0)
+		errExit("mount read-write");
+	fs_logger2("read-write", path);
+
+	// run a check on /proc/self/mountinfo to validate the mount
+	MountData *mptr = get_last_mount();
+	if (strncmp(mptr->dir, path, strlen(path)) != 0)
+		errLogExit("invalid read-write mount");
+
+	free(path);
 }
 
 void fs_noexec(const char *dir) {
@@ -553,12 +580,12 @@ void fs_proc_sys_dev_boot(void) {
 
 	disable_file(BLACKLIST_FILE, "/sys/firmware");
 	disable_file(BLACKLIST_FILE, "/sys/hypervisor");
-	{ // allow user access to /sys/fs if "--noblacklist=/sys/fs" is present on the command line
+	{ // allow user access to some directories in /sys/ by specifying 'noblacklist' option
 		EUID_USER();
 		profile_add("blacklist /sys/fs");
+		profile_add("blacklist /sys/module");
 		EUID_ROOT();
 	}
-	disable_file(BLACKLIST_FILE, "/sys/module");
 	disable_file(BLACKLIST_FILE, "/sys/power");
 	disable_file(BLACKLIST_FILE, "/sys/kernel/debug");
 	disable_file(BLACKLIST_FILE, "/sys/kernel/vmcoreinfo");
@@ -692,7 +719,8 @@ void fs_basic_fs(void) {
 
 	// update /var directory in order to support multiple sandboxes running on the same root directory
 	fs_var_lock();
-	fs_var_tmp();
+	if (!arg_keep_var_tmp)
+	  fs_var_tmp();
 	if (!arg_writable_var_log)
 		fs_var_log();
 	else
@@ -707,8 +735,6 @@ void fs_basic_fs(void) {
 	restrict_users();
 
 	// when starting as root, firejail config is not disabled;
-	// this mode could be used to install and test new software by chaining
-	// firejail sandboxes (firejail --force)
 	if (uid)
 		disable_config();
 }
@@ -725,7 +751,7 @@ char *fs_check_overlay_dir(const char *subdirname, int allow_reuse) {
 		errExit("asprintf");
 
 	if (is_link(dirname)) {
-		fprintf(stderr, "Error: invalid ~/.firejail directory\n");
+		fprintf(stderr, "Error: ~/.firejail directory is a symbolic link\n");
 		exit(1);
 	}
 	if (stat(dirname, &s) == -1) {
@@ -753,7 +779,7 @@ char *fs_check_overlay_dir(const char *subdirname, int allow_reuse) {
 		}
 	}
 	else if (s.st_uid != getuid()) {
-		fprintf(stderr, "Error: invalid ~/.firejail directory\n");
+		fprintf(stderr, "Error: ~/.firejail directory is not owned by the current user\n");
 		exit(1);
 	}
 	free(dirname);
@@ -829,9 +855,7 @@ void fs_overlayfs(void) {
 	if (major == 3 && minor < 18)
 		oldkernel = 1;
 
-	char *oroot;
-	if(asprintf(&oroot, "%s/oroot", RUN_MNT_DIR) == -1)
-		errExit("asprintf");
+	char *oroot = RUN_OVERLAY_ROOT;
 	mkdir_attr(oroot, 0755, 0, 0);
 
 	struct stat s;
@@ -839,6 +863,7 @@ void fs_overlayfs(void) {
 	if (arg_overlay_keep) {
 		// set base for working and diff directories
 		basedir = cfg.overlay_dir;
+		assert(basedir);
 
 		// does the overlay exist?
 		if (stat(basedir, &s) == 0) {
@@ -959,8 +984,7 @@ void fs_overlayfs(void) {
 		// issue #263 end code
 		//***************************
 	}
-	if (!arg_quiet)
-		printf("OverlayFS configured in %s directory\n", basedir);
+	fmessage("OverlayFS configured in %s directory\n", basedir);
 
 	// mount-bind dev directory
 	if (arg_debug)
@@ -1007,7 +1031,8 @@ void fs_overlayfs(void) {
 //	if (!arg_private_dev)
 //		fs_dev_shm();
 	fs_var_lock();
-	fs_var_tmp();
+	if (!arg_keep_var_tmp)
+	        fs_var_tmp();
 	if (!arg_writable_var_log)
 		fs_var_log();
 	else
@@ -1022,14 +1047,11 @@ void fs_overlayfs(void) {
 	restrict_users();
 
 	// when starting as root, firejail config is not disabled;
-	// this mode could be used to install and test new software by chaining
-	// firejail sandboxes (firejail --force)
 	if (getuid() != 0)
 		disable_config();
 
 	// cleanup and exit
 	free(option);
-	free(oroot);
 	free(odiff);
 }
 #endif
@@ -1234,9 +1256,15 @@ void fs_chroot(const char *rootdir) {
 #ifdef HAVE_GCOV
 	__gcov_flush();
 #endif
+	// mount the chroot dir on top of /run/firejail/mnt/oroot in order to reuse the apparmor rules for overlay
+	// and chroot into this new directory
 	if (arg_debug)
 		printf("Chrooting into %s\n", rootdir);
-	if (chroot(rootdir) < 0)
+	char *oroot = RUN_OVERLAY_ROOT;
+	mkdir_attr(oroot, 0755, 0, 0);
+	if (mount(rootdir, oroot, NULL, MS_BIND|MS_REC, NULL) < 0)
+		errExit("mounting rootdir oroot");
+	if (chroot(oroot) < 0)
 		errExit("chroot");
 
 	// create all other /run/firejail files and directories
@@ -1247,7 +1275,8 @@ void fs_chroot(const char *rootdir) {
 //		if (!arg_private_dev)
 //			fs_dev_shm();
 		fs_var_lock();
-		fs_var_tmp();
+		if (!arg_keep_var_tmp)
+		        fs_var_tmp();
 		if (!arg_writable_var_log)
 			fs_var_log();
 		else
@@ -1262,8 +1291,6 @@ void fs_chroot(const char *rootdir) {
 		restrict_users();
 
 		// when starting as root, firejail config is not disabled;
-		// this mode could be used to install and test new software by chaining
-		// firejail sandboxes (firejail --force)
 		if (getuid() != 0)
 			disable_config();
 	}

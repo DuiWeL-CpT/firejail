@@ -6,12 +6,12 @@ include /etc/firejail/less.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
 blacklist /tmp/.X11-unix
 
 ignore noroot
 net none
 no3d
+nodbus
 nodvd
 nosound
 notv
@@ -20,7 +20,7 @@ shell none
 tracelog
 writable-var-log
 
-# The user can have a custom coloring scritps configured in ${HOME}/.lessfilter.
+# The user can have a custom coloring script configured in ${HOME}/.lessfilter.
 # Enable private-bin and private-lib if you are not using any filter.
 # private-bin less
 # private-lib

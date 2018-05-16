@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -85,6 +85,15 @@ int checkcfg(int val) {
 				else
 					goto errout;
 			}
+			// dbus
+			else if (strncmp(ptr, "dbus ", 5) == 0) {
+				if (strcmp(ptr + 5, "yes") == 0)
+					cfg_val[CFG_DBUS] = 1;
+				else if (strcmp(ptr + 5, "no") == 0)
+					cfg_val[CFG_DBUS] = 0;
+				else
+					goto errout;
+			}
 			// join
 			else if (strncmp(ptr, "join ", 5) == 0) {
 				if (strcmp(ptr + 5, "yes") == 0)
@@ -100,6 +109,15 @@ int checkcfg(int val) {
 					cfg_val[CFG_X11] = 1;
 				else if (strcmp(ptr + 4, "no") == 0)
 					cfg_val[CFG_X11] = 0;
+				else
+					goto errout;
+			}
+			// apparmor
+			else if (strncmp(ptr, "apparmor ", 9) == 0) {
+				if (strcmp(ptr + 9, "yes") == 0)
+					cfg_val[CFG_APPARMOR] = 1;
+				else if (strcmp(ptr + 9, "no") == 0)
+					cfg_val[CFG_APPARMOR] = 0;
 				else
 					goto errout;
 			}
@@ -147,11 +165,6 @@ int checkcfg(int val) {
 					cfg_val[CFG_FOLLOW_SYMLINK_AS_USER] = 0;
 				else
 					goto errout;
-			}
-			// follow symlink in private-bin command
-			else if (strncmp(ptr, "follow-symlink-private-bin ", 27) == 0) {
-				if (!arg_quiet)
-					fprintf(stderr, "Warning:follow-symlink-private-bin from firejail.config was deprecated\n");
 			}
 			// nonewprivs
 			else if (strncmp(ptr, "force-nonewprivs ", 17) == 0) {
@@ -294,10 +307,6 @@ int checkcfg(int val) {
 				else
 					goto errout;
 			}
-			else if (strncmp(ptr, "remount-proc-sys ", 17) == 0) {
-				if (!arg_quiet)
-					fprintf(stderr, "Warning: remount-proc-sys from firejail.config was deprecated\n");
-			}
 			else if (strncmp(ptr, "overlayfs ", 10) == 0) {
 				if (strcmp(ptr + 10, "yes") == 0)
 					cfg_val[CFG_OVERLAYFS] = 1;
@@ -428,14 +437,6 @@ void print_compiletime_support(void) {
 
 	printf("\t- file transfer support is %s\n",
 #ifdef HAVE_FILE_TRANSFER
-		"enabled"
-#else
-		"disabled"
-#endif
-		);
-
-	printf("\t- git install support is %s\n",
-#ifdef HAVE_GIT_INSTALL
 		"enabled"
 #else
 		"disabled"

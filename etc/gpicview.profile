@@ -5,12 +5,11 @@ include /etc/firejail/gpicview.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.config/gpicview
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -18,6 +17,7 @@ include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 net none
+nodbus
 nodvd
 nogroups
 nonewprivs

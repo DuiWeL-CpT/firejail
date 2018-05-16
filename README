@@ -34,11 +34,13 @@ Maintainer:
 
 Committers
 - Fred-Barclay (https://github.com/Fred-Barclay)
-- Reiner Herrmann (https://github.com/reinerh)
+- Reiner Herrmann (https://github.com/reinerh - Debian/Ubuntu maintainer)
 - smithsohu (https://github.com/smitsohu)
-- SpotComms (https://github.com/SpotComms)
-- startx2017 (https://github.com/startx2017) - 0.9.38-LTS and *bugfixes branches maintainer
+- SkewedZeppelin (https://github.com/SkewedZeppelin)
+- startx2017 (https://github.com/startx2017) - 0.9.38-LTS and *bugfixes branches maintainer)
 - Topi Miettinen (https://github.com/topimiettinen)
+- Vincent43 (https://github.com/Vincent43)
+- chiraag-nataraj (https://github.com/chiraag-nataraj)
 - netblue30 (netblue30@yahoo.com)
 
 
@@ -69,6 +71,9 @@ Aleksey Manevich (https://github.com/manevich)
 	- x11 xpra, xphyr, none profile commands
 	- added --join-or-start command
 	- CVE-2016-7545
+Alexander Gerasiov (https://github.com/gerasiov)
+	- read-only ~/.ssh/authorized_keys
+	- profile updates
 Alexander Stein (https://github.com/ajstein)
 	- added profile for qutebrowser
 Andrey Alekseenko (https://github.com/al42and)
@@ -80,6 +85,7 @@ announ (https://github.com/announ)
 	- mpv and youtube-dl profile fixes
 Antonio Russo (https://github.com/aerusso)
 	- enumerate root directories in apparmor profile
+	- fix join-or-start
 Austin S. Hemmelgarn (https://github.com/Ferroin)
 	- unbound profile update
 avoidr (https://github.com/avoidr)
@@ -101,6 +107,16 @@ Bader Zaidan (https://github.com/BaderSZ)
 	- Telegram profile
 Benjamin Kampmann (https://github.com/ligthyear)
 	- Forward exit code from child process
+bitfreak25 (https://github.com/bitfreak25)
+	- added PlayOnLinux profile
+	- minetest profile fix
+	- added sylpheed profile
+bn0785ac (https://github.com/bn0785ac)
+	- fixed bnox, dnox profiles
+	- support all tor-browser langpacks
+	- chromium canary (inox-family) fixes
+	- allow multithreading for cin and natron
+	- fix dbus access for libreoffice on KDE
 BogDan Vatra (https://github.com/bog-dan-ro)
 	- zoom profile
 Bruno Nova (https://github.com/brunonova)
@@ -143,6 +159,8 @@ Daan Bakker (https://github.com/dbakker)
 Danil Semelenov (https://github.com/sgtpep)
 	- blacklist the Electron Cash Wallet
 	- blacklist s3cmd and s3fs configs
+	- blacklist Ethereum, Monero wallets
+	- blacklist Dash Core wallet
 Dara Adib (https://github.com/daradib)
 	- ssh profile fix
 	- evince profile fix
@@ -152,6 +170,8 @@ dewbasaur (https://github.com/dewbasaur)
 	- block access to history files
 	- Firefox PDF.js exploit (CVE-2015-4495) fixes
 	- Steam profile
+DiGitHubCap (https://github.com/DiGitHubCap)
+	- deluge profile fix
 dshmgh (https://github.com/dshmgh)
 	- overlayfs fix for systems with /home mounted on a separate partition
 Duncan Overbruck (https://github.com/Duncaen)
@@ -167,6 +187,8 @@ Fabian Würfl (https://github.com/BafDyce)
 	- Liferea profile
 Felipe Barriga Richards (https://github.com/fbarriga)
 	- --private-etc fix
+floxo (https://github.com/floxo)
+	- fixed qml disk cache issue
 Franco (nextime) Lanza (https://github.com/nextime)
 	- added --private-template/--private-home
 fuelflo (https://github.com/fuelflo)
@@ -217,6 +239,8 @@ Fred-Barclay (https://github.com/Fred-Barclay)
 	- added BibleTime profile
 	- added caja and galculator profiles
 	- added Catfish profile
+g3ngr33n (https://github.com/g3ngr33n)
+	- fix musl compilation
 G4JC (http://sourceforge.net/u/gaming4jc/profile/)
 	- ARM support
 	- profile fixes
@@ -224,6 +248,18 @@ Gaman Gabriel (https://github.com/stelariusinfinitek)
 	- inox profile
 geg2048 (https://github.com/geg2048)
 	- kwallet profile fixes
+glitsj16 (https://github.com/glitsj16)
+	- evince-previewer, evince-thumbnailer profiles
+	- gnome-recipes, gnome-logs profiles
+	- fixed private-lib for gnome-calculator
+	- gunzip, bunzip2 profiles
+	- enchant, enchat-2, enchant-lsmod, enchant-lsmod-2 profiles
+	- atool, soundconvertor, mpd, gnome-calculator, makepkg profile fixes
+	- acat, adiff, als, apack, arepack, aunpack profiles,
+	- fix sqlitebrowser blacklist
+	- spelling fixes
+	- bitblbee profile fixes
+	- fix firefox common addons
 graywolf (https://github.com/graywolf)
 	- spelling fix
 greigdp (https://github.com/greigdp)
@@ -252,6 +288,8 @@ iiotx (https://github.com/iiotx)
 	- use generic.profile by default
 Impyy (https://github.com/Impyy)
 	- added mumble profile
+intika (https://github.com/intika)
+	- added musixmatch profile
 irregulator (https://github.com/irregulator)
 	- thunderbird profile fixes for debian stretch
 Irvine (https://github.com/Irvinehimself)
@@ -264,6 +302,14 @@ Jaykishan Mutkawoa (https://github.com/jmutkawoa)
 James Elford (https://github.com/jelford)
 	- pass password manager support
 	- removed shell none from ssh-agent configuration, fixing the infinit loop
+	- added gcloud profile
+	- blacklist sensitive cloud provider files in disable-common
+Jean Lucas (https://github.com/flacks)
+	- fix Discord profile
+	- add AnyDesk profile
+	- add WebStorm profile
+	- add XMind profile
+	- add nvm to list of disabled interpreters
 Jericho (https://github.com/attritionorg)
 	- spelling
 Jesse Smith (https://github.com/slicer69)
@@ -299,6 +345,8 @@ KellerFuchs (https://github.com/KellerFuchs)
 	- added support for .local profile files in /etc/firejail
 	- fixed Cryptocat profile
 	- make ~/.local read-only
+Kishore96in (https://github.com/Kishore96in)
+	- added falkon profile
 KOLANICH (https://github.com/KOLANICH)
 	- added symlink fixer fix_private-bin.py in contrib section
 Kunal Mehta (https://github.com/legoktm)
@@ -332,8 +380,11 @@ Mattias Wadman (https://github.com/wader)
 	- seccomp errno filter support
 Matthew Gyurgyik (https://github.com/pyther)
 	- rpm spec and several fixes
-melvinvermeeren (https://github.com/melvinvermeeren)
+maxice8 (https://github.com/maxice8)
+	- fixed missing header
+Melvin Vermeeren (https://github.com/melvinvermeeren)
 	- added teamspeak3 profile
+	- added --noautopulse command line option
 Michael Haas (https://github.com/mhaas)
 	- bugfixes
 Mike Frysinger (vapier@gentoo.org)
@@ -355,6 +406,8 @@ Panzerfather (https://github.com/Panzerfather)
 	- allow eog to access user's trash
 Patrick Toomey (http://sourceforge.net/u/ptoomey/profile/)
 	- user namespace implementation
+Paul Moore <pmoore@redhat.com>
+	-src/fsec-print/print.c extracted from libseccomp software package
 Paupiah Yash (https://github.com/CaffeinatedStud)
 	- gzip  profile
 Peter Millerchip (https://github.com/pmillerchip)
@@ -382,6 +435,8 @@ Pixel Fairy (https://github.com/xahare)
 PizzaDude (https://github.com/pizzadude)
 	- add mpv support to smplayer
 	- added profile for torbrowser-launcher
+	- added profile for sayonara and qmmp
+	- remove tracelog from Firefox profile
 probonopd (https://github.com/probonopd)
 	- automatic build on Travis CI
 pshpsh (https://github.com/pshpsh)
@@ -416,6 +471,10 @@ Reiner Herrmann (https://github.com/reinerh)
 Remco Verhoef (https://github.com/nl5887)
 	- add overlay configuration to profiles
 	- prevent running shells recursively
+RD PROJEKT (https://github.com/RDProjekt)
+	- noblacklist support for /sys/module directory
+	- whitelist support for /sys/module directory
+	- support AMD GPU by OpenCL in Blender
 rogshdo (https://github.com/rogshdo)
 	- BitlBee profile
 Ruan (https://github.com/ruany)
@@ -452,7 +511,9 @@ soredake (https://github.com/soredake)
 	- fix handling of STEAM_RUNTIME_PREFER_HOST_LIBRARIES in steam profile
 	- fix keepassxc.profile
 	- fix qtox.profile
-SpotComms (https://github.com/SpotComms)
+	- add ocaltime to private-etc to make qtox show correct time
+	- fixes for the keepassxc 2.2.5 version
+SkewedZeppelin (https://github.com/SkewedZeppelin)
 	- added Bless, Gnome 2048, Gnome Calculator, Gnome Contacts, JD-GUI, Lollypop, MultiMC5 profiles
 	- added PDFSam, Pithos, and Xonotic profiles
 	- disabled Go, Rust, and OpenSSL in disable-devel.conf
@@ -574,13 +635,18 @@ Vasya Novikov (https://github.com/vn971)
 	- fixed firecfg clean/clear issue
 	- found the ugliest bug so far
 	- seccomp debug description in man page
+	- seccomp syscall list update for glibc 2.26-10
 Veeti Paananen (https://github.com/veeti)
 	- fixed Spotify profile
+Vincent43 (https://github.com/Vincent43)
+	- apparmor enhancements
 vismir2 (https://github.com/vismir2)
 	- feh, ranger, 7z, keepass, keepassx and zathura profiles
 	- claws-mail, mutt, git, emacs, vim profiles
 	- lots of profile fixes
 	-  support for truecrypt and zuluCrypt
+viq (https://github.com/viq)
+	- discord-canary profile
 Vladimir Gorelov (https://github.com/larkvirtual)
 	- added Yandex browser profile
 Vladimir Schowalter (https://github.com/VladimirSchowalter20)

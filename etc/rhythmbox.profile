@@ -8,14 +8,18 @@ include /etc/firejail/globals.local
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+# rhythmbox is using Python
+#include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
+# apparmor - makes settings immutable
 caps.drop all
 netfilter
 # no3d
+# nodbus - makes settings immutable
 nogroups
 nonewprivs
 noroot

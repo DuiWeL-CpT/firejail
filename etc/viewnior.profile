@@ -5,8 +5,6 @@ include /etc/firejail/viewnior.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-blacklist ${HOME}/.Xauthority
 blacklist ${HOME}/.bashrc
 
 noblacklist ${HOME}/.Steam
@@ -15,12 +13,14 @@ noblacklist ${HOME}/.steam
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 caps.drop all
 net none
 no3d
+nodbus
 nodvd
 nogroups
 nonewprivs
@@ -38,6 +38,7 @@ private-dev
 private-etc fonts
 private-tmp
 
-memory-deny-write-execute
+# memory-deny-write-executes breaks on Arch - see issue #1808
+#memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
