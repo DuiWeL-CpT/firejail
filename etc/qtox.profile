@@ -9,6 +9,7 @@ noblacklist ${HOME}/.config/tox
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -33,7 +34,7 @@ tracelog
 
 disable-mnt
 private-bin qtox
-private-etc fonts,resolv.conf,ld.so.cache
+private-etc fonts,resolv.conf,ld.so.cache,localtime
 private-dev
 private-tmp
 

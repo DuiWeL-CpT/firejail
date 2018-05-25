@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -27,6 +27,12 @@
 #include <fcntl.h>
 #include <errno.h>
 
+// mountinfo functionality test;
+// 1. enable TEST_MOUNTINFO definition
+// 2. set a symlink in /tmp: ln -s /etc /tmp/etc
+// 3. run firejail --debug --whitelist=/tmp/etc
+//#define TEST_MOUNTINFO
+
 static char *dentry[] = {
 	"Downloads",
 	"Загрузки",
@@ -37,6 +43,7 @@ static char *dentry[] = {
 #define EMPTY_STRING ("")
 #define MAXBUF 4098
 static char *resolve_downloads(int nowhitelist_flag) {
+	EUID_ASSERT();
 	char *fname;
 	struct stat s;
 
@@ -189,6 +196,7 @@ static void whitelist_path(ProfileEntry *entry) {
 	const char *fname;
 	char *wfile = NULL;
 
+	EUID_USER();
 	if (entry->home_dir) {
 		if (strncmp(path, cfg.homedir, strlen(cfg.homedir)) == 0) {
 			fname = path + strlen(cfg.homedir);
@@ -203,8 +211,10 @@ static void whitelist_path(ProfileEntry *entry) {
 	}
 	else if (entry->tmp_dir) {
 		fname = path + 5; // strlen("/tmp/")
+#ifndef TEST_MOUNTINFO
 		if (*fname == '\0')
-			goto errexit;
+			errLogExit("whitelisting /tmp problem");
+#endif
 
 		if (asprintf(&wfile, "%s/%s", RUN_WHITELIST_TMP_DIR, fname) == -1)
 			errExit("asprintf");
@@ -273,6 +283,14 @@ static void whitelist_path(ProfileEntry *entry) {
 		if (asprintf(&wfile, "%s/%s", RUN_WHITELIST_SHARE_DIR, fname) == -1)
 			errExit("asprintf");
 	}
+	else if (entry->module_dir) {
+		fname = path + 12; // strlen("/sys/module/")
+		if (*fname == '\0')
+			goto errexit;
+
+		if (asprintf(&wfile, "%s/%s", RUN_WHITELIST_MODULE_DIR, fname) == -1)
+			errExit("asprintf");
+	}
 
 	// check if the file exists
 	assert(wfile);
@@ -281,9 +299,12 @@ static void whitelist_path(ProfileEntry *entry) {
 		if (arg_debug || arg_debug_whitelists)
 			printf("Whitelisting %s\n", path);
 	}
-	else
+	else {
+		EUID_ROOT();
 		return;
+	}
 
+	EUID_ROOT();
 	// create the path if necessary
 	mkpath(path, s.st_mode);
 	fs_logger2("whitelist", path);
@@ -316,6 +337,14 @@ static void whitelist_path(ProfileEntry *entry) {
 	if (mount(wfile, path, NULL, MS_BIND|MS_REC, NULL) < 0)
 		errExit("mount bind");
 
+	// check the last mount operation
+	MountData *mptr = get_last_mount(); // will do exit(1) if the mount cannot be found
+
+	// No mounts are allowed on top level directories. A destination such as "/etc" is very bad!
+	//  - there should be more than one '/' char in dest string
+	if (mptr->dir == strrchr(mptr->dir, '/'))
+		errLogExit("invalid whitelist mount\n");
+
 	free(wfile);
 	return;
 
@@ -344,6 +373,7 @@ void fs_whitelist(void) {
 	int srv_dir = 0;                // /srv directory flag
 	int etc_dir = 0;                // /etc directory flag
 	int share_dir = 0;                // /usr/share directory flag
+	int module_dir = 0;                // /sys/module directory flag
 
 	size_t nowhitelist_c = 0;
 	size_t nowhitelist_m = 32;
@@ -352,6 +382,7 @@ void fs_whitelist(void) {
 		errExit("failed allocating memory for nowhitelist entries");
 
 	// verify whitelist files, extract symbolic links, etc.
+	EUID_USER();
 	while (entry) {
 		int nowhitelist_flag = 0;
 
@@ -402,7 +433,19 @@ void fs_whitelist(void) {
 
 		// extract the absolute path of the file
 		// realpath function will fail with ENOENT if the file is not found
-		char *fname = realpath(new_name, NULL);
+		// special processing for /dev/fd, /dev/stdin, /dev/stdout and /dev/stderr
+		char *fname;
+		if (strcmp(new_name, "/dev/fd") == 0)
+			fname = strdup("/proc/self/fd");
+		else if (strcmp(new_name, "/dev/stdin") == 0)
+			fname = strdup("/proc/self/fd/0");
+		else if (strcmp(new_name, "/dev/stdout") == 0)
+			fname = strdup("/proc/self/fd/1");
+		else if (strcmp(new_name, "/dev/stderr") == 0)
+			fname = strdup("/proc/self/fd/2");
+		else
+			fname = realpath(new_name, NULL);
+
 		if (!fname) {
 			// file not found, blank the entry in the list and continue
 			if (arg_debug || arg_debug_whitelists) {
@@ -437,6 +480,8 @@ void fs_whitelist(void) {
 					etc_dir = 1;
 				else if (strncmp(new_name, "/usr/share/", 11) == 0)
 					share_dir = 1;
+				else if (strncmp(new_name, "/sys/module/", 12) == 0)
+					module_dir = 1;
 			}
 
 			entry->data = EMPTY_STRING;
@@ -492,10 +537,13 @@ void fs_whitelist(void) {
 		else if (strncmp(new_name, "/tmp/", 5) == 0) {
 			entry->tmp_dir = 1;
 			tmp_dir = 1;
+
+#ifndef TEST_MOUNTINFO
 			// both path and absolute path are under /tmp
 			if (strncmp(fname, "/tmp/", 5) != 0) {
 				goto errexit;
 			}
+#endif
 		}
 		else if (strncmp(new_name, "/media/", 7) == 0) {
 			entry->media_dir = 1;
@@ -533,6 +581,11 @@ void fs_whitelist(void) {
 			// special handling for /dev/shm
 			// on some platforms (Debian wheezy, Ubuntu 14.04), it is a symlink to /run/shm
 			if (strcmp(new_name, "/dev/shm") == 0 && strcmp(fname, "/run/shm") == 0);
+			// special processing for /proc/self/fd files
+			else if (strcmp(new_name, "/dev/fd") == 0 && strcmp(fname, "/proc/self/fd") == 0);
+			else if (strcmp(new_name, "/dev/stdin") == 0 && strcmp(fname, "/proc/self/fd/0") == 0);
+			else if (strcmp(new_name, "/dev/stdout") == 0 && strcmp(fname, "/proc/self/fd/1") == 0);
+			else if (strcmp(new_name, "/dev/stderr") == 0 && strcmp(fname, "/proc/self/fd/2") == 0);
 			else {
 				// both path and absolute path are under /dev
 				if (strncmp(fname, "/dev/", 5) != 0) {
@@ -574,6 +627,13 @@ void fs_whitelist(void) {
 			share_dir = 1;
 			// both path and absolute path are under /etc
 			if (strncmp(fname, "/usr/share/", 11) != 0)
+				goto errexit;
+		}
+		else if (strncmp(new_name, "/sys/module/", 12) == 0) {
+			entry->module_dir = 1;
+			module_dir = 1;
+			// both path and absolute path are under /sys/module
+			if (strncmp(fname, "/sys/module/", 12) != 0)
 				goto errexit;
 		}
 		else {
@@ -626,6 +686,7 @@ void fs_whitelist(void) {
 	assert(nowhitelist);
 	free(nowhitelist);
 
+	EUID_ROOT();
 	// /home/user
 	if (home_dir) {
 		// keep a copy of real home dir in RUN_WHITELIST_HOME_USER_DIR
@@ -803,6 +864,27 @@ void fs_whitelist(void) {
 			share_dir = 0;
 	}
 
+	// /sys/module mountpoint
+	if (module_dir) {
+		// check if /sys/module directory exists
+		struct stat s;
+		if (stat("/sys/module", &s) == 0) {
+			// keep a copy of real /sys/module directory in RUN_WHITELIST_MODULE_DIR
+			mkdir_attr(RUN_WHITELIST_MODULE_DIR, 0755, 0, 0);
+			if (mount("/sys/module", RUN_WHITELIST_MODULE_DIR, NULL, MS_BIND|MS_REC, NULL) < 0)
+				errExit("mount bind");
+
+			// mount tmpfs on /sys/module
+			if (arg_debug || arg_debug_whitelists)
+				printf("Mounting tmpfs on /sys/module directory\n");
+			if (mount("tmpfs", "/sys/module", "tmpfs", MS_NOSUID | MS_STRICTATIME | MS_REC,  "mode=755,gid=0") < 0)
+				errExit("mounting tmpfs on /sys/module");
+			fs_logger("tmpfs /sys/module");
+		}
+		else
+			module_dir = 0;
+	}
+
 
 	// go through profile rules again, and interpret whitelist commands
 	entry = cfg.profile;
@@ -839,6 +921,14 @@ void fs_whitelist(void) {
 						fprintf(stderr, "Warning cannot create symbolic link %s\n", entry->link);
 					else if (arg_debug || arg_debug_whitelists)
 						printf("Created symbolic link %s -> %s\n", entry->link, entry->data + 10);
+
+					// check again for files in /tmp directory
+					if (strncmp(entry->link, "/tmp/", 5) == 0) {
+						char *path = realpath(entry->link, NULL);
+						if (path == NULL || strncmp(path, "/tmp/", 5) != 0)
+							errLogExit("invalid whitelist symlink %s\n", entry->link);
+						free(path);
+					}
 				}
 			}
 		}
@@ -914,6 +1004,13 @@ void fs_whitelist(void) {
 		if (mount("tmpfs", RUN_WHITELIST_SHARE_DIR, "tmpfs", MS_NOSUID | MS_STRICTATIME | MS_REC,  "mode=755,gid=0") < 0)
 			errExit("mount tmpfs");
 		fs_logger2("tmpfs", RUN_WHITELIST_SHARE_DIR);
+	}
+
+	// mask the real /sys/module directory, currently mounted on RUN_WHITELIST_MODULE_DIR
+	if (module_dir) {
+		if (mount("tmpfs", RUN_WHITELIST_MODULE_DIR, "tmpfs", MS_NOSUID | MS_STRICTATIME | MS_REC,  "mode=755,gid=0") < 0)
+			errExit("mount tmpfs");
+		fs_logger2("tmpfs", RUN_WHITELIST_MODULE_DIR);
 	}
 
 	if (new_name)

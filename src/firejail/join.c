@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -64,7 +64,7 @@ static void extract_x11_display(pid_t pid) {
 
 	// store the display number for join process in /run/firejail/x11
 	EUID_ROOT();
-	set_x11_file(getpid(), display);
+	set_x11_run_file(getpid(), display);
 	EUID_USER();
 }
 
@@ -222,8 +222,7 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			pid_t child;
 			if (find_child(pid, &child) == 0) {
 				pid = child;
-				if (!arg_quiet)
-					printf("Switching to pid %u, the first child process inside the sandbox\n", (unsigned) pid);
+				fmessage("Switching to pid %u, the first child process inside the sandbox\n", (unsigned) pid);
 			}
 		}
 		free(comm);
@@ -293,6 +292,8 @@ void join(pid_t pid, int argc, char **argv, int index) {
 		}
 
 		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
+
+		EUID_USER();
 		if (chdir("/") < 0)
 			errExit("chdir");
 		if (homedir) {
@@ -309,18 +310,18 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			set_cpu_affinity();
 
 		// set caps filter
+		EUID_ROOT();
 		if (apply_caps == 1)	// not available for uid 0
 			caps_set(caps);
 #ifdef HAVE_SECCOMP
 		// read cfg.protocol from file
 		if (getuid() != 0)
 			protocol_filter_load(RUN_PROTOCOL_CFG);
-		if (cfg.protocol) {	// not available for uid 0
+		if (cfg.protocol) 	// not available for uid 0
 			seccomp_load(RUN_SECCOMP_PROTOCOL);	// install filter
-		}
 
 		// set seccomp filter
-		if (apply_seccomp == 1)	// not available for uid 0
+		if (apply_seccomp == 1)	 // not available for uid 0
 			seccomp_load(RUN_SECCOMP_CFG);
 #endif
 
@@ -336,9 +337,6 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			if (apply_caps == 1)	// not available for uid 0
 				caps_set(caps);
 		}
-		else
-			drop_privs(arg_nogroups);	// nogroups not available for uid 0
-
 
 		// set nice
 		if (arg_nice) {
@@ -352,6 +350,8 @@ void join(pid_t pid, int argc, char **argv, int index) {
 		}
 
 		// set environment, add x11 display
+		EUID_USER();
+
 		env_defaults();
 		if (display) {
 			char *display_str;
@@ -386,6 +386,7 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			}
 		}
 
+		drop_privs(arg_nogroups);
 		start_application(0);
 
 		// it will never get here!!!

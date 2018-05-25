@@ -6,13 +6,13 @@ include /etc/firejail/unzip.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
 blacklist /tmp/.X11-unix
 
 hostname unzip
 ignore noroot
 net none
 no3d
+nodbus
 nodvd
 nosound
 notv
@@ -23,5 +23,8 @@ tracelog
 private-bin unzip
 private-dev
 private-etc passwd,group,localtime
+
+# GNOME Shell integration (chrome-gnome-shell)
+noblacklist ${HOME}/.local/share/gnome-shell
 
 include /etc/firejail/default.profile

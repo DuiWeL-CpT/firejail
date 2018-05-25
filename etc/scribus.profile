@@ -5,9 +5,9 @@ include /etc/firejail/scribus.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 # Support for PDF readers comes with Scribus 1.5 and higher
+noblacklist ${HOME}/.cache/okular
+noblacklist ${HOME}/.config/GIMP
 noblacklist ${HOME}/.config/okularpartrc
 noblacklist ${HOME}/.config/okularrc
 noblacklist ${HOME}/.config/scribus
@@ -23,8 +23,15 @@ noblacklist ${HOME}/.local/share/okular
 noblacklist ${HOME}/.local/share/scribus
 noblacklist ${HOME}/.scribus
 
+# Allow python (blacklisted by disable-interpreters.inc)
+noblacklist ${PATH}/python2*
+noblacklist ${PATH}/python3*
+noblacklist /usr/lib/python2*
+noblacklist /usr/lib/python3*
+
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -32,6 +39,7 @@ include /etc/firejail/whitelist-var-common.inc
 
 caps.drop all
 net none
+nodbus
 nodvd
 nogroups
 nonewprivs
@@ -47,3 +55,6 @@ tracelog
 # private-bin scribus,gs,gimp*
 private-dev
 private-tmp
+
+noexec ${HOME}
+noexec /tmp

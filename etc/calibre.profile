@@ -9,7 +9,7 @@ noblacklist ${HOME}/.cache/calibre
 noblacklist ${HOME}/.config/calibre
 
 include /etc/firejail/disable-common.inc
-# include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -30,7 +30,6 @@ seccomp
 shell none
 tracelog
 
-# private-bin
 private-dev
 private-tmp
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -153,12 +153,6 @@ int sbox_run(unsigned filter, int num, ...) {
 		for (i = 3; i < max; i++)
 			close(i); // close open files
 
-		if (arg_debug) {
-			printf("sbox file descriptors:\n");
-			int rv = system("ls -l /proc/self/fd");
-			(void) rv;
-		}
-
 		umask(027);
 
 		// apply filters
@@ -169,6 +163,13 @@ int sbox_run(unsigned filter, int num, ...) {
 #ifndef HAVE_GCOV // the following filter will prevent GCOV from saving info in .gcda files
 			uint64_t set = ((uint64_t) 1) << CAP_NET_ADMIN;
 			set |=  ((uint64_t) 1) << CAP_NET_RAW;
+			caps_set(set);
+#endif
+		}
+		else if (filter & SBOX_CAPS_HIDEPID) {
+#ifndef HAVE_GCOV // the following filter will prevent GCOV from saving info in .gcda files
+			uint64_t set = ((uint64_t) 1) << CAP_SYS_PTRACE;
+			set |=  ((uint64_t) 1) << CAP_SYS_PACCT;
 			caps_set(set);
 #endif
 		}
@@ -214,13 +215,6 @@ int sbox_run(unsigned filter, int num, ...) {
 		fprintf(stderr, "Error: failed to run %s\n", arg[0]);
 		exit(1);
 	}
-
-#if 0
-printf("** sbox run out *********************************\n");
-system("ls -l /run/firejail/mnt\n");
-system("ls -l /proc/self/fd");
-printf("** sbox run out *********************************\n");
-#endif
 
 	return status;
 }

@@ -1,8 +1,0 @@
-usr
-etc/apparmor.d
-etc/firejail/*.inc
-etc/firejail/*.net
-etc/firejail/firejail.config
-etc/firejail/login.users
-etc/firejail/default.profile
-etc/firejail/server.profile

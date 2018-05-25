@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -28,6 +28,40 @@
 #include <net/route.h>
 #include <linux/if_bridge.h>
 
+// return 1 if addr is a IPv4 or IPv6 address
+int check_ip46_address(const char *addr) {
+	// check ipv4 address
+	uint32_t tmp;
+	if (atoip(addr, &tmp) == 0)
+		return 1;
+
+	// check ipv6 address
+	struct in6_addr result;
+
+	char *tmpstr = strdup(addr);
+	if (!tmpstr)
+		errExit("strdup");
+	char *ptr = strchr(tmpstr, '/');
+	if (ptr) {
+		*ptr = '\0';
+		ptr++;
+		int mask = atoi(ptr);
+		// check the network mask
+		if (mask < 0 || mask > 128) {
+			free(tmpstr);
+			return 0;
+		}
+	}
+	if (inet_pton(AF_INET6, tmpstr, &result) == 1) {
+		free(tmpstr);
+		return 1;
+	}
+
+	free(tmpstr);
+
+	// failed
+	return 0;
+}
 
 int net_get_mtu(const char *ifname) {
 	int mtu = 0;

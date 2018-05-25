@@ -7,8 +7,15 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/deluge
 
+# Allow python (blacklisted by disable-interpreters.inc)
+noblacklist ${PATH}/python2*
+noblacklist ${PATH}/python3*
+noblacklist /usr/lib/python2*
+noblacklist /usr/lib/python3*
+
 include /etc/firejail/disable-common.inc
 # include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -32,6 +39,6 @@ seccomp
 shell none
 
 # deluge is using python on Debian
-private-bin deluge,sh,python*,uname
+private-bin deluge,deluge-console,deluged,deluge-gtk,deluge-web,sh,python*,uname
 private-dev
 private-tmp

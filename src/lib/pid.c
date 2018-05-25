@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -21,6 +21,7 @@
 #include "../include/pid.h"
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <dirent.h>
@@ -165,6 +166,10 @@ doexit:
 	return rv;
 }
 
+// todo: RUN_FIREJAIL_NAME_DIR is borrowed from src/firejail/firejail.h
+// move it in a common place
+#define RUN_FIREJAIL_NAME_DIR	"/run/firejail/name"
+
 static void print_elem(unsigned index, int nowrap) {
 	// get terminal size
 	struct winsize sz;
@@ -183,15 +188,43 @@ static void print_elem(unsigned index, int nowrap) {
 	uid_t uid = pids[index].uid;
 	char *cmd = pid_proc_cmdline(index);
 	char *user = pid_get_user_name(uid);
-	char *allocated = user;
+	char *user_allocated = user;
+
+	// extract sandbox name - pid == index
+	char *sandbox_name = "";
+	char *sandbox_name_allocated = NULL;
+	char *fname;
+	if (asprintf(&fname, "%s/%d", RUN_FIREJAIL_NAME_DIR, index) == -1)
+		errExit("asprintf");
+	struct stat s;
+	if (stat(fname, &s) == 0) {
+		FILE *fp = fopen(fname, "r");
+		if (fp) {
+			sandbox_name = malloc(s.st_size + 1);
+			if (!sandbox_name)
+				errExit("malloc");
+			sandbox_name_allocated = sandbox_name;
+			char *rv = fgets(sandbox_name, s.st_size + 1, fp);
+			if (!rv)
+				*sandbox_name = '\0';
+			else {
+				char *ptr = strchr(sandbox_name, '\n');
+				if (ptr)
+					*ptr = '\0';
+			}
+			fclose(fp);
+		}
+	}
+	free(fname);
+
 	if (user ==NULL)
 		user = "";
 	if (cmd) {
 		if (col < 4 || nowrap)
-			printf("%s%u:%s:%s\n", indent, index, user, cmd);
+			printf("%s%u:%s:%s:%s\n", indent, index, user, sandbox_name, cmd);
 		else {
 			char *out;
-			if (asprintf(&out, "%s%u:%s:%s\n", indent, index, user, cmd) == -1)
+			if (asprintf(&out, "%s%u:%s:%s:%s\n", indent, index, user, sandbox_name, cmd) == -1)
 				errExit("asprintf");
 			int len = strlen(out);
 			if (len > col) {
@@ -210,8 +243,10 @@ static void print_elem(unsigned index, int nowrap) {
 		else
 			printf("%s%u:\n", indent, index);
 	}
-	if (allocated)
-		free(allocated);
+	if (user_allocated)
+		free(user_allocated);
+	if (sandbox_name_allocated)
+		free(sandbox_name_allocated);
 }
 
 // recursivity!!!

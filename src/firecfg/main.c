@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017 Firejail Authors
+ * Copyright (C) 2014-2018 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -19,40 +19,45 @@
 */
 
 #include "firecfg.h"
+#include "../include/firejail_user.h"
 int arg_debug = 0;
+
+static char *usage_str =
+	"Firecfg is the desktop configuration utility for Firejail software. The utility\n"
+	"creates several symbolic links to firejail executable. This allows the user to\n"
+	"sandbox applications automatically, just by clicking on a regular desktop\n"
+	"menus and icons.\n\n"
+	"The symbolic links are placed in /usr/local/bin. For more information, see\n"
+	"DESKTOP INTEGRATION section in man 1 firejail.\n\n"
+	"Usage: firecfg [OPTIONS]\n\n"
+	"   --add-users user [user] - add the users to Firejail user access database.\n\n"
+	"   --clean - remove all firejail symbolic links.\n\n"
+	"   --debug - print debug messages.\n\n"
+	"   --fix - fix .desktop files.\n\n"
+	"   --fix-sound - create ~/.config/pulse/client.conf file.\n\n"
+	"   --help, -? - this help screen.\n\n"
+	"   --list - list all firejail symbolic links.\n\n"
+	"   --version - print program version and exit.\n\n"
+	"Example:\n\n"
+	"   $ sudo firecfg\n"
+	"   /usr/local/bin/firefox created\n"
+	"   /usr/local/bin/vlc created\n"
+	"   [...]\n"
+	"   $ firecfg --list\n"
+	"   /usr/local/bin/firefox\n"
+	"   /usr/local/bin/vlc\n"
+	"   [...]\n"
+	"   $ sudo firecfg --clean\n"
+	"   /usr/local/bin/firefox removed\n"
+	"   /usr/local/bin/vlc removed\n"
+	"   [...]\n"
+	"\n"
+	"License GPL version 2 or later\n"
+	"Homepage: http://firejail.wordpress.com\n\n";
 
 static void usage(void) {
 	printf("firecfg - version %s\n\n", VERSION);
-	printf("Firecfg is the desktop configuration utility for Firejail software. The utility\n");
-	printf("creates several symbolic links to firejail executable. This allows the user to\n");
-	printf("sandbox applications automatically, just by clicking on a regular desktop\n");
-	printf("menus and icons.\n\n");
-	printf("The symbolic links are placed in /usr/local/bin. For more information, see\n");
-	printf("DESKTOP INTEGRATION section in man 1 firejail.\n\n");
-	printf("Usage: firecfg [OPTIONS]\n\n");
-	printf("   --clean - remove all firejail symbolic links.\n\n");
-	printf("   --debug - print debug messages.\n\n");
-	printf("   --fix - fix .desktop files.\n\n");
-	printf("   --fix-sound - create ~/.config/pulse/client.conf file.\n\n");
-	printf("   --help, -? - this help screen.\n\n");
-	printf("   --list - list all firejail symbolic links.\n\n");
-	printf("   --version - print program version and exit.\n\n");
-	printf("Example:\n\n");
-	printf("   $ sudo firecfg\n");
-	printf("   /usr/local/bin/firefox created\n");
-	printf("   /usr/local/bin/vlc created\n");
-	printf("   [...]\n");
-	printf("   $ firecfg --list\n");
-	printf("   /usr/local/bin/firefox\n");
-	printf("   /usr/local/bin/vlc\n");
-	printf("   [...]\n");
-	printf("   $ sudo firecfg --clean\n");
-	printf("   /usr/local/bin/firefox removed\n");
-	printf("   /usr/local/bin/vlc removed\n");
-	printf("   [...]\n");
-	printf("\n");
-	printf("License GPL version 2 or later\n");
-	printf("Homepage: http://firejail.wordpress.com\n\n");
+	puts(usage_str);
 }
 
 
@@ -312,6 +317,19 @@ int main(int argc, char **argv) {
 			sound();
 			return 0;
 		}
+		else if (strcmp(argv[i], "--add-users") == 0) {
+			int j;
+			if (getuid() != 0) {
+				fprintf(stderr, "Error: you need to be root to use this option\n");
+				exit(1);
+			}
+
+			for (j = i + 1; j < argc; j++) {
+				printf("Adding user %s to Firejail access database in %s/firejail.users\n", argv[j], SYSCONFDIR);
+				firejail_user_add(argv[j]);
+			}
+			return 0;
+		}
 		else {
 			fprintf(stderr, "Error: invalid command line option\n");
 			usage();
@@ -350,7 +368,7 @@ int main(int argc, char **argv) {
 
 
 
-	// switch to the local user, and fix desktop files
+	// user setup
 	char *user = getlogin();
 	if (!user) {
 		user = getenv("SUDO_USER");
@@ -359,6 +377,13 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	// add user to firejail access database
+	if (user) {
+		printf("\nAdding user %s to Firejail access database in %s/firejail.users\n", user, SYSCONFDIR);
+		firejail_user_add(user);
+	}
+
+	// switch to the local user, and fix desktop files
 	if (user) {
 		// find home directory
 		struct passwd *pw = getpwnam(user);

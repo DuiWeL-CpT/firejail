@@ -9,6 +9,7 @@ noblacklist ${HOME}/.surf
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 mkdir ${HOME}/.surf
@@ -29,7 +30,7 @@ tracelog
 disable-mnt
 private-bin ls,surf,sh,bash,curl,dmenu,printf,sed,sleep,st,stterm,xargs,xprop
 private-dev
-private-etc passwd,group,hosts,resolv.conf,fonts,ssl
+private-etc passwd,group,hosts,resolv.conf,fonts,ssl,pki,ca-certificates,crypto-policies
 private-tmp
 
 noexec ${HOME}

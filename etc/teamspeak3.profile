@@ -6,9 +6,11 @@ include /etc/firejail/teamspeak3.local
 include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.ts3client
+noblacklist ${PATH}/openssl
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -27,7 +29,7 @@ nonewprivs
 noroot
 notv
 novideo
-protocol unix,inet,inet6
+protocol unix,inet,inet6,netlink
 seccomp
 shell none
 

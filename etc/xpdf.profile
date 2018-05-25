@@ -5,12 +5,11 @@ include /etc/firejail/xpdf.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-blacklist /run/user/*/bus
-
 noblacklist ${HOME}/.xpdfrc
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -20,6 +19,7 @@ caps.drop all
 machine-id
 net none
 no3d
+nodbus
 nodvd
 nogroups
 nonewprivs
