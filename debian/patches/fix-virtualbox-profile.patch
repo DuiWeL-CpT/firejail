@@ -1,6 +1,8 @@
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
 Last-Update: 2018-05-25
 
+Index: firejail-0.9.54/etc/virtualbox.profile
+===================================================================
 --- firejail-0.9.54.orig/etc/virtualbox.profile
 +++ firejail-0.9.54/etc/virtualbox.profile
 @@ -21,6 +21,8 @@ mkdir ${HOME}/VirtualBox VMs

@@ -8,9 +8,10 @@ fix-ardour-profile.patch
 fix-bleachbit-profile.patch
 fix-eom-profile.patch
 fix-firefox-profile.patch
-fix-libreoffice-profile.patch
 fix-qbittorrent-profile.patch
 fix-steam-profile.patch
 fix-thunderbird-profile.patch
 fix-uget-profile.patch
 fix-virtualbox-profile.patch
+fix-libreoffice.profile.patch
+fix-libreoffice-profile.patch
