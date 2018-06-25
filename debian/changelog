@@ -1,3 +1,15 @@
+firejail (0.9.54-1parrot4) testing; urgency=medium
+
+  * Update atril profile for nvidia/bumblebee OpenGL support.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 25 Jun 2018 18:37:16 +0200
+
+firejail (0.9.54-1parrot3) testing; urgency=medium
+
+  * Fix atril profile.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 20 Jun 2018 15:44:53 +0200
+
 firejail (0.9.54-1parrot2) testing; urgency=medium
 
   * Fix libreoffice profile.

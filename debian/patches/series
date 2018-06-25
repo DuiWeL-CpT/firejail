@@ -1,5 +1,4 @@
 disabled-sandboxes.patch
-fix-atril-profile.patch
 fix-geany-profile.patch
 fix-keepassxc-profile.patch
 fix-arduino-profile.patch
@@ -15,3 +14,4 @@ fix-uget-profile.patch
 fix-virtualbox-profile.patch
 fix-libreoffice.profile.patch
 fix-libreoffice-profile.patch
+fix-atril-profile.patch
