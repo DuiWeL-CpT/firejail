@@ -1,3 +1,9 @@
+firejail (0.9.54-1parrot5.1) testing; urgency=medium
+
+  * Import Coffeefou merge requests to fix code and discord.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 12 Jul 2018 00:32:26 +0200
+
 firejail (0.9.54-1parrot5) testing; urgency=medium
 
   * Update qbittorrent profile.

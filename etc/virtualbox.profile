@@ -21,6 +21,8 @@ mkdir ${HOME}/VirtualBox VMs
 whitelist ${HOME}/.config/VirtualBox
 whitelist ${HOME}/VirtualBox VMs
 whitelist ${DOWNLOADS}
+whitelist ${HOME}/Desktop
+whitelist ${HOME}/Documents
 include /etc/firejail/whitelist-common.inc
 include /etc/firejail/whitelist-var-common.inc
 

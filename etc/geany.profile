@@ -7,7 +7,7 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/geany
 
-include /etc/firejail/disable-common.inc
+# include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -16,8 +16,8 @@ netfilter
 no3d
 nodvd
 nogroups
-nonewprivs
-noroot
+# nonewprivs
+# noroot
 nosound
 notv
 novideo
@@ -26,4 +26,4 @@ seccomp
 shell none
 
 private-dev
-private-tmp
+# private-tmp
