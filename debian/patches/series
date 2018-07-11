@@ -15,3 +15,4 @@ fix-virtualbox-profile.patch
 fix-libreoffice.profile.patch
 fix-libreoffice-profile.patch
 fix-atril-profile.patch
+fix-torbrowser-launcher-profile.patch
