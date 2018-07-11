@@ -16,14 +16,7 @@ include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-programs.inc
 
 mkdir ${HOME}/.pki
-
 whitelist ${DOWNLOADS}
-whitelist ${HOME}/Documents
-whitelist ${HOME}/Desktop
-whitelist ${HOME}/Pictures
-whitelist ${HOME}/Music
-whitelist ${HOME}/Video
-
 whitelist ${HOME}/.pki
 include /etc/firejail/whitelist-common.inc
 include /etc/firejail/whitelist-var-common.inc
@@ -46,10 +39,9 @@ shell none
 #tracelog
 
 disable-mnt
-#disabled because of u2f devices support
-#private-dev
+private-dev
 # private-etc below works fine on most distributions. There are some problems on CentOS.
-private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache,alternatives
+#private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache
 private-tmp
 
 noexec ${HOME}

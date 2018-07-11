@@ -33,16 +33,17 @@ novideo
 protocol unix
 seccomp
 shell none
+tracelog
 
-#private-bin atril, atril-previewer, atril-thumbnailer
+private-bin atril, atril-previewer, atril-thumbnailer
 private-dev
-private-etc fonts,ld.so.cache,alternatives
+private-etc fonts,ld.so.cache
 # atril uses webkit gtk to display epub files
 # waiting for globbing support in private-lib; for now hardcoding it to webkit2gtk-4.0
 #private-lib webkit2gtk-4.0 - problems on Arch with the new version of WebKit
 private-tmp
 
 # webkit gtk killed by memory-deny-write-execute
-memory-deny-write-execute
+#memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp

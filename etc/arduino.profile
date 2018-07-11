@@ -8,9 +8,6 @@ include /etc/firejail/globals.local
 noblacklist ${HOME}/.arduino15
 noblacklist ${HOME}/.java
 noblacklist ${HOME}/Arduino
-noblacklist ${DOWNLOADS}
-noblacklist ${HOME}/Documents
-noblacklist ${HOME}/Desktop
 
 # Allow access to java
 noblacklist ${PATH}/java

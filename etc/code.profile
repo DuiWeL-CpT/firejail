@@ -13,8 +13,7 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 caps.drop all
-#uncomment these lines to block internet access
-#net none
+net none
 netfilter
 nodvd
 nogroups

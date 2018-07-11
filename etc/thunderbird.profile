@@ -21,9 +21,6 @@ whitelist ${HOME}/.cache/thunderbird
 whitelist ${HOME}/.gnupg
 # whitelist ${HOME}/.icedove
 whitelist ${HOME}/.thunderbird
-whitelist ${DOWNLOADS}
-whitelist ${HOME}/Desktop
-whitelist ${HOME}/Documents
 
 # We need the real /tmp for data exchange when xdg-open handles email attachments on KDE
 ignore private-tmp

@@ -20,7 +20,6 @@ include /etc/firejail/disable-programs.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
-firejail
 caps.drop all
 machine-id
 net none
@@ -39,10 +38,10 @@ shell none
 
 private-bin keepassxc
 private-dev
-private-etc fonts,ld.so.cache,machine-id,alternatives
+private-etc fonts,ld.so.cache,machine-id
 private-tmp
 
-# 2.3.1 does not seem to properly unlock the kdbx file
-# memory-deny-write-execute
+# 2.2.4 crashes on database open
+#memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp

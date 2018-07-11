@@ -5,11 +5,9 @@ include /etc/firejail/libreoffice.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-
 noblacklist ${HOME}/.java
 noblacklist /usr/local/sbin
 noblacklist ${HOME}/.config/libreoffice
-noblacklist ${HOME}/.cache
 
 # libreoffice uses java; if you don't care about java functionality,
 # comment the next four lines
@@ -19,8 +17,7 @@ noblacklist /etc/java
 noblacklist /usr/share/java
 
 include /etc/firejail/disable-common.inc
-#libreoffice needs it during first run
-#include /etc/firejail/disable-devel.inc
+include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
@@ -28,7 +25,7 @@ include /etc/firejail/whitelist-var-common.inc
 
 # Ubuntu 18.04 uses its own apparmor profile
 # uncomment the next line if you are not on Ubuntu
-apparmor
+#apparmor
 caps.drop all
 machine-id
 netfilter
@@ -46,16 +43,7 @@ shell none
 private-dev
 private-tmp
 
-#noexec ${HOME}
-noexec ${HOME}/Desktop
-noexec ${HOME}/Documents
-noexec ${HOME}/Downloads
-noexec ${HOME}/Music
-noexec ${HOME}/Pictures
-noexec ${HOME}/Public
-noexec ${HOME}/Templates
-noexec ${HOME}/Videos
-noexec ${HOME}/.local
+noexec ${HOME}
 noexec /tmp
 
 join-or-start libreoffice

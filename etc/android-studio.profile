@@ -15,9 +15,6 @@ noblacklist ${HOME}/.java
 noblacklist ${HOME}/.local/share/JetBrains
 noblacklist ${HOME}/.ssh
 noblacklist ${HOME}/.tooling
-noblacklist ${DOWNLOADS}
-noblacklist ${HOME}/Documents
-noblacklist ${HOME}/Desktop
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
