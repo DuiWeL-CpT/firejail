@@ -1,3 +1,9 @@
+firejail (0.9.54-1parrot6) testing; urgency=medium
+
+  * Enable apparmor for libreoffice to fix system freeze.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 11 Aug 2018 15:28:32 +0200
+
 firejail (0.9.54-1parrot5.1) testing; urgency=medium
 
   * Import Coffeefou merge requests to fix code and discord.

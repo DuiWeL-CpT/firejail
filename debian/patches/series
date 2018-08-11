@@ -12,9 +12,8 @@ fix-steam-profile.patch
 fix-thunderbird-profile.patch
 fix-uget-profile.patch
 fix-virtualbox-profile.patch
-fix-libreoffice.profile.patch
-fix-libreoffice-profile.patch
 fix-atril-profile.patch
 fix-torbrowser-launcher-profile.patch
 fix-code-profile.patch
 fix-discord-profile.patch
+fix-libreoffice-profile.patch

@@ -3,6 +3,8 @@ Author: Coffeefou
 Reviewed-By: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
 Last-Update: 2018-07-11
 
+Index: firejail-0.9.54/etc/discord.profile
+===================================================================
 --- firejail-0.9.54.orig/etc/discord.profile
 +++ firejail-0.9.54/etc/discord.profile
 @@ -24,9 +24,9 @@ novideo
