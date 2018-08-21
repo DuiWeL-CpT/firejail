@@ -1,4 +1,3 @@
-disabled-sandboxes.patch
 fix-geany-profile.patch
 fix-keepassxc-profile.patch
 fix-arduino-profile.patch
@@ -17,3 +16,4 @@ fix-torbrowser-launcher-profile.patch
 fix-code-profile.patch
 fix-discord-profile.patch
 fix-libreoffice-profile.patch
+disable-sandboxes.patch

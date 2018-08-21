@@ -1,3 +1,9 @@
+firejail (0.9.54-1parrot7) testing; urgency=medium
+
+  * Disable arduino sandbox.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 21 Aug 2018 17:17:29 +0200
+
 firejail (0.9.54-1parrot6) testing; urgency=medium
 
   * Enable apparmor for libreoffice to fix system freeze.

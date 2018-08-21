@@ -1,11 +1,18 @@
-Description: Disable some default sandboxes.
- Disable the default sandboxes for some programs
- we want to run natively.
+Description: Disable unwanted sandboxes
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
-Last-Update: 2018-05-25
+Last-Update: 2018-08-21
 
 --- firejail-0.9.54.orig/src/firecfg/firecfg.config
 +++ firejail-0.9.54/src/firecfg/firecfg.config
+@@ -28,7 +28,7 @@ arch-audit
+ archaudit-report
+ ardour4
+ ardour5
+-arduino
++# arduino
+ ark
+ arm
+ # atom
 @@ -47,7 +47,7 @@ baobab
  basilisk
  bibletime
