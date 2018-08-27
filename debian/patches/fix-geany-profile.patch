@@ -5,8 +5,10 @@ Description: Fix geany profile
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
 Last-Update: 2018-05-25
 
---- firejail-0.9.54.orig/etc/geany.profile
-+++ firejail-0.9.54/etc/geany.profile
+Index: firejail/etc/geany.profile
+===================================================================
+--- firejail.orig/etc/geany.profile
++++ firejail/etc/geany.profile
 @@ -7,7 +7,7 @@ include /etc/firejail/globals.local
  
  noblacklist ${HOME}/.config/geany

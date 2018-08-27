@@ -1,3 +1,9 @@
+firejail (0.9.54-1parrot8) testing; urgency=medium
+
+  * Fix keepasscx profile.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Aug 2018 21:10:37 +0200
+
 firejail (0.9.54-1parrot7) testing; urgency=medium
 
   * Disable arduino sandbox.
