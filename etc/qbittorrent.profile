@@ -1,4 +1,5 @@
 # Firejail profile for qbittorrent
+# Description: BitTorrent client based on libtorrent-rasterbar with a Qt5 GUI
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/qbittorrent.local
@@ -51,7 +52,7 @@ shell none
 
 private-bin qbittorrent,python*
 private-dev
-# private-etc X11,fonts,xdg,resolv.conf
+# private-etc X11,fonts,xdg,resolv.conf,ca-certificates,ssl,pki,crypto-policies
 # private-lib - problems on Arch
 private-tmp
 

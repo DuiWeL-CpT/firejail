@@ -3,7 +3,8 @@
 # Persistent local customizations
 include /etc/firejail/firefox-common.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+# already included by caller profile
+#include /etc/firejail/globals.local
 
 # uncomment the following line to allow access to common programs/addons/plugins
 #include /etc/firejail/firefox-common-addons.inc
@@ -26,6 +27,8 @@ caps.drop all
 # machine-id breaks pulse audio; it should work fine in setups where sound is not required
 #machine-id
 netfilter
+# Breaks Gnome connector - disable if you use that
+# Also seems to break Ubuntu titlebar menu
 nodbus
 nodvd
 nogroups

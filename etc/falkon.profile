@@ -1,4 +1,5 @@
 # Firejail profile for falkon
+# Description: Lightweight web browser based on Qt WebEngine
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/falkon.local
@@ -15,8 +16,8 @@ include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
 
 whitelist ${DOWNLOADS}
-whitelist ~/.cache/falkon
-whitelist ~/.config/falkon
+whitelist ${HOME}/.cache/falkon
+whitelist ${HOME}/.config/falkon
 include /etc/firejail/whitelist-common.inc
 include /etc/firejail/whitelist-var-common.inc
 

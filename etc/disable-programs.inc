@@ -3,6 +3,7 @@
 include /etc/firejail/disable-programs.local
 
 blacklist ${HOME}/Monero/wallets
+blacklist ${HOME}/Standard Notes Backups
 blacklist ${HOME}/snap
 blacklist ${HOME}/.*coin
 blacklist ${HOME}/.8pecxstudios
@@ -45,6 +46,7 @@ blacklist ${HOME}/.config/0ad
 blacklist ${HOME}/.config/2048-qt
 blacklist ${HOME}/.config/Atom
 blacklist ${HOME}/.config/Audaciousrc
+blacklist ${HOME}/.config/Beaker Browser
 blacklist ${HOME}/.config/Brackets
 blacklist ${HOME}/.config/Clementine
 blacklist ${HOME}/.config/Code
@@ -75,6 +77,7 @@ blacklist ${HOME}/.config/Riot
 blacklist ${HOME}/.config/Rocket.Chat
 blacklist ${HOME}/.config/Signal
 blacklist ${HOME}/.config/Slack
+blacklist ${HOME}/.config/Standard Notes
 blacklist ${HOME}/.config/Thunar
 blacklist ${HOME}/.config/VirtualBox
 blacklist ${HOME}/.config/Wire
@@ -110,6 +113,8 @@ blacklist ${HOME}/.config/deadbeef
 blacklist ${HOME}/.config/deluge
 blacklist ${HOME}/.config/digikam
 blacklist ${HOME}/.config/digikamrc
+blacklist ${HOME}/.config/discord
+blacklist ${HOME}/.config/discordcanary
 blacklist ${HOME}/.config/dolphinrc
 blacklist ${HOME}/.config/dragonplayerrc
 blacklist ${HOME}/.config/emaildefaults
@@ -130,6 +135,7 @@ blacklist ${HOME}/.config/geeqie
 blacklist ${HOME}/.config/ghb
 blacklist ${HOME}/.config/globaltime
 blacklist ${HOME}/.config/gnome-mplayer
+blacklist ${HOME}/.config/gnome-mpv
 blacklist ${HOME}/.config/google-chrome
 blacklist ${HOME}/.config/google-chrome-beta
 blacklist ${HOME}/.config/google-chrome-unstable
@@ -226,7 +232,6 @@ blacklist ${HOME}/.config/vivaldi
 blacklist ${HOME}/.config/vivaldi-snapshot
 blacklist ${HOME}/.config/vlc
 blacklist ${HOME}/.config/wesnoth
-blacklist ${HOME}/.config/wire
 blacklist ${HOME}/.config/wireshark
 blacklist ${HOME}/.config/xchat
 blacklist ${HOME}/.config/xed
@@ -282,6 +287,7 @@ blacklist ${HOME}/.inkscape
 blacklist ${HOME}/.jack-server
 blacklist ${HOME}/.jack-settings
 blacklist ${HOME}/.java
+blacklist ${HOME}/.jd
 blacklist ${HOME}/.jitsi
 blacklist ${HOME}/.kde/share/apps/digikam
 blacklist ${HOME}/.kde/share/apps/gwenview
@@ -391,6 +397,7 @@ blacklist ${HOME}/.local/share/gnome-photos
 blacklist ${HOME}/.local/share/gnome-recipes
 blacklist ${HOME}/.local/share/gnome-ring
 blacklist ${HOME}/.local/share/gnome-twitch
+blacklist ${HOME}/.local/share/gradio
 blacklist ${HOME}/.local/share/gwenview
 blacklist ${HOME}/.local/share/kaffeine
 blacklist ${HOME}/.local/share/kate
@@ -518,7 +525,7 @@ blacklist ${HOME}/wallet.dat
 blacklist /tmp/akonadi-*
 blacklist /tmp/ssh-*
 
-# ~/.cache directory
+# ${HOME}/.cache directory
 blacklist ${HOME}/.cache/0ad
 blacklist ${HOME}/.cache/8pecxstudios
 blacklist ${HOME}/.cache/Clementine
@@ -548,6 +555,7 @@ blacklist ${HOME}/.cache/google-chrome
 blacklist ${HOME}/.cache/google-chrome-beta
 blacklist ${HOME}/.cache/google-chrome-unstable
 blacklist ${HOME}/.cache/gnome-twitch
+blacklist ${HOME}/.cache/gradio
 blacklist ${HOME}/.cache/icedove
 blacklist ${HOME}/.cache/INRIA/Natron
 blacklist ${HOME}/.cache/inkscape
@@ -557,7 +565,7 @@ blacklist ${HOME}/.cache/kdenlive
 blacklist ${HOME}/.cache/kinfocenter
 blacklist ${HOME}/.cache/kmail2
 blacklist ${HOME}/.cache/krunner
-blacklist ${HOME}/.cache/krunnerbookmarkrunnerfirefoxdbfile.sqlite
+blacklist ${HOME}/.cache/krunnerbookmarkrunnerfirefoxdbfile.sqlite*
 blacklist ${HOME}/.cache/kscreenlocker_greet
 blacklist ${HOME}/.cache/ksmserver-logout-greeter
 blacklist ${HOME}/.cache/ksplashqml
@@ -578,6 +586,7 @@ blacklist ${HOME}/.cache/org.gnome.Books
 blacklist ${HOME}/.cache/pdfmod
 blacklist ${HOME}/.cache/peek
 blacklist ${HOME}/.cache/plasmashell
+blacklist ${HOME}/.cache/plasmashellbookmarkrunnerfirefoxdbfile.sqlite*
 blacklist ${HOME}/.cache/qBittorrent
 blacklist ${HOME}/.cache/qupzilla
 blacklist ${HOME}/.cache/qutebrowser

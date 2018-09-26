@@ -1,4 +1,5 @@
 # Firejail profile for pdfmod
+# Description: Simple tool for modifying PDF documents
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/pdfmod.local
@@ -7,12 +8,14 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.cache/pdfmod
 noblacklist ${HOME}/.config/pdfmod
+noblacklist ${DOCUMENTS}
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 

@@ -1,4 +1,5 @@
 # Firejail profile for lximage-qt
+# Description: Image viewer for LXQt
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/lximage-qt.local
@@ -27,6 +28,7 @@ protocol unix
 seccomp
 shell none
 
+private-cache
 private-dev
 private-tmp
 

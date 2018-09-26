@@ -1,4 +1,5 @@
 # Firejail profile for gimp
+# Description: GNU Image Manipulation Program
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gimp.local
@@ -7,10 +8,13 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/GIMP
 noblacklist ${HOME}/.gimp*
+noblacklist ${DOCUMENTS}
+noblacklist ${PICTURES}
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 

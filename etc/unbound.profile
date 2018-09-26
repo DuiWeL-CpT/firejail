@@ -1,4 +1,5 @@
 # Firejail profile for unbound
+# Description: Validating, recursive, caching DNS resolver
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/unbound.local
@@ -15,6 +16,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 whitelist /var/lib/unbound
 whitelist /var/run

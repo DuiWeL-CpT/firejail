@@ -1,4 +1,5 @@
 # Firejail profile for scribus
+# Description: Open Source Desktop Page Layout
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/scribus.local
@@ -22,6 +23,8 @@ noblacklist ${HOME}/.kde4/share/config/okularrc
 noblacklist ${HOME}/.local/share/okular
 noblacklist ${HOME}/.local/share/scribus
 noblacklist ${HOME}/.scribus
+noblacklist ${DOCUMENTS}
+noblacklist ${PICTURES}
 
 # Allow python (blacklisted by disable-interpreters.inc)
 noblacklist ${PATH}/python2*
@@ -34,6 +37,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 

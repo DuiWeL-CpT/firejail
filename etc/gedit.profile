@@ -1,4 +1,5 @@
 # Firejail profile for gedit
+# Description: Official text editor of the GNOME desktop environment
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gedit.local
@@ -38,8 +39,7 @@ tracelog
 # private-bin gedit
 private-dev
 # private-etc fonts
-# private-lib temporarily disabled pending code fixes
-#private-lib gedit,libgspell-1.so.1,gconv,aspell
+private-lib /usr/bin/gedit,libtinfo.so.*,libreadline.so.*,gedit,libgspell-1.so.*,gconv,aspell
 private-tmp
 
 noexec ${HOME}

@@ -1,4 +1,5 @@
 # Firejail profile for arm
+# Description: Terminal status monitor for Tor relays
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/arm.local
@@ -42,7 +43,7 @@ tracelog
 disable-mnt
 private-bin arm,tor,sh,bash,python*,ps,lsof,ldconfig
 private-dev
-private-etc tor,passwd
+private-etc tor,passwd,ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 noexec ${HOME}

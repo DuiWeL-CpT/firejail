@@ -1,4 +1,5 @@
 # Firejail profile for gnome-weather
+# Description: Access current conditions and forecasts
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gnome-weather.local
@@ -14,6 +15,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
@@ -35,7 +37,7 @@ tracelog
 disable-mnt
 # private-bin gjs gnome-weather
 private-dev
-# private-etc fonts
+# private-etc fonts,ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 noexec ${HOME}

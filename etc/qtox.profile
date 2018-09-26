@@ -1,4 +1,5 @@
 # Firejail profile for qtox
+# Description: Powerful Tox client written in C++/Qt that follows the Tox design guidelines
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/qtox.local
@@ -34,7 +35,7 @@ tracelog
 
 disable-mnt
 private-bin qtox
-private-etc fonts,resolv.conf,ld.so.cache,localtime
+private-etc fonts,resolv.conf,ld.so.cache,localtime,ca-certificates,ssl,pki,crypto-policies
 private-dev
 private-tmp
 

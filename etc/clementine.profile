@@ -1,4 +1,5 @@
 # Firejail profile for clementine
+# Description: Modern music player and library organizer
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/clementine.local
@@ -7,12 +8,14 @@ include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.cache/Clementine
 noblacklist ${HOME}/.config/Clementine
+noblacklist ${MUSIC}
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 

@@ -1,4 +1,5 @@
 # Firejail profile for mediainfo
+# Description: Command-line utility for reading information from audio/video files
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/mediainfo.local
@@ -30,6 +31,7 @@ shell none
 tracelog
 
 private-bin mediainfo
+private-cache
 private-dev
 private-etc none
 private-tmp

@@ -20,20 +20,27 @@ include /etc/firejail/disable-common.inc
 # include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+#include /etc/firejail/disable-xdg.inc
 
 caps
+# ipc-namespace
+# netfilter /etc/firejail/webserver.net
 no3d
+# nodbus
 nodvd
+# nogroups
+# nonewprivs
+# noroot
 nosound
 notv
 novideo
 seccomp
-
-# netfilter /etc/firejail/webserver.net
+# shell none
 
 # disable-mnt
 private
 # private-bin program
+# private-cache
 private-dev
 # private-etc none
 # private-lib

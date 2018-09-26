@@ -1,4 +1,5 @@
 # Firejail profile for bibletime
+# Description: Bible study tool
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/bibletime.local
@@ -38,5 +39,5 @@ tracelog
 
 # private-bin bibletime,qt5ct
 private-dev
-private-etc fonts,resolv.conf,sword,sword.conf,passwd,machine-id
+private-etc fonts,resolv.conf,sword,sword.conf,passwd,machine-id,ca-certificates,ssl,pki,crypto-policies
 private-tmp

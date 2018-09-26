@@ -37,10 +37,8 @@ static char *usage_str =
 #ifdef HAVE_NETWORK
 	"    --bandwidth=name|pid - set bandwidth limits.\n"
 #endif
-#ifdef HAVE_BIND
 	"    --bind=dirname1,dirname2 - mount-bind dirname1 on top of dirname2.\n"
 	"    --bind=filename1,filename2 - mount-bind filename1 on top of filename2.\n"
-#endif
 	"    --blacklist=filename - blacklist directory or file.\n"
 	"    --build - build a whitelisted profile for the application.\n"
 	"    --build=filename - build a whitelisted profile for the application.\n"
@@ -94,6 +92,7 @@ static char *usage_str =
 	"    --join-network=name|pid - join the network namespace.\n"
 #endif
 	"    --join-or-start=name|pid - join the sandbox or start a new one.\n"
+        "    --keep-dev-shm - /dev/shm directory is untouched (even with --private-dev).\n"
 	"    --keep-var-tmp - /var/tmp directory is untouched.\n"
 	"    --list - list all sandboxes.\n"
 #ifdef HAVE_FILE_TRANSFER
@@ -120,6 +119,8 @@ static char *usage_str =
 	"    --netfilter.print=name|pid - print the firewall.\n"
 	"    --netfilter6=filename - enable IPv6 firewall.\n"
 	"    --netfilter6.print=name|pid - print the IPv6 firewall.\n"
+	"    --netmask=address - define a network mask when dealing with unconfigured"
+	"\tparrent interfaces.\n"
 	"    --netns=name - Run the program in a named, persistent network namespace.\n"
 	"    --netstats - monitor network statistics.\n"
 #endif
@@ -138,6 +139,7 @@ static char *usage_str =
 	"    --nosound - disable sound system.\n"
 	"    --noautopulse - disable automatic ~/.config/pulse init.\n"
 	"    --novideo - disable video devices.\n"
+	"    --nou2f - disable U2F devices.\n"
 	"    --nowhitelist=filename - disable whitelist for file or directory .\n"
 	"    --output=logfile - stdout logging and log rotation.\n"
 	"    --output-stderr=logfile - stdout and stderr logging and log rotation.\n"
@@ -149,6 +151,7 @@ static char *usage_str =
 	"    --overlay-clean - clean all overlays stored in $HOME/.firejail directory.\n"
 	"    --private - temporary home directory.\n"
 	"    --private=directory - use directory as user home.\n"
+	"    --private-cache - temporary ~/.cache directory.\n"
 	"    --private-home=file,directory - build a new user home in a temporary\n"
 	"\tfilesystem, and copy the files and directories in the list in\n"
 	"\tthe new home.\n"
@@ -209,8 +212,10 @@ static char *usage_str =
 	"    --top - monitor the most CPU-intensive sandboxes.\n"
 	"    --trace - trace open, access and connect system calls.\n"
 	"    --tracelog - add a syslog message for every access to files or\n"
-	"\tdirectoires blacklisted by the security profile.\n"
+	"\tdirectories blacklisted by the security profile.\n"
 	"    --tree - print a tree of all sandboxed processes.\n"
+	"    --tunnel[=devname] - connect the sandbox to a tunnel created by\n"
+	"\tfiretunnel utility.\n"
 	"    --version - print program version and exit.\n"
 #ifdef HAVE_NETWORK
 	"    --veth-name=name - use this name for the interface connected to the bridge.\n"
@@ -251,7 +256,7 @@ static char *usage_str =
 	"\tlist all running sandboxes\n"
 	"\n"
 	"License GPL version 2 or later\n"
-	"Homepage: http://firejail.wordpress.com\n"
+	"Homepage: https://firejail.wordpress.com\n"
 	"\n";
 
 

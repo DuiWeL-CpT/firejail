@@ -1,4 +1,5 @@
 # Firejail profile for gitg
+# Description: Git repository viewer
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gitg.local
@@ -29,6 +30,7 @@ seccomp
 shell none
 
 private-bin gitg,git,ssh
+private-cache
 private-dev
 private-tmp
 

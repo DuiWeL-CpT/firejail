@@ -3,7 +3,8 @@
 # Persistent local customizations
 include /etc/firejail/chromium-common.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+# already included by caller profile
+#include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.pki
 
@@ -21,6 +22,7 @@ include /etc/firejail/whitelist-var-common.inc
 apparmor
 caps.keep sys_chroot,sys_admin
 netfilter
+# Breaks Gnome connector - disable if you use that
 nodbus
 nodvd
 nogroups

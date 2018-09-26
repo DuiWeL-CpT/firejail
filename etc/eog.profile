@@ -1,4 +1,5 @@
 # Firejail profile for eog
+# Description: Eye of GNOME graphics viewer program
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/eog.local
@@ -37,7 +38,7 @@ shell none
 private-bin eog
 private-dev
 private-etc fonts
-private-lib gdk-pixbuf-2.0,gio,girepository-1.0,gvfs,libgconf-2.so.4
+private-lib gdk-pixbuf-2.*,gio,girepository-1.*,gvfs,libgconf-2.so.*
 private-tmp
 
 #memory-deny-write-execute  - breaks on Arch

@@ -1,4 +1,5 @@
 # Firejail profile for bitcoin-qt
+# Description: Bitcoin is a peer-to-peer network based digital currency
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/bitcoin-qt.local
@@ -40,7 +41,7 @@ tracelog
 private-bin bitcoin-qt
 private-dev
 # Causes problem with loading of libGL.so
-#private-etc fonts
+#private-etc fonts,ca-certificates,ssl,pki,crypto-policies
 # Works, but QT complains about OpenSSL a bit.
 #private-lib
 private-tmp

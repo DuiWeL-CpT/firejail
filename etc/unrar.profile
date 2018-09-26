@@ -1,10 +1,12 @@
 # Firejail profile for unrar
+# Description: Unarchiver for .rar files
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
 include /etc/firejail/unrar.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+# added by included default.profile
+#include /etc/firejail/globals.local
 
 blacklist /tmp/.X11-unix
 

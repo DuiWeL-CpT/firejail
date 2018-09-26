@@ -1,4 +1,5 @@
 # Firejail profile for gnome-logs
+# Description: Viewer for the systemd journal
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gnome-logs.local
@@ -10,6 +11,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 whitelist /var/log/journal
 include /etc/firejail/whitelist-var-common.inc
@@ -35,7 +37,7 @@ disable-mnt
 private-bin gnome-logs
 private-dev
 private-etc fonts,localtime,machine-id
-private-lib gdk-pixbuf-2.0,gio,gvfs/libgvfscommon.so,libgconf-2.so.4,librsvg-2.so.2
+private-lib gdk-pixbuf-2.*,gio,gvfs/libgvfscommon.so,libgconf-2.so.*,librsvg-2.so.*
 private-tmp
 writable-var-log
 

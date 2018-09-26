@@ -87,6 +87,31 @@ static int is_in_ignore_list(char *ptr) {
 	return 0;
 }
 
+void profile_add_ignore(const char *str) {
+	assert(str);
+	if (*str == '\0') {
+		fprintf(stderr, "Error: invalid ignore option\n");
+		exit(1);
+	}
+
+	// find an empty entry in profile_ignore array
+	int i;
+	for (i = 0; i < MAX_PROFILE_IGNORE; i++) {
+		if (cfg.profile_ignore[i] == NULL)
+			break;
+	}
+	if (i >= MAX_PROFILE_IGNORE) {
+		fprintf(stderr, "Error: maximum %d --ignore options are permitted\n", MAX_PROFILE_IGNORE);
+		exit(1);
+	}
+	// ... and configure it
+	else {
+		cfg.profile_ignore[i] = strdup(str);
+		if (!cfg.profile_ignore[i])
+			errExit("strdup");
+	}
+}
+
 
 // check profile line; if line == 0, this was generated from a command line option
 // return 1 if the command is to be added to the linked list of profile commands
@@ -99,25 +124,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		return 0;
 
 	if (strncmp(ptr, "ignore ", 7) == 0) {
-		char *str = strdup(ptr + 7);
-		if (*str == '\0') {
-			fprintf(stderr, "Error: invalid ignore option\n");
-			exit(1);
-		}
-		// find an empty entry in profile_ignore array
-		int j;
-		for (j = 0; j < MAX_PROFILE_IGNORE; j++) {
-			if (cfg.profile_ignore[j] == NULL)
-				break;
-		}
-		if (j >= MAX_PROFILE_IGNORE) {
-			fprintf(stderr, "Error: maximum %d --ignore options are permitted\n", MAX_PROFILE_IGNORE);
-			exit(1);
-		}
-		// ... and configure it
-		else
-			cfg.profile_ignore[j] = str;
-
+		profile_add_ignore(ptr + 7);
 		return 0;
 	}
 
@@ -217,8 +224,19 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		arg_allusers = 1;
 		return 0;
 	}
+	else if (strcmp(ptr, "private-cache") == 0) {
+		if (checkcfg(CFG_PRIVATE_CACHE))
+			arg_private_cache = 1;
+		else
+			warning_feature_disabled("private-cache");
+		return 0;
+	}
 	else if (strcmp(ptr, "private-dev") == 0) {
 		arg_private_dev = 1;
+		return 0;
+	}
+	else if (strcmp(ptr, "keep-dev-shm") == 0) {
+		arg_keep_dev_shm = 1;
 		return 0;
 	}
 	else if (strcmp(ptr, "private-tmp") == 0) {
@@ -255,6 +273,10 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 	}
 	else if (strcmp(ptr, "nodbus") == 0) {
 		arg_nodbus = 1;
+		return 0;
+	}
+	else if (strcmp(ptr, "nou2f") == 0) {
+	        arg_nou2f = 1;
 		return 0;
 	}
 	else if (strcmp(ptr, "netfilter") == 0) {
@@ -295,39 +317,20 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		return 0;
 	}
 	else if (strcmp(ptr, "net none") == 0) {
-#ifdef HAVE_NETWORK
-		if (checkcfg(CFG_NETWORK)) {
-			arg_nonetwork  = 1;
-			cfg.bridge0.configured = 0;
-			cfg.bridge1.configured = 0;
-			cfg.bridge2.configured = 0;
-			cfg.bridge3.configured = 0;
-			cfg.interface0.configured = 0;
-			cfg.interface1.configured = 0;
-			cfg.interface2.configured = 0;
-			cfg.interface3.configured = 0;
-		}
-		else
-			warning_feature_disabled("networking");
-#endif
+		arg_nonetwork  = 1;
+		cfg.bridge0.configured = 0;
+		cfg.bridge1.configured = 0;
+		cfg.bridge2.configured = 0;
+		cfg.bridge3.configured = 0;
+		cfg.interface0.configured = 0;
+		cfg.interface1.configured = 0;
+		cfg.interface2.configured = 0;
+		cfg.interface3.configured = 0;
 		return 0;
 	}
 	else if (strncmp(ptr, "net ", 4) == 0) {
 #ifdef HAVE_NETWORK
 		if (checkcfg(CFG_NETWORK)) {
-#ifdef HAVE_NETWORK_RESTRICTED
-			// compile time restricted networking
-			if (getuid() != 0) {
-				fprintf(stderr, "Error: only \"net none\" is allowed to non-root users\n");
-				exit(1);
-			}
-#endif
-			// run time restricted networking
-			if (checkcfg(CFG_RESTRICTED_NETWORK) && getuid() != 0) {
-				fprintf(stderr, "Error: only \"net none\" is allowed to non-root users\n");
-				exit(1);
-			}
-
 			if (strcmp(ptr + 4, "lo") == 0) {
 				fprintf(stderr, "Error: cannot attach to lo device\n");
 				exit(1);
@@ -346,7 +349,8 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 				fprintf(stderr, "Error: maximum 4 network devices are allowed\n");
 				exit(1);
 			}
-			net_configure_bridge(br, ptr + 4);
+			br->dev = ptr + 4;
+			br->configured = 1;
 		}
 		else
 			warning_feature_disabled("networking");
@@ -411,10 +415,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 				fprintf(stderr, "Error: invalid IP range\n");
 				exit(1);
 			}
-			if (in_netrange(br->iprange_start, br->ip, br->mask) || in_netrange(br->iprange_end, br->ip, br->mask)) {
-				fprintf(stderr, "Error: IP range addresses not in network range\n");
-				exit(1);
-			}
 		}
 		else
 			warning_feature_disabled("networking");
@@ -469,6 +469,40 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		return 0;
 	}
 
+	else if (strncmp(ptr, "netmask ", 8) == 0) {
+#ifdef HAVE_NETWORK
+		if (checkcfg(CFG_NETWORK)) {
+			Bridge *br = last_bridge_configured();
+			if (br == NULL) {
+				fprintf(stderr, "Error: no network device configured\n");
+				exit(1);
+			}
+			if (br->arg_ip_none || br->masksandbox) {
+				fprintf(stderr, "Error: cannot configure the network mask twice for the same interface\n");
+				exit(1);
+			}
+
+			// configure this network mask for the last bridge defined
+			if (atoip(ptr + 8, &br->masksandbox)) {
+				fprintf(stderr, "Error: invalid  network mask\n");
+				exit(1);
+			}
+
+			// if the bridge is not configured, use this mask as the bridge mask
+			if (br->mask == 0)
+				br->mask = br->masksandbox;
+			else {
+				fprintf(stderr, "Error: interface %s already has a network mask defined; "
+					"please remove --netmask\n",
+					br->dev);
+				exit(1);
+			}
+		}
+		else
+			warning_feature_disabled("networking");
+#endif
+		return 0;
+	}
 	else if (strncmp(ptr, "ip ", 3) == 0) {
 #ifdef HAVE_NETWORK
 		if (checkcfg(CFG_NETWORK)) {
@@ -693,6 +727,7 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 			cfg.dns4 = dns;
 		else {
 			fprintf(stderr, "Error: up to 4 DNS servers can be specified\n");
+			free(dns);
 			return 1;
 		}
 		return 0;
@@ -1013,7 +1048,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 
 	// filesystem bind
 	if (strncmp(ptr, "bind ", 5) == 0) {
-#ifdef HAVE_BIND
 		if (checkcfg(CFG_BIND)) {
 			if (getuid() != 0) {
 				fprintf(stderr, "Error: --bind option is available only if running as root\n");
@@ -1046,7 +1080,6 @@ int profile_check_line(char *ptr, int lineno, const char *fname) {
 		}
 		else
 			warning_feature_disabled("bind");
-#endif
 		return 0;
 	}
 

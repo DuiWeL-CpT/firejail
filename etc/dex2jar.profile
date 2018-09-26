@@ -17,6 +17,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 caps.drop all
 net none
@@ -34,6 +35,7 @@ seccomp
 shell none
 
 private-bin dex2jar,java,sh,bash,expr,dirname,ls,uname,grep
+private-cache
 private-dev
 
 noexec ${HOME}
