@@ -17,14 +17,17 @@ blacklist-nolog /tmp/clipmenu*
 # X11 session autostart
 # blacklist ${HOME}/.xpra - this will kill --x11=xpra cmdline option for all programs
 blacklist ${HOME}/.Xsession
+blacklist ${HOME}/.blackbox
 blacklist ${HOME}/.config/autostart
 blacklist ${HOME}/.config/autostart-scripts
+blacklist ${HOME}/.config/awesome
+blacklist ${HOME}/.config/i3
 blacklist ${HOME}/.config/lxsession/LXDE/autostart
 blacklist ${HOME}/.config/openbox
 blacklist ${HOME}/.config/plasma-workspace
 blacklist ${HOME}/.config/startupconfig
 blacklist ${HOME}/.config/startupconfigkeys
-blacklist ${HOME}/.fluxbox/startup
+blacklist ${HOME}/.fluxbox
 blacklist ${HOME}/.gnomerc
 blacklist ${HOME}/.kde/Autostart
 blacklist ${HOME}/.kde/env
@@ -209,6 +212,7 @@ read-only ${HOME}/.forward
 read-only ${HOME}/.local/share/fish
 read-only ${HOME}/.login
 read-only ${HOME}/.logout
+read-only ${HOME}/.oh-my-zsh
 read-only ${HOME}/.pam_environment
 read-only ${HOME}/.pgpkey
 read-only ${HOME}/.plan
@@ -381,5 +385,17 @@ blacklist ${PATH}/xfce4-terminal.wrapper
 blacklist /initrd*
 blacklist /vmlinuz*
 
+# snapshot files
+blacklist /.snapshots
+
 # complement noexec ${HOME} and noexec /tmp
 noexec /tmp/.X11-unix
+
+# flatpak
+blacklist ${HOME}/*.config/flatpak
+blacklist ${HOME}/*.var
+blacklist ${HOME}/*.local/share/flatpak
+blacklist /var/lib/flatpak
+blacklist /usr/share/flatpak
+# most of the time bwrap is SUID binary
+blacklist ${PATH}/bwrap

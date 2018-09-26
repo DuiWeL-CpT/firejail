@@ -126,6 +126,31 @@ void save_nogroups(void) {
 
 }
 
+void save_umask(void) {
+	FILE *fp = fopen(RUN_UMASK_FILE, "wxe");
+	if (fp) {
+		fprintf(fp, "%o\n", orig_umask);
+		SET_PERMS_STREAM(fp, 0, 0, 0644); // assume mode 0644
+		fclose(fp);
+	}
+	else {
+		fprintf(stderr, "Error: cannot save umask\n");
+		exit(1);
+	}
+}
+
+static FILE *create_ready_for_join_file(void) {
+	FILE *fp = fopen(RUN_READY_FOR_JOIN, "wxe");
+	if (fp) {
+		ASSERT_PERMS_STREAM(fp, 0, 0, 0644);
+		return fp;
+	}
+	else {
+		fprintf(stderr, "Error: cannot create %s\n", RUN_READY_FOR_JOIN);
+		exit(1);
+	}
+}
+
 static void sandbox_if_up(Bridge *br) {
 	assert(br);
 	if (!br->configured)
@@ -237,7 +262,7 @@ static int monitor_application(pid_t app_pid) {
 		}
 		while(rv != monitored_pid);
 		if (arg_debug)
-			printf("Sandbox monitor: waitpid %u retval %d status %d\n", monitored_pid, rv, status);
+			printf("Sandbox monitor: waitpid %d retval %d status %d\n", monitored_pid, rv, status);
 		if (rv == -1) { // we can get here if we have processes joining the sandbox (ECHILD)
 			if (arg_debug)
 				perror("waitpid");
@@ -281,7 +306,7 @@ static int monitor_application(pid_t app_pid) {
 		closedir(dir);
 
 		if (monitored_pid != 0 && arg_debug)
-			printf("Sandbox monitor: monitoring %u\n", monitored_pid);
+			printf("Sandbox monitor: monitoring %d\n", monitored_pid);
 	}
 
 	// return the latest exit status.
@@ -361,12 +386,15 @@ static int ok_to_run(const char *program) {
 	return 0;
 }
 
-void start_application(int no_sandbox) {
+void start_application(int no_sandbox, FILE *fp) {
 	// set environment
 	if (no_sandbox == 0) {
 		env_defaults();
 		env_apply();
 	}
+	// restore original umask
+	umask(orig_umask);
+
 	if (arg_debug) {
 		printf("starting application\n");
 		printf("LD_PRELOAD=%s\n", getenv("LD_PRELOAD"));
@@ -377,6 +405,11 @@ void start_application(int no_sandbox) {
 	//****************************************
 	if (arg_audit) {
 		assert(arg_audit_prog);
+
+		if (fp) {
+			fprintf(fp, "ready\n");
+			fclose(fp);
+		}
 #ifdef HAVE_GCOV
 		__gcov_dump();
 #endif
@@ -384,6 +417,9 @@ void start_application(int no_sandbox) {
 		seccomp_install_filters();
 #endif
 		execl(arg_audit_prog, arg_audit_prog, NULL);
+
+		perror("execl");
+		exit(1);
 	}
 	//****************************************
 	// start the program without using a shell
@@ -407,6 +443,11 @@ void start_application(int no_sandbox) {
 			print_time();
 
 		int rv = ok_to_run(cfg.original_argv[cfg.original_program_index]);
+
+		if (fp) {
+			fprintf(fp, "ready\n");
+			fclose(fp);
+		}
 #ifdef HAVE_GCOV
 		__gcov_dump();
 #endif
@@ -463,6 +504,11 @@ void start_application(int no_sandbox) {
 
 		if (!arg_command && !arg_quiet)
 			print_time();
+
+		if (fp) {
+			fprintf(fp, "ready\n");
+			fclose(fp);
+		}
 #ifdef HAVE_GCOV
 		__gcov_dump();
 #endif
@@ -479,6 +525,7 @@ void start_application(int no_sandbox) {
 static void enforce_filters(void) {
 	// force default seccomp inside the chroot, no keep or drop list
 	// the list build on top of the default drop list is kept intact
+	arg_nonewprivs = 1;
 	arg_seccomp = 1;
 #ifdef HAVE_SECCOMP
 	enforce_seccomp = 1;
@@ -500,7 +547,8 @@ static void enforce_filters(void) {
 	// drop all supplementary groups; /etc/group file inside chroot
 	// is controlled by a regular usr
 	arg_nogroups = 1;
-	fmessage("Dropping all Linux capabilities and enforcing default seccomp filter\n");
+	fmessage("\n** Warning: dropping all Linux capabilities and enforcing  **\n");
+	fmessage("**                  default seccomp filter                 **\n\n");
 }
 
 int sandbox(void* sandbox_arg) {
@@ -553,6 +601,11 @@ int sandbox(void* sandbox_arg) {
 	else
 		fs_logger("sandbox filesystem: local");
 	fs_logger("install mount namespace");
+
+	//****************************
+	// save the umask
+	//****************************
+	save_umask();
 
 	//****************************
 	// netfilter
@@ -696,7 +749,13 @@ int sandbox(void* sandbox_arg) {
 
 	// need ld.so.preload if tracing or seccomp with any non-default lists
 	bool need_preload = arg_trace || arg_tracelog || arg_seccomp_postexec;
-
+	// for --appimage, --chroot and --overlay* we replace the seccomp filter with the default one
+	// we also drop all capabilities
+	if (getuid() != 0 && (arg_appimage || cfg.chrootdir || arg_overlay)) {
+		enforce_filters();
+		need_preload = arg_trace || arg_tracelog;
+		arg_seccomp = 1;
+	}
 	// trace pre-install
 	if (need_preload)
 		fs_trace_preload();
@@ -708,18 +767,9 @@ int sandbox(void* sandbox_arg) {
 	//****************************
 	// configure filesystem
 	//****************************
-	if (arg_appimage)
-		enforce_filters();
-
 #ifdef HAVE_CHROOT
 	if (cfg.chrootdir) {
 		fs_chroot(cfg.chrootdir);
-
-		// force caps and seccomp if not started as root
-		if (getuid() != 0)
-			enforce_filters();
-		else
-			arg_seccomp = 1;
 
 		//****************************
 		// trace pre-install, this time inside chroot
@@ -730,14 +780,8 @@ int sandbox(void* sandbox_arg) {
 	else
 #endif
 #ifdef HAVE_OVERLAYFS
-	if (arg_overlay)	{
+	if (arg_overlay)
 		fs_overlayfs();
-		// force caps and seccomp if not started as root
-		if (getuid() != 0)
-			enforce_filters();
-		else
-			arg_seccomp = 1;
-	}
 	else
 #endif
 		fs_basic_fs();
@@ -833,6 +877,15 @@ int sandbox(void* sandbox_arg) {
 		}
 	}
 
+	if (arg_private_cache) {
+		if (cfg.chrootdir)
+			fwarning("private-cache feature is disabled in chroot\n");
+		else if (arg_overlay)
+			fwarning("private-cache feature is disabled in overlay\n");
+		else
+			fs_private_cache();
+	}
+
 	if (arg_private_tmp) {
 		// private-tmp is implemented as a whitelist
 		EUID_USER();
@@ -904,6 +957,9 @@ int sandbox(void* sandbox_arg) {
 	if (arg_nodvd)
 		fs_dev_disable_dvd();
 
+	if (arg_nou2f)
+	        fs_dev_disable_u2f();
+
 	if (arg_novideo)
 		fs_dev_disable_video();
 
@@ -956,7 +1012,6 @@ int sandbox(void* sandbox_arg) {
 		}
 	}
 
-	EUID_ROOT();
 	// set nice
 	if (arg_nice) {
 		errno = 0;
@@ -968,6 +1023,7 @@ int sandbox(void* sandbox_arg) {
 		}
 	}
 
+	EUID_ROOT();
 	// clean /tmp/.X11-unix sockets
 	fs_x11();
 	if (arg_x11_xorg)
@@ -978,9 +1034,6 @@ int sandbox(void* sandbox_arg) {
 	//****************************
 	// set capabilities
 	set_caps();
-
-	// set rlimits
-	set_rlimits();
 
 	// set cpu affinity
 	if (cfg.cpus) {
@@ -1036,6 +1089,13 @@ int sandbox(void* sandbox_arg) {
 #endif
 
 	//****************************************
+	// communicate progress of sandbox set up
+	// to --join
+	//****************************************
+
+	FILE *fp = create_ready_for_join_file();
+
+	//****************************************
 	// create a new user namespace
 	//     - too early to drop privileges
 	//****************************************
@@ -1069,9 +1129,9 @@ int sandbox(void* sandbox_arg) {
 	// Set NO_NEW_PRIVS if desired
 	//****************************************
 	if (arg_nonewprivs) {
-		int no_new_privs = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+		prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 
-		if(no_new_privs != 0 && !arg_quiet)
+		if (prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) != 1)
 			fwarning("NO_NEW_PRIVS disabled, it requires a Linux kernel version 3.5 or newer.\n");
 		else if (arg_debug)
 			printf("NO_NEW_PRIVS set\n");
@@ -1098,10 +1158,14 @@ int sandbox(void* sandbox_arg) {
 				printf("AppArmor enabled\n");
 		}
 #endif
+		// set rlimits
+		set_rlimits();
 
 		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
-		start_application(0);	// start app
+		start_application(0, fp);	// start app
 	}
+
+	fclose(fp);
 
 	int status = monitor_application(app_pid);	// monitor application
 	flush_stdin();

@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT(firejail, 0.9.54, netblue30@yahoo.com, , http://firejail.wordpress.com)
+AC_INIT(firejail, 0.9.56, netblue30@yahoo.com, , https://firejail.wordpress.com)
 AC_CONFIG_SRCDIR([src/firejail/main.c])
 #AC_CONFIG_HEADERS([config.h])
 
@@ -83,14 +83,6 @@ AS_IF([test "x$enable_chroot" != "xno"], [
 	AC_SUBST(HAVE_CHROOT)
 ])
 
-HAVE_BIND=""
-AC_ARG_ENABLE([bind],
-    AS_HELP_STRING([--disable-bind], [disable bind]))
-AS_IF([test "x$enable_bind" != "xno"], [
-	HAVE_BIND="-DHAVE_BIND"
-	AC_SUBST(HAVE_BIND)
-])
-
 HAVE_GLOBALCFG=""
 AC_ARG_ENABLE([globalcfg],
     AS_HELP_STRING([--disable-globalcfg], [if the global config file firejail.cfg is not present, continue the program using defaults]))
@@ -102,13 +94,8 @@ AS_IF([test "x$enable_globalcfg" != "xno"], [
 HAVE_NETWORK=""
 AC_ARG_ENABLE([network],
     AS_HELP_STRING([--disable-network], [disable network]))
-AC_ARG_ENABLE([network],
-    AS_HELP_STRING([--enable-network=restricted], [ restrict --net= to root only]))
 AS_IF([test "x$enable_network" != "xno"], [
 	HAVE_NETWORK="-DHAVE_NETWORK"
-	AS_IF([test "x$enable_network" = "xrestricted"], [
-	       HAVE_NETWORK="$HAVE_NETWORK -DHAVE_NETWORK_RESTRICTED"
-	])
 	AC_SUBST(HAVE_NETWORK)
 ])
 
@@ -212,7 +199,6 @@ echo "   <linux/seccomp.h>: $HAVE_SECCOMP_H"
 echo "   apparmor: $HAVE_APPARMOR"
 echo "   global config: $HAVE_GLOBALCFG"
 echo "   chroot: $HAVE_CHROOT"
-echo "   bind: $HAVE_BIND"
 echo "   network: $HAVE_NETWORK"
 echo "   user namespace: $HAVE_USERNS"
 echo "   X11 sandboxing support: $HAVE_X11"

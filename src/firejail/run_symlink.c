@@ -34,6 +34,7 @@ void run_symlink(int argc, char **argv, int run_as_is) {
 		return;
 
 	// drop privileges
+	EUID_ROOT();
 	if (setgid(getgid()) < 0)
 		errExit("setgid/getgid");
 	if (setuid(getuid()) < 0)
@@ -88,6 +89,9 @@ void run_symlink(int argc, char **argv, int run_as_is) {
 	}
 
 	free(selfpath);
+
+	// restore original umask
+	umask(orig_umask);
 
 	// desktop integration is not supported for root user; instead, the original program is started
 	if (getuid() == 0 || run_as_is) {

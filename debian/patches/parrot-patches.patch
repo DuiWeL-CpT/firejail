@@ -1,0 +1,1307 @@
+Description: Adjust firejail profiles for Parrot OS
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2018-09-26
+
+Index: firejail-0.9.56/etc/android-studio.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/android-studio.profile
++++ /dev/null
+@@ -1,39 +0,0 @@
+-# Firejail profile for android-studio
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/android-studio.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.AndroidStudio*
+-noblacklist ${HOME}/.android
+-noblacklist ${HOME}/.gitconfig
+-noblacklist ${HOME}/.gradle
+-noblacklist ${HOME}/.jack-server
+-noblacklist ${HOME}/.jack-settings
+-noblacklist ${HOME}/.java
+-noblacklist ${HOME}/.local/share/JetBrains
+-noblacklist ${HOME}/.ssh
+-noblacklist ${HOME}/.tooling
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-caps.drop all
+-netfilter
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-novideo
+-protocol unix,inet,inet6
+-seccomp
+-shell none
+-
+-private-cache
+-# private-tmp
+-
+-# noexec /tmp breaks 'Android Profiler'
+-#noexec /tmp
+Index: firejail-0.9.56/etc/ardour5.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/ardour5.profile
++++ /dev/null
+@@ -1,42 +0,0 @@
+-# Firejail profile for ardour5
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/ardour5.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.config/ardour4
+-noblacklist ${HOME}/.config/ardour5
+-noblacklist ${HOME}/.lv2
+-noblacklist ${HOME}/.vst
+-noblacklist ${DOCUMENTS}
+-noblacklist ${MUSIC}
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-include /etc/firejail/disable-xdg.inc
+-
+-caps.drop all
+-ipc-namespace
+-net none
+-nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-protocol unix
+-seccomp
+-shell none
+-
+-#private-bin sh,ardour4,ardour5,ardour5-copy-mixer,ardour5-export,ardour5-fix_bbtppq,grep,sed,ldd,nm
+-private-cache
+-private-dev
+-#private-etc pulse,X11,alternatives,ardour4,ardour5,fonts,machine-id,asound.conf
+-private-tmp
+-
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/atril.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/atril.profile
++++ /dev/null
+@@ -1,52 +0,0 @@
+-# Firejail profile for atril
+-# Description: MATE document viewer
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/atril.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.cache/atril
+-noblacklist ${HOME}/.config/atril
+-noblacklist ${DOCUMENTS}
+-
+-#noblacklist ${HOME}/.local/share
+-# it seems to use only ${HOME}/.local/share/webkitgtk
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-include /etc/firejail/disable-xdg.inc
+-
+-include /etc/firejail/whitelist-var-common.inc
+-
+-# apparmor
+-caps.drop all
+-machine-id
+-no3d
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix
+-seccomp
+-shell none
+-tracelog
+-
+-private-bin atril, atril-previewer, atril-thumbnailer
+-private-dev
+-private-etc fonts,ld.so.cache
+-# atril uses webkit gtk to display epub files
+-# waiting for globbing support in private-lib; for now hardcoding it to webkit2gtk-4.0
+-#private-lib webkit2gtk-4.0 - problems on Arch with the new version of WebKit
+-private-tmp
+-
+-# webkit gtk killed by memory-deny-write-execute
+-#memory-deny-write-execute
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/bleachbit.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/bleachbit.profile
++++ /dev/null
+@@ -1,42 +0,0 @@
+-# Firejail profile for bleachbit
+-# Description: Delete unnecessary files from the system
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/bleachbit.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-# Allow python (blacklisted by disable-interpreters.inc)
+-noblacklist ${PATH}/python2*
+-noblacklist ${PATH}/python3*
+-noblacklist /usr/lib/python2*
+-noblacklist /usr/lib/python3*
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-# include /etc/firejail/disable-programs.inc
+-
+-caps.drop all
+-net none
+-no3d
+-nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix
+-seccomp
+-shell none
+-
+-private-dev
+-# private-tmp
+-
+-# memory-deny-write-execute breaks some systems, see issue #1850
+-# memory-deny-write-execute
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/discord-common.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/discord-common.profile
++++ /dev/null
+@@ -1,33 +0,0 @@
+-# Firejail profile for discord
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/discord-common.local
+-# Persistent global definitions
+-# already included by caller profile
+-#include /etc/firejail/globals.local
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-whitelist ${DOWNLOADS}
+-
+-caps.drop all
+-netfilter
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-novideo
+-protocol unix,inet,inet6,netlink
+-seccomp
+-
+-private-bin sh,xdg-mime,tr,sed,echo,head,cut,xdg-open,grep,egrep,bash,zsh
+-private-dev
+-private-etc fonts,machine-id,localtime,ld.so.cache,ca-certificates,ssl,pki,crypto-policies
+-private-tmp
+-
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/eom.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/eom.profile
++++ /dev/null
+@@ -1,47 +0,0 @@
+-# Firejail profile for eom
+-# Description: Eye of MATE graphics viewer program
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/eom.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.Steam
+-noblacklist ${HOME}/.config/mate/eom
+-noblacklist ${HOME}/.local/share/Trash
+-noblacklist ${HOME}/.steam
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-include /etc/firejail/whitelist-var-common.inc
+-
+-# apparmor - makes settings immutable
+-caps.drop all
+-# net none - makes settings immutable
+-no3d
+-# nodbus - makes settings immutable
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix
+-seccomp
+-shell none
+-tracelog
+-
+-private-bin eom
+-private-dev
+-private-etc fonts
+-private-lib
+-private-tmp
+-
+-#memory-deny-write-execute - breaks on Arch
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/firefox-common.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/firefox-common.profile
++++ /dev/null
+@@ -1,51 +0,0 @@
+-# Firejail profile for firefox-common
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/firefox-common.local
+-# Persistent global definitions
+-# already included by caller profile
+-#include /etc/firejail/globals.local
+-
+-# uncomment the following line to allow access to common programs/addons/plugins
+-#include /etc/firejail/firefox-common-addons.inc
+-
+-noblacklist ${HOME}/.pki
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-programs.inc
+-
+-mkdir ${HOME}/.pki
+-whitelist ${DOWNLOADS}
+-whitelist ${HOME}/.pki
+-include /etc/firejail/whitelist-common.inc
+-include /etc/firejail/whitelist-var-common.inc
+-
+-apparmor
+-caps.drop all
+-# machine-id breaks pulse audio; it should work fine in setups where sound is not required
+-#machine-id
+-netfilter
+-# Breaks Gnome connector - disable if you use that
+-# Also seems to break Ubuntu titlebar menu
+-nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-protocol unix,inet,inet6,netlink
+-seccomp.drop @clock,@cpu-emulation,@debug,@module,@obsolete,@raw-io,@reboot,@resources,@swap,acct,add_key,bpf,fanotify_init,io_cancel,io_destroy,io_getevents,io_setup,io_submit,ioprio_set,kcmp,keyctl,mount,name_to_handle_at,nfsservctl,ni_syscall,open_by_handle_at,personality,pivot_root,process_vm_readv,ptrace,remap_file_pages,request_key,setdomainname,sethostname,syslog,umount,umount2,userfaultfd,vhangup,vmsplice
+-shell none
+-#disable tracelog, it breaks or causes major issues with many firefox based browsers, see github issue #1930
+-#tracelog
+-
+-disable-mnt
+-private-dev
+-# private-etc below works fine on most distributions. There are some problems on CentOS.
+-#private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache
+-private-tmp
+-
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/geany.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/geany.profile
++++ /dev/null
+@@ -1,31 +0,0 @@
+-# Firejail profile for geany
+-# Description: Fast and lightweight IDE
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/geany.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.config/geany
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-caps.drop all
+-netfilter
+-no3d
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix,inet,inet6
+-seccomp
+-shell none
+-
+-private-cache
+-private-dev
+-private-tmp
+Index: firejail-0.9.56/etc/keepassxc.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/keepassxc.profile
++++ /dev/null
+@@ -1,53 +0,0 @@
+-# Firejail profile for keepassxc
+-# Description: Cross Platform Password Manager
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/keepassxc.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/*.kdb
+-noblacklist ${HOME}/*.kdbx
+-noblacklist ${HOME}/.config/keepassxc
+-noblacklist ${HOME}/.keepassxc
+-# 2.2.4 needs this path when compiled with "Native messaging browser extension"
+-noblacklist ${HOME}/.mozilla
+-noblacklist ${DOCUMENTS}
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-include /etc/firejail/disable-xdg.inc
+-
+-include /etc/firejail/whitelist-var-common.inc
+-
+-caps.drop all
+-machine-id
+-net none
+-no3d
+-nodvd
+-nodbus
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix
+-seccomp
+-shell none
+-
+-private-bin keepassxc
+-private-dev
+-private-etc fonts,ld.so.cache,machine-id
+-private-tmp
+-
+-# 2.2.4 crashes on database open
+-#memory-deny-write-execute
+-noexec ${HOME}
+-noexec /tmp
+-
+-# Mutex is stored in /tmp by default, which is broken by private-tmp
+-join-or-start keepassxc
+Index: firejail-0.9.56/etc/libreoffice.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/libreoffice.profile
++++ /dev/null
+@@ -1,50 +0,0 @@
+-# Firejail profile for libreoffice
+-# Description: Office productivity suite
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/libreoffice.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.java
+-noblacklist /usr/local/sbin
+-noblacklist ${HOME}/.config/libreoffice
+-
+-# libreoffice uses java; if you don't care about java functionality,
+-# comment the next four lines
+-noblacklist ${PATH}/java
+-noblacklist /usr/lib/java
+-noblacklist /etc/java
+-noblacklist /usr/share/java
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-include /etc/firejail/whitelist-var-common.inc
+-
+-# Ubuntu 18.04 uses its own apparmor profile
+-# uncomment the next line if you are not on Ubuntu
+-#apparmor
+-caps.drop all
+-machine-id
+-netfilter
+-#nodbus
+-nodvd
+-nogroups
+-#nonewprivs - fix for Ubuntu 18.04/Debian 10
+-noroot
+-notv
+-#protocol unix,inet,inet6  - fix for Ubuntu 18.04/Debian 10
+-#seccomp  - fix for Ubuntu 18.04/Debian 10
+-shell none
+-#tracelog - problems reported by Ubuntu 18.04 apparmor profile in /var/log/syslog
+-
+-private-dev
+-private-tmp
+-
+-noexec ${HOME}
+-noexec /tmp
+-
+-join-or-start libreoffice
+Index: firejail-0.9.56/etc/qbittorrent.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/qbittorrent.profile
++++ /dev/null
+@@ -1,61 +0,0 @@
+-# Firejail profile for qbittorrent
+-# Description: BitTorrent client based on libtorrent-rasterbar with a Qt5 GUI
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/qbittorrent.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.cache/qBittorrent
+-noblacklist ${HOME}/.config/qBittorrent
+-noblacklist ${HOME}/.config/qBittorrentrc
+-noblacklist ${HOME}/.local/share/data/qBittorrent
+-
+-# Allow python (blacklisted by disable-interpreters.inc)
+-noblacklist ${PATH}/python2*
+-noblacklist ${PATH}/python3*
+-noblacklist /usr/lib/python2*
+-noblacklist /usr/lib/python3*
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-mkdir ${HOME}/.cache/qBittorrent
+-mkdir ${HOME}/.config/qBittorrent
+-mkdir ${HOME}/.local/share/data/qBittorrent
+-whitelist  ${DOWNLOADS}
+-whitelist ${HOME}/.cache/qBittorrent
+-whitelist ${HOME}/.config/qBittorrent
+-whitelist ${HOME}/.config/qBittorrentrc
+-whitelist ${HOME}/.local/share/data/qBittorrent
+-include /etc/firejail/whitelist-common.inc
+-include /etc/firejail/whitelist-var-common.inc
+-
+-apparmor
+-caps.drop all
+-machine-id
+-netfilter
+-nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix,inet,inet6,netlink
+-seccomp
+-shell none
+-
+-private-bin qbittorrent,python*
+-private-dev
+-# private-etc X11,fonts,xdg,resolv.conf,ca-certificates,ssl,pki,crypto-policies
+-# private-lib - problems on Arch
+-private-tmp
+-
+-# memory-deny-write-execute - problems on  Arch, see #1690 on GitHub repo
+-noexec ${HOME}
+-noexec /tmp
+Index: firejail-0.9.56/etc/steam.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/steam.profile
++++ /dev/null
+@@ -1,77 +0,0 @@
+-# Firejail profile for steam
+-# Description: Valve's Steam digital software delivery system
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/steam.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.java
+-noblacklist ${HOME}/.killingfloor
+-noblacklist ${HOME}/.local/share/3909/PapersPlease
+-noblacklist ${HOME}/.local/share/aspyr-media
+-noblacklist ${HOME}/.local/share/cdprojektred
+-noblacklist ${HOME}/.local/share/feral-interactive
+-noblacklist ${HOME}/.local/share/Steam
+-noblacklist ${HOME}/.local/share/SuperHexagon
+-noblacklist ${HOME}/.local/share/Terraria
+-noblacklist ${HOME}/.local/share/vpltd
+-noblacklist ${HOME}/.local/share/vulkan
+-noblacklist ${HOME}/.steam
+-noblacklist ${HOME}/.steampath
+-noblacklist ${HOME}/.steampid
+-# with >=llvm-4 mesa drivers need llvm stuff
+-noblacklist /usr/lib/llvm*
+-# needed for STEAM_RUNTIME_PREFER_HOST_LIBRARIES=1 to work
+-noblacklist /sbin
+-
+-# Allow access to java
+-noblacklist ${PATH}/java
+-noblacklist /usr/lib/java
+-noblacklist /etc/java
+-noblacklist /usr/share/java
+-
+-# Allow python (blacklisted by disable-interpreters.inc)
+-noblacklist ${PATH}/python2*
+-noblacklist ${PATH}/python3*
+-noblacklist /usr/lib/python2*
+-noblacklist /usr/lib/python3*
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-include /etc/firejail/whitelist-var-common.inc
+-
+-caps.drop all
+-#ipc-namespace
+-netfilter
+-# nodbus disabled as it breaks appindicator support
+-#nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-# novideo should be commented for VR
+-novideo
+-protocol unix,inet,inet6,netlink
+-seccomp
+-shell none
+-# tracelog disabled as it breaks integrated browser
+-#tracelog
+-
+-# private-bin is disabled while in testing, but has been tested working with multiple games
+-#private-bin awk,basename,bash,bsdtar,bzip2,cat,chmod,cksum,cmp,comm,compress,cp,curl,cut,date,dbus-launch,dbus-send,desktop-file-edit,desktop-file-install,desktop-file-validate,dirname,echo,env,expr,file,find,getopt,grep,gtar,gzip,head,hostname,id,lbzip2,ldconfig,ldd,ln,ls,lsb_release,lspci,lsof,lz4,lzip,lzma,lzop,md5sum,mkdir,mktemp,mv,netstat,ps,pulseaudio,python*,readlink,realpath,rm,sed,sh,sha1sum,sha256sum,sha512sum,sleep,sort,steam,steamdeps,steam-native,steam-runtime,sum,tail,tar,test,touch,tr,umask,uname,update-desktop-database,wc,wget,which,whoami,xterm,xz,zenity
+-# extra programs are available which might be needed for select games
+-#private-bin java,java-config,mono
+-# picture viewers are needed for viewing screenshots
+-#private-bin eog,eom,gthumb,pix,viewnior,xviewer
+-
+-# private-dev should be commented for controllers
+-private-dev
+-# private-etc breaks a small selection of games on some systems, comment to support those
+-private-etc asound.conf,ca-certificates,dbus-1,drirc,fonts,group,gtk-2.0,gtk-3.0,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,ld.so.conf,ld.so.conf.d,localtime,lsb-release,machine-id,mime.types,passwd,pulse,resolv.conf,ssl,pki,services,crypto-policies,alternatives,bumblebee,nvidia,os-release
+-private-tmp
+Index: firejail-0.9.56/etc/thunderbird.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/thunderbird.profile
++++ /dev/null
+@@ -1,41 +0,0 @@
+-# Firejail profile for thunderbird
+-# Description: Email, RSS and newsgroup client with integrated spam filter
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/thunderbird.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-# Users have thunderbird set to open a browser by clicking a link in an email
+-# We are not allowed to blacklist browser-specific directories
+-
+-noblacklist ${HOME}/.cache/thunderbird
+-noblacklist ${HOME}/.gnupg
+-# noblacklist ${HOME}/.icedove
+-noblacklist ${HOME}/.thunderbird
+-
+-mkdir ${HOME}/.cache/thunderbird
+-mkdir ${HOME}/.gnupg
+-# mkdir ${HOME}/.icedove
+-mkdir ${HOME}/.thunderbird
+-whitelist ${HOME}/.cache/thunderbird
+-whitelist ${HOME}/.gnupg
+-# whitelist ${HOME}/.icedove
+-whitelist ${HOME}/.thunderbird
+-
+-# We need the real /tmp for data exchange when xdg-open handles email attachments on KDE
+-ignore private-tmp
+-# machine-id breaks audio in browsers; enable it when sound is not required
+-# machine-id
+-read-only ${HOME}/.config/mimeapps.list
+-# writable-run-user is needed for signing and encrypting emails
+-writable-run-user
+-
+-# If you want to read local mail stored in /var/mail, add the following to thunderbird.local:
+-# noblacklist /var/mail
+-# noblacklist /var/spool/mail
+-# writable-var
+-
+-# allow browsers
+-# Redirect
+-include /etc/firejail/firefox.profile
+Index: firejail-0.9.56/etc/torbrowser-launcher.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/torbrowser-launcher.profile
++++ /dev/null
+@@ -1,54 +0,0 @@
+-# Firejail profile for torbrowser-launcher
+-# Description: Helps download and run the Tor Browser Bundle
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/torbrowser-launcher.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.config/torbrowser
+-noblacklist ${HOME}/.local/share/torbrowser
+-
+-# Allow python (blacklisted by disable-interpreters.inc)
+-noblacklist ${PATH}/python2*
+-noblacklist ${PATH}/python3*
+-noblacklist /usr/lib/python2*
+-noblacklist /usr/lib/python3*
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-include /etc/firejail/disable-xdg.inc
+-
+-mkdir ${HOME}/.config/torbrowser
+-mkdir ${HOME}/.local/share/torbrowser
+-whitelist ${DOWNLOADS}
+-whitelist ${HOME}/.config/torbrowser
+-whitelist ${HOME}/.local/share/torbrowser
+-include /etc/firejail/whitelist-common.inc
+-include /etc/firejail/whitelist-var-common.inc
+-
+-caps.drop all
+-netfilter
+-nodbus
+-nodvd
+-nogroups
+-nonewprivs
+-noroot
+-notv
+-novideo
+-protocol unix,inet,inet6
+-seccomp.drop @clock,@cpu-emulation,@debug,@module,@obsolete,@raw-io,@reboot,@resources,@swap,acct,add_key,bpf,fanotify_init,io_cancel,io_destroy,io_getevents,io_setup,io_submit,ioprio_set,kcmp,keyctl,mount,name_to_handle_at,nfsservctl,ni_syscall,open_by_handle_at,personality,pivot_root,process_vm_readv,ptrace,remap_file_pages,request_key,setdomainname,sethostname,syslog,umount,umount2,userfaultfd,vhangup,vmsplice
+-shell none
+-# tracelog may cause issues, see github issue #1930
+-#tracelog
+-
+-disable-mnt
+-private-bin bash,cp,dirname,env,expr,file,getconf,gpg,grep,id,ln,mkdir,python*,readlink,rm,sed,sh,tail,tar,tclsh,test,tor-browser-en,torbrowser-launcher,xz
+-private-dev
+-private-etc fonts,hostname,hosts,resolv.conf,pki,ssl,ca-certificates,crypto-policies,alsa,asound.conf,pulse,machine-id,ld.so.cache
+-private-tmp
+-
+-noexec /tmp
+Index: firejail-0.9.56/etc/uget-gtk.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/uget-gtk.profile
++++ /dev/null
+@@ -1,34 +0,0 @@
+-# Firejail profile for uget-gtk
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/uget-gtk.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.config/uGet
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-devel.inc
+-include /etc/firejail/disable-interpreters.inc
+-include /etc/firejail/disable-programs.inc
+-
+-mkdir ${HOME}/.config/uGet
+-whitelist ${DOWNLOADS}
+-whitelist ${HOME}/.config/uGet
+-include /etc/firejail/whitelist-common.inc
+-
+-caps.drop all
+-netfilter
+-nodvd
+-nonewprivs
+-noroot
+-nosound
+-notv
+-novideo
+-protocol unix,inet,inet6
+-seccomp
+-shell none
+-
+-private-bin uget-gtk
+-private-dev
+-private-tmp
+Index: firejail-0.9.56/etc/virtualbox.profile
+===================================================================
+--- firejail-0.9.56.orig/etc/virtualbox.profile
++++ /dev/null
+@@ -1,31 +0,0 @@
+-# Firejail profile for virtualbox
+-# Description: x86 virtualization solution
+-# This file is overwritten after every install/update
+-# Persistent local customizations
+-include /etc/firejail/virtualbox.local
+-# Persistent global definitions
+-include /etc/firejail/globals.local
+-
+-noblacklist ${HOME}/.VirtualBox
+-noblacklist ${HOME}/.config/VirtualBox
+-noblacklist ${HOME}/VirtualBox VMs
+-# noblacklist /usr/bin/virtualbox
+-noblacklist /usr/lib/virtualbox
+-noblacklist /usr/lib64/virtualbox
+-
+-include /etc/firejail/disable-common.inc
+-include /etc/firejail/disable-passwdmgr.inc
+-include /etc/firejail/disable-programs.inc
+-
+-mkdir ${HOME}/.config/VirtualBox
+-mkdir ${HOME}/VirtualBox VMs
+-whitelist ${HOME}/.config/VirtualBox
+-whitelist ${HOME}/VirtualBox VMs
+-whitelist ${DOWNLOADS}
+-include /etc/firejail/whitelist-common.inc
+-include /etc/firejail/whitelist-var-common.inc
+-
+-caps.drop all
+-netfilter
+-nodvd
+-notv
+Index: firejail-0.9.56/src/firecfg/firecfg.config
+===================================================================
+--- firejail-0.9.56.orig/src/firecfg/firecfg.config
++++ /dev/null
+@@ -1,480 +0,0 @@
+-# /usr/lib/firejail/firecfg.config - firecfg utility configuration file
+-# This is the list of programs in alphabetical order handled by firecfg utility
+-#
+-# Cryptocat is added but commented since isn't installed to a */bin... keep an eye on this
+-#qemu-system-x86_64
+-0ad
+-2048-qt
+-Cyberfox
+-Discord
+-DiscordCanary
+-FossaMail
+-Fritzing
+-JDownloader
+-Mathematica
+-Natron
+-Telegram
+-Viber
+-VirtualBox
+-Xephyr
+-XMind
+-abrowser
+-akonadi_control
+-akregator
+-amarok
+-amule
+-android-studio
+-anydesk
+-apktool
+-arch-audit
+-archaudit-report
+-ardour4
+-ardour5
+-arduino
+-ark
+-arm
+-# atom
+-# atom-beta
+-asunder
+-atool
+-atril
+-atril-previewer
+-atril-thumbnailer
+-audacious
+-audacity
+-aweather
+-baloo_file
+-baloo_filemetadata_temp_extractor
+-baobab
+-basilisk
+-beaker
+-bibletime
+-bitlbee
+-bleachbit
+-blender
+-blender-2.8
+-bless
+-bluefish
+-bnox
+-brackets
+-brasero
+-brave
+-calibre
+-calligra
+-calligraauthor
+-calligraconverter
+-calligraflow
+-calligraplan
+-calligraplanwork
+-calligrasheets
+-calligrastage
+-calligrawords
+-catfish
+-cherrytree
+-chromium
+-chromium-browser
+-cin
+-cinelerra
+-clamdscan
+-clamdtop
+-clamscan
+-clamtk
+-claws-mail
+-clementine
+-clipit
+-cliqz
+-cmus
+-code
+-conkeror
+-conky
+-corebird
+-cvlc
+-cyberfox
+-darktable
+-deadbeef
+-deluge
+-dex2jar
+-dia
+-dig
+-digikam
+-dillo
+-dino
+-discord
+-discord-canary
+-display
+-dnox
+-dnscrypt-proxy
+-dnsmasq
+-dolphin
+-dooble
+-dooble-qt4
+-dosbox
+-dragon
+-dropbox
+-ebook-viewer
+-electrum
+-elinks
+-empathy
+-enchant
+-enchant-2
+-enchant-lsmod
+-enchant-lsmod-2
+-engrampa
+-enox
+-enpass
+-eog
+-eom
+-epiphany
+-etr
+-evince
+-evince-previewer
+-evince-thumbnailer
+-evolution
+-exiftool
+-falkon
+-fbreader
+-feh
+-ffmpeg
+-file-roller
+-filezilla
+-firefox
+-firefox-developer-edition
+-firefox-esr
+-firefox-nightly
+-firefox-wayland
+-flameshot
+-flashpeak-slimjet
+-flowblade
+-fontforge
+-franz
+-freecad
+-freecadcmd
+-freshclam
+-frozen-bubble
+-gajim
+-galculator
+-gcloud
+-geany
+-geary
+-gedit
+-geeqie
+-ghb
+-gimp
+-gimp-2.10
+-gimp-2.8
+-gitg
+-gitter
+-gjs
+-globaltime
+-gnome-2048
+-gnome-builder
+-gnome-books
+-gnome-calculator
+-gnome-chess
+-gnome-clocks
+-gnome-contacts
+-gnome-documents
+-gnome-font-viewer
+-gnome-logs
+-gnome-maps
+-gnome-mplayer
+-gnome-mpv
+-gnome-music
+-gnome-photos
+-gnome-recipes
+-gnome-twitch
+-gnome-weather
+-goobox
+-google-chrome
+-google-chrome-beta
+-google-chrome-stable
+-google-chrome-unstable
+-google-earth
+-google-play-music-desktop-player
+-gpa
+-gpicview
+-gpredict
+-gradio
+-gthumb
+-guayadeque
+-gucharmap
+-gwenview
+-handbrake
+-handbrake-gtk
+-hashcat
+-hedgewars
+-hexchat
+-highlight
+-hugin
+-icecat
+-icedove
+-iceweasel
+-idea
+-ideaIC
+-idea.sh
+-imagej
+-img2txt
+-inkscape
+-inox
+-iridium
+-iridium-browser
+-jd-gui
+-jdownloader
+-jitsi
+-k3b
+-kaffeine
+-karbon
+-kate
+-kcalc
+-# kdeinit4
+-kdenlive
+-keepass
+-keepass2
+-keepassx
+-keepassx2
+-keepassxc
+-kget
+-kino
+-kmail
+-knotes
+-kodi
+-konversation
+-kopete
+-krita
+-# krunner
+-ktorrent
+-# kwin_x11
+-kwrite
+-leafpad
+-less
+-libreoffice
+-liferea
+-linphone
+-lmms
+-lobase
+-localc
+-lodraw
+-loffice
+-lofromtemplate
+-loimpress
+-lollypop
+-lomath
+-loweb
+-lowriter
+-luminance-hdr
+-lximage-qt
+-lxmusic
+-lynx
+-macrofusion
+-mate-calc
+-mate-calculator
+-mate-color-select
+-mate-dictionary
+-mathematica
+-mcabber
+-mediainfo
+-mediathekview
+-meld
+-midori
+-minetest
+-mousepad
+-mplayer
+-mpv
+-ms-excel
+-ms-office
+-ms-onenote
+-ms-outlook
+-ms-powerpoint
+-ms-skype
+-ms-word
+-multimc5
+-mumble
+-mupdf
+-mupen64plus
+-musescore
+-musixmatch
+-mutt
+-natron
+-#nautilus - removed in order to let the application start in a new sandbox when clicking on icons in the file manager
+-ncdu
+-netsurf
+-neverball
+-nheko
+-nylas
+-obs
+-odt2txt
+-okular
+-onionshare-gui
+-open-invaders
+-openshot
+-openshot-qt
+-opera
+-opera-beta
+-orage
+-palemoon
+-parole
+-patch
+-pdfchain
+-pdfmod
+-pdfsam
+-pdftotext
+-peek
+-picard
+-pidgin
+-#ping - disabled until we fix  #1912
+-pingus
+-pinta
+-pithos
+-pitivi
+-pix
+-playonlinux
+-pluma
+-polari
+-ppsspp
+-psi-plus
+-pybitmessage
+-# pycharm-community - FB note: may enable later
+-# pycharm-professional
+-qbittorrent
+-qemu-launcher
+-qlipper
+-qmmp
+-qpdfview
+-qtox
+-quassel
+-quiterss
+-qupzilla
+-qutebrowser
+-rambox
+-ranger
+-redeclipse
+-remmina
+-rhythmbox
+-ricochet
+-riot-desktop
+-riot-web
+-ristretto
+-rocketchat
+-rtorrent
+-runenpass.sh
+-sayonara
+-scallion
+-scribus
+-sdat2img
+-seamonkey
+-seamonkey-bin
+-shellcheck
+-shotcut
+-signal-desktop
+-silentarmy
+-simple-scan
+-simutrans
+-skanlite
+-skype
+-skypeforlinux
+-slack
+-smplayer
+-smtube
+-soffice
+-soundconverter
+-spotify
+-sqlitebrowser
+-ssh
+-# ssh-agent - problems on Arch with Fish shell (#1568)
+-standardnotes-desktop
+-start-tor-browser
+-steam
+-steam-native
+-stellarium
+-strings
+-supertux2
+-surf
+-sylpheed
+-synfigstudio
+-teamspeak3
+-telegram
+-telegram-desktop
+-terasology
+-thunderbird
+-thunderbird-beta
+-tilp
+-tor-browser-ar
+-tor-browser-en
+-tor-browser-en-us
+-tor-browser-es
+-tor-browser-es-es
+-tor-browser-fa
+-tor-browser-fr
+-tor-browser-it
+-tor-browser-ja
+-tor-browser-ko
+-torbrowser-launcher
+-tor-browser-pl
+-tor-browser-pt-br
+-tor-browser-ru
+-tor-browser-vi
+-tor-browser-zh-cn
+-totem
+-tracker
+-transmission-cli
+-transmission-gtk
+-transmission-qt
+-transmission-show
+-truecraft
+-tuxguitar
+-uefitool
+-uget-gtk
+-unbound
+-unknown-horizons
+-uudeview
+-uzbl-browser
+-viewnior
+-viking
+-virtualbox
+-vivaldi
+-vivaldi-beta
+-vivaldi-snapshot
+-vivaldi-stable
+-vlc
+-vym
+-w3m
+-warzone2100
+-waterfox
+-webstorm
+-weechat
+-weechat-curses
+-wesnoth
+-wget
+-whois
+-wine
+-wire-desktop
+-wireshark
+-wireshark-gtk
+-wireshark-qt
+-xcalc
+-xchat
+-xed
+-xfburn
+-xfce4-dict
+-xfce4-notes
+-xiphos
+-xmms
+-xmr-stak
+-xonotic
+-xonotic-glx
+-xonotic-sdl
+-xpdf
+-xplayer
+-xplayer-audio-preview
+-xplayer-video-thumbnailer
+-xpra
+-xreader
+-xreader-previewer
+-xreader-thumbnailer
+-xviewer
+-yandex-browser
+-youtube-dl
+-zaproxy
+-zart
+-zathura
+-zoom

@@ -1,10 +1,12 @@
 # Firejail profile for less
+# Description: Pager program similar to more
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
 include /etc/firejail/less.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+# added by included default.profile
+#include /etc/firejail/globals.local
 
 blacklist /tmp/.X11-unix
 
@@ -24,6 +26,7 @@ writable-var-log
 # Enable private-bin and private-lib if you are not using any filter.
 # private-bin less
 # private-lib
+private-cache
 private-dev
 
 memory-deny-write-execute

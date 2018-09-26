@@ -1,3 +1,33 @@
+firejail (0.9.56-1parrot1) testing; urgency=medium
+
+  * Import new Debian release.
+  * Updates Parrot patches.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 26 Sep 2018 13:37:18 +0200
+
+firejail (0.9.56-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Move profiles test to unisolated test run.
+  * Recommend iproute2 for tc used in fshaper.sh for --bandwidth feature.
+  * Drop patch applied upstream.
+  * Bump Standards-Version to 4.2.1.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 20 Sep 2018 23:34:09 +0200
+
+firejail (0.9.56~rc1-1) experimental; urgency=low
+
+  * New upstream release candidate.
+    - evaluate UID_MIN at runtime instead of hardcoding during compilation
+      (Closes: #900337)
+  * Bump Standards-Version to 4.2.0.
+  * debian/tests:
+    - disable tests that attempt to access the internet
+    - temporarily disable broken tests (fixed upstream already)
+    - reorganize tests a bit; allow some to run unisolated
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 16 Aug 2018 19:26:39 +0200
+
 firejail (0.9.54-1parrot8) testing; urgency=medium
 
   * Fix keepasscx profile.

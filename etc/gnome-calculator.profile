@@ -1,4 +1,5 @@
 # Firejail profile for gnome-calculator
+# Description: GNOME desktop calculator
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
@@ -11,6 +12,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-common.inc
 include /etc/firejail/whitelist-var-common.inc
@@ -35,7 +37,7 @@ shell none
 disable-mnt
 private-bin gnome-calculator
 private-dev
-private-lib gdk-pixbuf-2.0,gio,girepository-1.0,gvfs,libgconf-2.so.4,libgnutls.so.30,libproxy.so.1,librsvg-2.so.2,libxml2.so.2
+private-lib gdk-pixbuf-2.*,gio,girepository-1.*,gvfs,libgconf-2.so.*,libgnutls.so.*,libproxy.so.*,librsvg-2.so.*,libxml2.so.*
 private-tmp
 
 #memory-deny-write-execute  - breaks on Arch

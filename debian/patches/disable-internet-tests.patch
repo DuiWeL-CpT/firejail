@@ -1,0 +1,107 @@
+Author: Reiner Herrmann <reiner@reiner-h.de>
+Description: disable tests that attempt to access the internet
+Forwarded: not-needed
+
+--- a/test/environment/dns.exp
++++ b/test/environment/dns.exp
+@@ -61,24 +61,4 @@
+ send -- "exit\r"
+ sleep 1
+ 
+-send -- "firejail --trace --dns=208.67.222.222 wget -q debian.org\r"
+-expect {
+-	timeout {puts "TESTING ERROR 1.2\n";exit}
+-	"connect"
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 1.2\n";exit}
+-	"208.67.222.222"
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 1.2\n";exit}
+-	"53"
+-}
+-after 100
+-
+-send -- "rm index.html\r"
+-after 100
+-send -- "exit\r"
+-sleep 1
+-
+ puts "\nall done\n"
+--- a/test/utils/trace.exp
++++ b/test/utils/trace.exp
+@@ -52,49 +52,6 @@
+ }
+ sleep 1
+ 
+-send -- "firejail --trace wget -q debian.org\r"
+-#expect {
+-#	timeout {puts "TESTING ERROR 8.1\n";exit}
+-#	"Child process initialized"
+-#}
+-#expect {
+-#	timeout {puts "TESTING ERROR 8.2\n";exit}
+-#	"bash:open /dev/tty" {puts "OK\n";}
+-#	"bash:open64 /dev/tty" {puts "OK\n";}
+-#}
+-expect {
+-	timeout {puts "TESTING ERROR 8.3\n";exit}
+-	"wget:fopen64 /etc/wgetrc" {puts "OK\n";}
+-	"wget:fopen /etc/wgetrc"  {puts "OK\n";}
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 8.4\n";exit}
+-	"wget:fopen /etc/hosts"
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 8.5\n";exit}
+-	"wget:connect"
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 8.6\n";exit}
+-	"wget:fopen64 index.html" {puts "OK\n";}
+-	"wget:fopen index.html" {puts "OK\n";}
+-	"Parent is shutting down" {puts "OK\n";}
+-}
+-sleep 1
+-
+-send -- "firejail --trace rm index.html\r"
+-expect {
+-	timeout {puts "TESTING ERROR 9\n";exit}
+-	"Child process initialized"
+-}
+-expect {
+-	timeout {puts "TESTING ERROR 10\n";exit}
+-	"rm:unlinkat index.html" {puts "OK\n";}
+-	"Parent is shutting down" {puts "OK\n";}
+-}
+-sleep 1
+-
+ send --  "firejail --trace\r"
+ expect {
+ 	timeout {puts "TESTING ERROR 11\n";exit}
+--- a/test/sysutils/sysutils.sh
++++ b/test/sysutils/sysutils.sh
+@@ -81,8 +81,7 @@
+ which ping 2>/dev/null
+ if [ "$?" -eq 0 ];
+ then
+-	echo "TESTING: ping"
+-	./ping.exp
++	echo "TESTING SKIP: ping"
+ else
+ 	echo "TESTING SKIP: ping not found"
+ fi
+--- a/test/utils/utils.sh
++++ b/test/utils/utils.sh
+@@ -65,8 +65,7 @@
+ echo "TESTING: fs.print (test/utils/fs-print.exp)"
+ ./fs-print.exp
+ 
+-echo "TESTING: dns.print (test/utils/dns-print.exp)"
+-./dns-print.exp
++echo "TESTING SKIP: dns.print (test/utils/dns-print.exp)"
+ 
+ echo "TESTING: caps.print (test/utils/caps-print.exp)"
+ ./caps-print.exp

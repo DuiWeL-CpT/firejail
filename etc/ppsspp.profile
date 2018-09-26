@@ -1,4 +1,5 @@
 # Firejail profile for ppsspp
+# Description: A PSP emulator written in C++
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/ppsspp.local
@@ -6,6 +7,7 @@ include /etc/firejail/ppsspp.local
 include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.config/ppsspp
+noblacklist ${DOCUMENTS}
 # with >=llvm-4 mesa drivers need llvm stuff
 noblacklist /usr/lib/llvm*
 
@@ -14,6 +16,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 include /etc/firejail/whitelist-var-common.inc
 
@@ -34,7 +37,7 @@ shell none
 
 # private-dev is disabled to allow controller support
 #private-dev
-private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies
+private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies,machine-id
 private-opt ppsspp
 private-tmp
 

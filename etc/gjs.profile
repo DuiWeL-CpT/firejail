@@ -1,4 +1,5 @@
 # Firejail profile for gjs
+# Description: Mozilla-based javascript bindings for the GNOME platform
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/gjs.local
@@ -32,5 +33,5 @@ tracelog
 
 # private-bin gjs,gnome-books,gnome-documents,gnome-photos,gnome-maps,gnome-weather
 private-dev
-# private-etc fonts
+# private-etc fonts,ca-certificates,ssl,pki,crypto-policies
 private-tmp

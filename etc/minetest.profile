@@ -1,4 +1,5 @@
 # Firejail profile for minetest
+# Description: Multiplayer infinite-world block sandbox
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/minetest.local
@@ -34,7 +35,7 @@ disable-mnt
 private-bin minetest
 private-dev
 # private-etc needs to be updated, see #1702
-#private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies
+#private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies,machine-id
 private-tmp
 
 noexec ${HOME}

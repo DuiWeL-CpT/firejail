@@ -5,19 +5,14 @@ include /etc/firejail/discord-canary.local
 # Persistent global definitions
 include /etc/firejail/globals.local
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
 
-whitelist ${DOWNLOADS}
+noblacklist ${HOME}/.config/discordcanary
+
+mkdir ${HOME}/.config/discordcanary
 whitelist ${HOME}/.config/discordcanary
 
-caps.drop all
-netfilter
-nodvd
-nogroups
-nonewprivs
-noroot
-notv
-protocol unix,inet,inet6,netlink
-seccomp
+private-bin discord-canary
+private-opt discord-canary
+
+#Redirect
+include /etc/firejail/discord-common.profile

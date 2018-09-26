@@ -323,19 +323,19 @@ int checkcfg(int val) {
 				else
 					goto errout;
 			}
+			else if (strncmp(ptr, "private-cache ", 14) == 0) {
+				if (strcmp(ptr + 14, "yes") == 0)
+					cfg_val[CFG_PRIVATE_CACHE] = 1;
+				else if (strcmp(ptr + 14, "no") == 0)
+					cfg_val[CFG_PRIVATE_CACHE] = 0;
+				else
+					goto errout;
+			}
 			else if (strncmp(ptr, "private-lib ", 12) == 0) {
 				if (strcmp(ptr + 12, "yes") == 0)
 					cfg_val[CFG_PRIVATE_LIB] = 1;
 				else if (strcmp(ptr + 12, "no") == 0)
 					cfg_val[CFG_PRIVATE_LIB] = 0;
-				else
-					goto errout;
-			}
-			else if (strncmp(ptr, "chroot-desktop ", 15) == 0) {
-				if (strcmp(ptr + 15, "yes") == 0)
-					cfg_val[CFG_CHROOT_DESKTOP] = 1;
-				else if (strcmp(ptr + 15, "no") == 0)
-					cfg_val[CFG_CHROOT_DESKTOP] = 0;
 				else
 					goto errout;
 			}
@@ -381,6 +381,13 @@ int checkcfg(int val) {
 		initialized = 1;
 	}
 
+
+	// merge CFG_RESTRICTED_NETWORK into CFG_NETWORK
+	if (val == CFG_NETWORK) {
+		if (cfg_val[CFG_RESTRICTED_NETWORK] && getuid() != 0)
+			return 0;
+	}
+
 	return cfg_val[val];
 
 errout:
@@ -405,14 +412,6 @@ void print_compiletime_support(void) {
 
 	printf("\t- AppImage support is %s\n",
 #ifdef LOOP_CTL_GET_FREE	// test for older kernels; this definition is found in /usr/include/linux/loop.h
-		"enabled"
-#else
-		"disabled"
-#endif
-		);
-
-	printf("\t- bind support is %s\n",
-#ifdef HAVE_BIND
 		"enabled"
 #else
 		"disabled"
@@ -450,10 +449,6 @@ void print_compiletime_support(void) {
 		"disabled"
 #endif
 		);
-
-#ifdef HAVE_NETWORK_RESTRICTED
-	printf("\t- networking features are available only to root user\n");
-#endif
 
 	printf("\t- overlayfs support is %s\n",
 #ifdef HAVE_OVERLAYFS
@@ -494,5 +489,4 @@ void print_compiletime_support(void) {
 		"disabled"
 #endif
 		);
-
 }

@@ -1,4 +1,5 @@
 # Firejail profile for transmission-cli
+# Description: Lightweight BitTorrent client
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/transmission-cli.local
@@ -30,7 +31,7 @@ tracelog
 
 # private-bin transmission-cli
 private-dev
-private-etc none
+private-etc ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 memory-deny-write-execute

@@ -53,7 +53,6 @@
 #define RUN_PULSE_DIR	"/run/firejail/mnt/pulse"
 #define RUN_LIB_DIR	"/run/firejail/mnt/lib"
 #define RUN_LIB_FILE	"/run/firejail/mnt/libfiles"
-#define RUN_LIB_BIN	"/run/firejail/mnt/binfiles"
 #define RUN_DNS_ETC	"/run/firejail/mnt/dns-etc"
 
 
@@ -99,13 +98,15 @@
 #define RUN_PASSWD_FILE		"/run/firejail/mnt/passwd"
 #define RUN_GROUP_FILE		"/run/firejail/mnt/group"
 #define RUN_FSLOGGER_FILE		"/run/firejail/mnt/fslogger"
+#define RUN_UMASK_FILE		"/run/firejail/mnt/umask"
 #define RUN_OVERLAY_ROOT	"/run/firejail/mnt/oroot"
+#define RUN_READY_FOR_JOIN 	"/run/firejail/mnt/ready-for-join"
 
 
 // profiles
 #define DEFAULT_USER_PROFILE	"default"
 #define DEFAULT_ROOT_PROFILE	"server"
-#define MAX_INCLUDE_LEVEL 6		// include levels in profile files
+#define MAX_INCLUDE_LEVEL 16		// include levels in profile files
 
 
 #define ASSERT_PERMS(file, uid, gid, mode) \
@@ -167,6 +168,7 @@ typedef struct bridge_t {
 	// inside the sandbox
 	char *devsandbox;	// name of the device inside the sandbox
 	uint32_t ipsandbox;	// ip address inside the sandbox
+	uint32_t masksandbox;	// network mask inside the sandbox
 	char *ip6sandbox;	// ipv6 address inside the sandbox
 	uint8_t macsandbox[6]; // mac address inside the sandbox
 	uint32_t iprange_start;// iprange arp scan start range
@@ -224,10 +226,10 @@ typedef struct config_t {
 	char *opt_private_keep;	// keep list for private opt directory
 	char *srv_private_keep;	// keep list for private srv directory
 	char *bin_private_keep;	// keep list for private bin directory
+	char *bin_private_lib;	// executable list sent by private-bin to private-lib
 	char *lib_private_keep;	// keep list for private bin directory
 	char *cwd;		// current working directory
 	char *overlay_dir;
-	char *private_template; // template dir for tmpfs home
 
 	// networking
 	char *name;		// sandbox name
@@ -307,7 +309,7 @@ static inline int any_interface_configured(void) {
 }
 
 extern int arg_private;		// mount private /home
-extern int arg_private_template; // private /home template
+extern int arg_private_cache;	// private home/.cache
 extern int arg_debug;		// print debug messages
 extern int arg_debug_blacklists;	// print debug messages for blacklists
 extern int arg_debug_whitelists;	// print debug messages for whitelists
@@ -347,6 +349,7 @@ extern char *arg_netns;		// "ip netns"-created network namespace to use
 extern int arg_doubledash;	// double dash
 extern int arg_shell_none;	// run the program directly without a shell
 extern int arg_private_dev;	// private dev directory
+extern int arg_keep_dev_shm;    // preserve /dev/shm
 extern int arg_private_etc;	// private etc directory
 extern int arg_private_opt;	// private opt directory
 extern int arg_private_srv;	// private srv directory
@@ -383,12 +386,14 @@ extern int arg_noprofile;	// use default.profile if none other found/specified
 extern int arg_memory_deny_write_execute;	// block writable and executable memory
 extern int arg_notv;	// --notv
 extern int arg_nodvd;	// --nodvd
+extern int arg_nou2f;   // --nou2f
 extern int arg_nodbus; // -nodbus
 
 extern int login_shell;
 extern int parent_to_child_fds[2];
 extern int child_to_parent_fds[2];
 extern pid_t sandbox_pid;
+extern mode_t orig_umask;
 extern unsigned long long start_timestamp;
 
 #define MAX_ARGS 128		// maximum number of command arguments (argc)
@@ -401,10 +406,9 @@ char *guess_shell(void);
 
 // sandbox.c
 int sandbox(void* sandbox_arg);
-void start_application(int no_sandbox);
+void start_application(int no_sandbox, FILE *fp);
 
 // network_main.c
-void net_configure_bridge(Bridge *br, char *dev_name);
 void net_configure_sandbox_ip(Bridge *br);
 void net_configure_veth_pair(Bridge *br, const char *ifname, pid_t child);
 void net_check_cfg(void);
@@ -447,6 +451,8 @@ void fs_overlayfs(void);
 void fs_chroot(const char *rootdir);
 void fs_check_chroot_dir(const char *rootdir);
 void fs_private_tmp(void);
+void fs_private_cache(void);
+void fs_mnt(void);
 
 // profile.c
 // find and read the profile specified by name from dir directory
@@ -459,7 +465,7 @@ void profile_read(const char *fname);
 int profile_check_line(char *ptr, int lineno, const char *fname);
 // add a profile entry in cfg.profile list; use str to populate the list
 void profile_add(char *str);
-void fs_mnt(void);
+void profile_add_ignore(const char *str);
 
 // list.c
 void list(void);
@@ -472,6 +478,7 @@ void usage(void);
 
 // join.c
 void join(pid_t pid, int argc, char **argv, int index);
+pid_t switch_to_child(pid_t pid);
 
 // shutdown.c
 void shut(pid_t pid);
@@ -485,6 +492,13 @@ void arp_announce(const char *dev, Bridge *br);
 int arp_check(const char *dev, uint32_t destaddr);
 // assign an IP address using arp scanning
 uint32_t arp_assign(const char *dev, Bridge *br);
+
+// macros.c
+char *expand_home(const char *path, const char *homedir);
+char *resolve_macro(const char *name);
+void invalid_filename(const char *fname, int globbing);
+int is_macro(const char *name);
+
 
 // util.c
 void errLogExit(char* fmt, ...);
@@ -500,9 +514,10 @@ void logerr(const char *msg);
 int copy_file(const char *srcname, const char *destname, uid_t uid, gid_t gid, mode_t mode);
 void copy_file_as_user(const char *srcname, const char *destname, uid_t uid, gid_t gid, mode_t mode);
 void copy_file_from_user_to_root(const char *srcname, const char *destname, uid_t uid, gid_t gid, mode_t mode);
-void touch_file_as_user(const char *fname, uid_t uid, gid_t gid, mode_t mode);
+void touch_file_as_user(const char *fname, mode_t mode);
 int is_dir(const char *fname);
 int is_link(const char *fname);
+void trim_trailing_slash_or_dot(char *path);
 char *line_remove_spaces(const char *buf);
 char *split_comma(char *str);
 void check_unsigned(const char *str, const char *msg);
@@ -511,10 +526,8 @@ void check_private_dir(void);
 void update_map(char *mapping, char *map_file);
 void wait_for_other(int fd);
 void notify_other(int fd);
-char *expand_home(const char *path, const char* homedir);
 const char *gnu_basename(const char *path);
 uid_t pid_get_uid(pid_t pid);
-void invalid_filename(const char *fname, int globbing);
 uid_t get_group_id(const char *group);
 int remove_overlay_directory(void);
 void flush_stdin(void);
@@ -525,6 +538,8 @@ void mkdir_attr(const char *fname, mode_t mode, uid_t uid, gid_t gid);
 unsigned extract_timeout(const char *str);
 void disable_file_or_dir(const char *fname);
 void disable_file_path(const char *path, const char *file);
+int safe_fd(const char *path, int flags);
+int invalid_sandbox(const pid_t pid);
 
 // Get info regarding the last kernel mount operation from /proc/self/mountinfo
 // The return value points to a static area, and will be overwritten by subsequent calls.
@@ -555,18 +570,15 @@ void fs_dev_disable_3d(void);
 void fs_dev_disable_video(void);
 void fs_dev_disable_tv(void);
 void fs_dev_disable_dvd(void);
+void fs_dev_disable_u2f(void);
 
 // fs_home.c
 // private mode (--private)
 void fs_private(void);
 // private mode (--private=homedir)
 void fs_private_homedir(void);
-// private template (--private-template=templatedir)
-void fs_private_template(void);
 // check new private home directory (--private= option) - exit if it fails
 void fs_check_private_dir(void);
-// check new private template home directory (--private-template= option) exit if it fails
-void fs_check_private_template(void);
 void fs_private_home_list(void);
 
 
@@ -712,6 +724,7 @@ void x11_start_xpra(int argc, char **argv);
 void x11_start_xephyr(int argc, char **argv);
 void x11_block(void);
 void x11_start_xvfb(int argc, char **argv);
+void x11_xorg(void);
 
 // ls.c
 enum {
@@ -737,7 +750,6 @@ enum {
 	CFG_WHITELIST,
 	CFG_XEPHYR_WINDOW_TITLE,
 	CFG_OVERLAYFS,
-	CFG_CHROOT_DESKTOP,
 	CFG_PRIVATE_HOME,
 	CFG_PRIVATE_BIN_NO_LOCAL,
 	CFG_FIREJAIL_PROMPT,
@@ -749,6 +761,7 @@ enum {
 	CFG_PRIVATE_LIB,
 	CFG_APPARMOR,
 	CFG_DBUS,
+	CFG_PRIVATE_CACHE,
 	CFG_MAX // this should always be the last entry
 };
 extern char *xephyr_screen;
@@ -759,7 +772,6 @@ extern char *xvfb_extra_params;
 extern char *netfilter_default;
 int checkcfg(int val);
 void print_compiletime_support(void);
-void x11_xorg(void);
 
 // appimage.c
 void appimage_set(const char *appimage_path);

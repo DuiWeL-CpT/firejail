@@ -1,4 +1,5 @@
 # Firejail profile for meld
+# Description: Graphical tool to diff and merge files
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/meld.local
@@ -28,6 +29,7 @@ seccomp
 shell none
 
 private-bin meld,python*
+private-cache
 private-dev
 private-tmp
 

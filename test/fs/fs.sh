@@ -6,6 +6,9 @@
 export MALLOC_CHECK_=3
 export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 
+# These directories are required by some tests:
+mkdir -p ~/Desktop ~/Documents ~/Downloads ~/Music ~/Pictures ~/Videos
+
 rm -fr ~/_firejail_test_*
 echo "TESTING: mkdir/mkfile (test/fs/mkdir_mkfile.exp)"
 ./mkdir_mkfile.exp
@@ -34,8 +37,12 @@ echo "TESTING: private-lib (test/fs/private-lib.exp)"
 echo "TESTING: read/write /var/lock (test/fs/fs_var_lock.exp)"
 ./fs_var_lock.exp
 
-echo "TESTING: read/write /dev/shm (test/fs/fs_dev_shm.exp)"
-./fs_dev_shm.exp
+if [ -w /dev/shm ]; then
+    echo "TESTING: read/write /dev/shm (test/fs/fs_dev_shm.exp)"
+    ./fs_dev_shm.exp
+else
+    echo "TESTING SKIP: /dev/shm not writable"
+fi
 
 echo "TESTING: private (test/fs/private.exp)"
 ./private.exp
@@ -57,6 +64,9 @@ echo "TESTING: empty private-etc (test/fs/private-etc-empty.exp)"
 
 echo "TESTING: private-bin (test/fs/private-bin.exp)"
 ./private-bin.exp
+
+echo "TESTING: macros (test/fs/macro.exp)"
+./macro.exp
 
 echo "TESTING: whitelist empty (test/fs/whitelist-empty.exp)"
 ./whitelist-empty.exp

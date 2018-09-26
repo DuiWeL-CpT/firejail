@@ -1,4 +1,5 @@
 # Firejail profile for feh
+# Description: imlib2 based image viewer
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/feh.local
@@ -27,6 +28,7 @@ seccomp
 shell none
 
 private-bin feh,jpegexiforient,jpegtran
+private-cache
 private-dev
 private-etc feh
 private-tmp

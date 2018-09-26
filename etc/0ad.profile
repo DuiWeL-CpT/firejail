@@ -1,4 +1,5 @@
 # Firejail profile for 0ad
+# Description: Real-time strategy game of ancient warfare
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/0ad.local
@@ -38,6 +39,7 @@ shell none
 tracelog
 
 disable-mnt
+private-bin 0ad,pyrogenesis,sh,which
 private-dev
 private-tmp
 

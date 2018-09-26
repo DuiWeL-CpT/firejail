@@ -100,7 +100,8 @@ $ firejail --allusers
 Enable AppArmor confinement. For more information, please see \fBAPPARMOR\fR section below.
 .TP
 \fB\-\-appimage
-Sandbox an AppImage (https://appimage.org/) application.
+Sandbox an AppImage (https://appimage.org/) application. If the sandbox is started as a
+regular user, default seccomp and capabilities filters are enabled.
 .br
 
 .br
@@ -170,7 +171,7 @@ in order to allow strace to run. Chromium and Chromium-based browsers will not w
 .br
 Example:
 .br
-$ firejail --build=profile-file vlc ~/Videos/test.mp4
+$ firejail --build vlc ~/Videos/test.mp4
 .TP
 \fB\-\-build=profile-file
 The command builds a whitelisted profile, and saves it in profile-file. If /usr/bin/strace is installed on the system, it also
@@ -272,8 +273,7 @@ Example:
 \fB\-\-chroot=dirname
 Chroot the sandbox into a root filesystem. Unlike the regular filesystem container,
 the system directories are mounted read-write. If the sandbox is started as a
-regular user, default seccomp and capabilities filters are enabled. This
-option is not available on Grsecurity systems.
+regular user, default seccomp and capabilities filters are enabled.
 .br
 
 .br
@@ -509,7 +509,8 @@ Ignore command in profile file.
 Example:
 .br
 $ firejail \-\-ignore=shell --ignore=seccomp firefox
-
+.br
+$ firejail \-\-ignore="net eth0" firefox
 .TP
 \fB\-\-interface=interface
 Move interface in a new network namespace. Up to four --interface options can be specified.
@@ -678,6 +679,16 @@ Same as "firejail --join=name" if sandbox with specified name exists, otherwise 
 Note that in contrary to other join options there is respective profile option.
 
 .TP
+\fB\-\-keep-dev-shm
+/dev/shm directory is untouched (even with --private-dev)
+.br
+
+.br
+Example:
+.br
+$ firejail --keep-dev-shm --private-dev
+
+.TP
 \fB\-\-keep-var-tmp
 /var/tmp directory is untouched.
 .br
@@ -710,7 +721,8 @@ $ firejail \-\-list
 $
 .TP
 \fB\-\-mac=address
-Assign MAC addresses to the last network interface defined by a \-\-net option.
+Assign MAC addresses to the last network interface defined by a \-\-net option. This option
+is not supported for wireless interfaces.
 .br
 
 .br
@@ -769,7 +781,7 @@ Enable a new network namespace and connect it to this bridge interface.
 Unless specified with option \-\-ip and \-\-defaultgw, an IP address and a default gateway will be assigned
 automatically to the sandbox. The IP address is verified using ARP before assignment. The address
 configured as default gateway is the bridge device IP address. Up to four \-\-net
-bridge devices can be defined. Mixing bridge and macvlan devices is allowed.
+options can be specified.
 .br
 
 .br
@@ -786,22 +798,37 @@ $ sudo ifconfig br1 10.10.30.1/24
 $ firejail \-\-net=br0 \-\-net=br1
 
 .TP
-\fB\-\-net=ethernet_interface
+\fB\-\-net=ethernet_interface|wireless_interface
 Enable a new network namespace and connect it
-to this ethernet interface using the standard Linux macvlan
+to this ethernet interface using the standard Linux macvlan|ipvaln
 driver. Unless specified with option \-\-ip and \-\-defaultgw, an
 IP address and a default gateway will be assigned automatically
 to the sandbox. The IP address is verified using ARP before
 assignment. The address configured as default gateway is the
-default gateway of the host. Up to four \-\-net devices can
-be defined. Mixing bridge and macvlan devices is allowed.
-Note: wlan devices are not supported for this option.
+default gateway of the host. Up to four \-\-net options can be specified.
+Support for ipvlan driver was introduced in Linux kernel 3.19.
 .br
 
 .br
 Example:
 .br
 $ firejail \-\-net=eth0 \-\-ip=192.168.1.80 \-\-dns=8.8.8.8 firefox
+.br
+$ firejail \-\-net=wlan0 firefox
+
+.TP
+\fB\-\-net=tap_interface
+Enable a new network namespace and connect it
+to this ethernet tap interface using the standard Linux macvlan
+driver. If the tap interface is not configured, the sandbox
+will not try to configure the interface inside the sandbox.
+Please use \-\-ip, \-\-netmask and \-\-defaultgw to specify the configuration.
+.br
+
+.br
+Example:
+.br
+$ firejail \-\-net=tap0 \-\-ip=10.10.20.80 \-\-netmask=255.255.255.0 \-\-defaultgw=10.10.20.1 firefox
 
 .TP
 \fB\-\-net=none
@@ -820,11 +847,6 @@ $ firejail \-\-net=none vlc
 .br
 Note: \-\-net=none can crash the application on some platforms.
 In these cases, it can be replaced with \-\-protocol=unix.
-
-.TP
-\fB\-\-netns=name
-Run the program in a named, persistent network namespace.  These can
-be created and configured using "ip netns".
 
 .TP
 \fB\-\-netfilter
@@ -951,6 +973,26 @@ Print the IPv6 firewall installed in the sandbox specified by name or PID. Examp
 $ firejail --name=browser --net=eth0 --netfilter firefox &
 .br
 $ firejail --netfilter6.print=browser
+
+.TP
+\fB\-\-netmask=address
+Use this option when you want to assign an IP address in a new namespace and
+the parent interface specified by --net is not configured. An IP address and
+a default gateway address also have to be added. By default the new namespace
+interface comes without IP address and default gateway configured. Example:
+.br
+
+.br
+$ sudo /sbin/brctl addbr br0
+.br
+$ sudo /sbin/ifconfig br0 up
+.br
+$ firejail --ip=10.10.20.67 --netmask=255.255.255.0 --defaultgw=10.10.20.1
+
+.TP
+\fB\-\-netns=name
+Run the program in a named, persistent network namespace.  These can
+be created and configured using "ip netns".
 
 .TP
 \fB\-\-netstats
@@ -1172,6 +1214,16 @@ Example:
 $ firejail \-\-notv vlc
 
 .TP
+\fB\-\-nou2f
+Disable U2F devices.
+.br
+
+.br
+Example:
+.br
+$ firejail \-\-nou2f
+
+.TP
 \fB\-\-novideo
 Disable video devices.
 .br
@@ -1215,7 +1267,8 @@ Similar to \-\-output, but stderr is also stored.
 \fB\-\-overlay
 Mount a filesystem overlay on top of the current filesystem.  Unlike the regular filesystem container,
 the system directories are mounted read-write. All filesystem modifications go into the overlay.
-The overlay is stored in $HOME/.firejail/<PID> directory.
+Directories /run, /tmp and /dev are not covered by the overlay. The overlay is stored in $HOME/.firejail/<PID> directory.
+If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
 .br
 
 .br
@@ -1233,8 +1286,9 @@ $ firejail \-\-overlay firefox
 \fB\-\-overlay-named=name
 Mount a filesystem overlay on top of the current filesystem.  Unlike the regular filesystem container,
 the system directories are mounted read-write. All filesystem modifications go into the overlay.
-The overlay is stored in $HOME/.firejail/<NAME> directory. The created overlay can be reused between multiple
-sessions.
+Directories /run, /tmp and /dev are not covered by the overlay. The overlay is stored in $HOME/.firejail/<NAME> directory.
+The created overlay can be reused between multiple sessions.
+If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
 .br
 
 .br
@@ -1251,7 +1305,8 @@ $ firejail \-\-overlay-named=jail1 firefox
 .TP
 \fB\-\-overlay-tmpfs
 Mount a filesystem overlay on top of the current filesystem. All filesystem modifications
-are discarded when the sandbox is closed.
+are discarded when the sandbox is closed. Directories /run, /tmp and /dev are not covered by the overlay.
+If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
 .br
 
 .br
@@ -1308,6 +1363,17 @@ closed.
 Example:
 .br
 $ firejail \-\-private-home=.mozilla firefox
+
+.TP
+\fB\-\-private-cache
+Mount an empty temporary filesystem on top of the .cache directory in user home. All
+modifications are discarded when the sandbox is closed.
+.br
+
+.br
+Example:
+.br
+$ firejail \-\-private-cache openbox
 
 .TP
 \fB\-\-private-bin=file,file
@@ -2063,6 +2129,26 @@ $ firejail \-\-tree
 .br
   11970:netblue:transmission-gtk
 
+.TP
+\fB\-\-tunnel[=devname]
+Connect the sandbox to a network overlay/VPN tunnel created by firetunnel utility. This options
+tries first the client side of the tunnel. If this fails, it tries the server side. If multiple tunnels are active,
+please specify the tunnel device using \-\-tunnel=devname.
+.br
+
+.br
+The available tunnel devices are listed in /etc/firetunnel directory, one file for each device.
+The files are regular firejail profile files containing the network configuration,
+and are created and managed by firetunnel utility.
+By default ftc is the client-side device and fts is the server-side device. For more information
+please see man 1 firetunnel.
+.br
+
+.br
+Example:
+.br
+$ firejail --tunnel firefox
+.br
 .TP
 \fB\-\-version
 Print program version and exit.

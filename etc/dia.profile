@@ -1,4 +1,5 @@
 # Firejail profile for dia
+# Description: Diagram editor
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/dia.local
@@ -6,12 +7,14 @@ include /etc/firejail/dia.local
 include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.dia
+noblacklist ${DOCUMENTS}
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 caps.drop all
 net none
@@ -30,6 +33,7 @@ shell none
 
 disable-mnt
 #private-bin dia
+private-cache
 private-dev
 private-tmp
 

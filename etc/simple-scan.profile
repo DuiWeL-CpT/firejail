@@ -1,4 +1,5 @@
 # Firejail profile for simple-scan
+# Description: Simple Scanning Utility
 # This file is overwritten after every install/update
 # Persistent local customizations
 include /etc/firejail/simple-scan.local
@@ -6,12 +7,14 @@ include /etc/firejail/simple-scan.local
 include /etc/firejail/globals.local
 
 noblacklist ${HOME}/.cache/simple-scan
+noblacklist ${DOCUMENTS}
 
 include /etc/firejail/disable-common.inc
 include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 
 caps.drop all
 netfilter
@@ -30,5 +33,5 @@ tracelog
 
 # private-bin simple-scan
 # private-dev
-# private-etc fonts
+# private-etc fonts,ca-certificates,ssl,pki,crypto-policies
 # private-tmp

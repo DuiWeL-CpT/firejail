@@ -11,6 +11,7 @@ include /etc/firejail/disable-devel.inc
 include /etc/firejail/disable-interpreters.inc
 include /etc/firejail/disable-passwdmgr.inc
 include /etc/firejail/disable-programs.inc
+include /etc/firejail/disable-xdg.inc
 include /etc/firejail/whitelist-common.inc
 
 caps.keep net_raw
@@ -39,7 +40,7 @@ private
 #private-bin has mammoth problems with execvp: "No such file or directory"
 private-dev
 # /etc/hosts is required in private-etc; however, just adding it to the list doesn't solve the problem!
-#private-etc resolv.conf,hosts
+#private-etc resolv.conf,hosts,ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 # memory-deny-write-execute is built using seccomp; nonewprivs will kill it

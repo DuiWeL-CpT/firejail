@@ -2,9 +2,8 @@ Source: firejail
 Section: utils
 Priority: optional
 Maintainer: Reiner Herrmann <reiner@reiner-h.de>
-Uploaders: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
 Build-Depends: debhelper (>= 11), libapparmor-dev
-Standards-Version: 4.1.4
+Standards-Version: 4.2.1
 Homepage: https://firejail.wordpress.com
 Vcs-Git: https://salsa.debian.org/deki-guest/firejail.git
 Vcs-Browser: https://salsa.debian.org/deki-guest/firejail
@@ -12,7 +11,7 @@ Vcs-Browser: https://salsa.debian.org/deki-guest/firejail
 Package: firejail
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: firejail-profiles, iptables, xauth, xpra | xserver-xephyr | xvfb
+Recommends: firejail-profiles, iproute2, iptables, xauth, xpra | xserver-xephyr | xvfb
 Description: sandbox to restrict the application environment
  Firejail is a SUID security sandbox program that reduces the risk of
  security breaches by restricting the running environment of untrusted

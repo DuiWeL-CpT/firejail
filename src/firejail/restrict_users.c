@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #include "firejail.h"
+#include "../include/firejail_user.h"
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <linux/limits.h>
@@ -26,7 +27,6 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "../../uids.h"
 
 #define MAXBUF 1024
 
@@ -41,6 +41,8 @@ static void ulist_add(const char *user) {
 	assert(user);
 
 	USER_LIST *nlist = malloc(sizeof(USER_LIST));
+	if (!nlist)
+		errExit("malloc");
 	memset(nlist, 0, sizeof(USER_LIST));
 	nlist->user = user;
 	nlist->next = ulist;
@@ -115,8 +117,9 @@ static void sanitize_passwd(void) {
 	struct stat s;
 	if (stat("/etc/passwd", &s) == -1)
 		return;
+	assert(uid_min);
 	if (arg_debug)
-		printf("Sanitizing /etc/passwd, UID_MIN %d\n", UID_MIN);
+		printf("Sanitizing /etc/passwd, UID_MIN %d\n", uid_min);
 	if (is_link("/etc/passwd")) {
 		fprintf(stderr, "Error: invalid /etc/passwd\n");
 		exit(1);
@@ -167,7 +170,8 @@ static void sanitize_passwd(void) {
 		int rv = sscanf(ptr, "%d:", &uid);
 		if (rv == 0 || uid < 0)
 			goto errout;
-		if (uid < UID_MIN || uid == 65534) { // on Debian platforms user nobody is 65534
+		assert(uid_min);
+		if (uid < uid_min || uid == 65534) { // on Debian platforms user nobody is 65534
 			fprintf(fpout, "%s", buf);
 			continue;
 		}
@@ -248,8 +252,9 @@ static void sanitize_group(void) {
 	struct stat s;
 	if (stat("/etc/group", &s) == -1)
 		return;
+	assert(gid_min);
 	if (arg_debug)
-		printf("Sanitizing /etc/group, GID_MIN %d\n", GID_MIN);
+		printf("Sanitizing /etc/group, GID_MIN %d\n", gid_min);
 	if (is_link("/etc/group")) {
 		fprintf(stderr, "Error: invalid /etc/group\n");
 		exit(1);
@@ -299,7 +304,8 @@ static void sanitize_group(void) {
 		int rv = sscanf(ptr, "%d:", &gid);
 		if (rv == 0 || gid < 0)
 			goto errout;
-		if (gid < GID_MIN || gid == 65534) { // on Debian platforms 65534 is group nogroup
+		assert(gid_min);
+		if (gid < gid_min || gid == 65534) { // on Debian platforms 65534 is group nogroup
 			if (copy_line(fpout, buf, ptr))
 				goto errout;
 			continue;

@@ -6,12 +6,12 @@ Summary: Linux namepaces sandbox program
 License: GPLv2+
 Group: Development/Tools
 Source0: https://github.com/netblue30/firejail/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
-URL: http://github.com/netblue30/firejail
+URL: https://github.com/netblue30/firejail
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
-Firejail  is  a  SUID sandbox program that reduces the risk of security
+Firejail is a SUID sandbox program that reduces the risk of security
 breaches by restricting the running environment of untrusted applications
 using Linux namespaces. It includes a sandbox profile for Mozilla Firefox.
 
