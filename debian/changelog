@@ -1,3 +1,10 @@
+firejail (0.9.56-1parrot2) testing; urgency=medium
+
+  * Use ${VIDEOS} instead of ${VIDEO}
+  * Fix atril profile.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 27 Sep 2018 10:21:07 +0200
+
 firejail (0.9.56-1parrot1) testing; urgency=medium
 
   * Import new Debian release.
