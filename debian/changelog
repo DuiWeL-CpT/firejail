@@ -1,3 +1,20 @@
+firejail (0.9.56-2parrot1) testing; urgency=medium
+
+  * Import new Debian patch to disable unwanted tests.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 11 Oct 2018 19:19:31 +0200
+
+firejail (0.9.56-2) unstable; urgency=medium
+
+  * Properly (re)move obsolete conffiles.
+    Thanks to Paul Wise for repeatedly reporting these issues.
+    (Closes: #909640)
+  * Mark autopkgtests as flaky, as some tests behave differently than
+    expected depending on the environment they are run in.
+  * Cherry-pick upstream patches to skip some environment-dependent tests.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 01 Oct 2018 15:55:51 +0200
+
 firejail (0.9.56-1parrot2) testing; urgency=medium
 
   * Use ${VIDEOS} instead of ${VIDEO}

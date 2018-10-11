@@ -1,0 +1,107 @@
+Autor: Reiner Herrmann <reiner@reiner-h.de>
+Description: Skip some tests in unexpected environment
+ - cherry-picked from upstream commits 502b05e, 8b9844e, df18312 and 69b0ade
+
+--- a/test/filters/filters.sh
++++ b/test/filters/filters.sh
+@@ -35,8 +35,13 @@
+ echo "TESTING: noroot (test/filters/noroot.exp)"
+ ./noroot.exp
+ 
+-echo "TESTING: capabilities (test/filters/caps.exp)"
+-./caps.exp
++
++if grep -q "^CapBnd:\\s0000003fffffffff" /proc/self/status; then
++	echo "TESTING: capabilities (test/filters/caps.exp)"
++	./caps.exp
++else
++	echo "TESTING SKIP: other capabilities than expected (test/filters/caps.exp)"
++fi
+ 
+ echo "TESTING: capabilities print (test/filters/caps-print.exp)"
+ ./caps-print.exp
+--- a/test/filters/noroot.exp
++++ b/test/filters/noroot.exp
+@@ -91,6 +91,7 @@
+ }
+ expect {
+ 	timeout {puts "TESTING ERROR 14\n";exit}
++	"2" {puts "seccomp already active\n";}
+ 	"0"
+ }
+ expect {
+--- a/test/utils/utils.sh
++++ b/test/utils/utils.sh
+@@ -21,8 +21,12 @@
+ rm -f /tmp/firejail-test-file-7699
+ rm -f /var/tmp/firejail-test-file-7699
+ 
+-echo "TESTING: audit (test/utils/audit.exp)"
+-./audit.exp
++if [ $(readlink /proc/self) -lt 100 ]; then
++	echo "TESTING SKIP: already running in pid namespace (test/utils/audit.exp)"
++else
++	echo "TESTING: audit (test/utils/audit.exp)"
++	./audit.exp
++fi
+ 
+ echo "TESTING: name (test/utils/name.exp)"
+ ./name.exp
+@@ -114,11 +118,19 @@
+ echo "TESTING: file transfer (test/utils/ls.exp)"
+ ./ls.exp
+ 
+-echo "TESTING: firemon seccomp (test/utils/firemon-seccomp.exp)"
+-./firemon-seccomp.exp
++if grep -q "^Seccomp.*0" /proc/self/status; then
++	echo "TESTING: firemon seccomp (test/utils/firemon-seccomp.exp)"
++	./firemon-seccomp.exp
++else
++	echo "TESTING SKIP: seccomp already active (test/utils/firemon-seccomp.exp)"
++fi
+ 
+-echo "TESTING: firemon caps (test/utils/firemon-caps.exp)"
+-./firemon-caps.exp
++if grep -q "^CapBnd:\\s0000003fffffffff" /proc/self/status; then
++	echo "TESTING: firemon caps (test/utils/firemon-caps.exp)"
++	./firemon-caps.exp
++else
++	echo "TESTING SKIP: other capabilities than expected (test/utils/firemon-caps.exp)"
++fi
+ 
+ echo "TESTING: firemon cpu (test/utils/firemon-cpu.exp)"
+ ./firemon-cpu.exp
+--- a/test/fs/fs.sh
++++ b/test/fs/fs.sh
+@@ -25,8 +25,12 @@
+ echo "TESTING: /sys/fs access (test/fs/sys_fs.exp)"
+ ./sys_fs.exp
+ 
+-echo "TESTING: kmsg access (test/fs/kmsg.exp)"
+-./kmsg.exp
++if [ -c /dev/kmsg ]; then
++	echo "TESTING: kmsg access (test/fs/kmsg.exp)"
++	./kmsg.exp
++else
++	echo "TESTING SKIP: /dev/kmsg not available"
++fi
+ 
+ echo "TESTING: read/write /var/tmp (test/fs/fs_var_tmp.exp)"
+ ./fs_var_tmp.exp
+--- a/test/utils/fs-print.exp
++++ b/test/utils/fs-print.exp
+@@ -22,11 +22,12 @@
+ }
+ expect {
+ 	timeout {puts "TESTING ERROR 2\n";exit}
+-	"blacklist /dev/kmsg"
++	"blacklist /proc/kmsg"
+ }
+ expect {
+ 	timeout {puts "TESTING ERROR 3\n";exit}
+-	"blacklist /proc/kmsg"
++	"blacklist /usr/bin/su" {puts "Arch Linux";}
++	"blacklist /bin/su" {puts "Debian"}
+ }
+ after 100
+ puts "\nall done\n"

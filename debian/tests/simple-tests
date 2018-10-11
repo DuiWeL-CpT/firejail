@@ -6,9 +6,6 @@ LOGFILE="$ADTTMP/test.log"
 cp -a test "$ADTTMP"
 cd "$ADTTMP/test"
 
-# tests in <0.9.56 need those directories and don't create them before
-mkdir -p ~/Desktop ~/Documents ~/Downloads ~/Music ~/Pictures ~/Videos
-
 # run tests
 for dir in arguments environment fcopy filters fs profiles sysutils utils;
 do

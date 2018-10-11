@@ -1,2 +1,4 @@
 rm_conffile /etc/firejail/lxterminal.profile    0.9.52-2~
 mv_conffile /etc/firejail/xmr-stak-cpu.profile  /etc/firejail/xmr-stak.profile    0.9.54~rc1-1~
+rm_conffile /etc/firejail/Wire.profile    0.9.56-2~
+mv_conffile /etc/firejail/wire.profile  /etc/firejail/wire-desktop.profile    0.9.56-2~

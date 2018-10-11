@@ -1,11 +1,11 @@
 Tests: simple-tests
-Restrictions: allow-stderr
+Restrictions: allow-stderr, flaky
 Depends: @, expect, file, sudo, procps, xzdec, cpio, less, strace, csh, zsh, man, iputils-ping, wget, x11-common
 
 Tests: application-tests
-Restrictions: allow-stderr, isolation-machine
+Restrictions: allow-stderr, isolation-machine, flaky
 Depends: @, expect, file, strace, sudo, man-db, iptables, iputils-ping, wget, csh, zsh, xvfb, xserver-xephyr, xterm, evince, thunderbird, firefox, transmission-gtk
 
 Tests: network-test
-Restrictions: allow-stderr, breaks-testbed, isolation-machine, needs-root
+Restrictions: allow-stderr, breaks-testbed, isolation-machine, needs-root, flaky
 Depends: @, expect, iproute2, iptables, iputils-ping, net-tools, bridge-utils
