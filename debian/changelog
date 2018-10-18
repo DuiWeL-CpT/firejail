@@ -1,3 +1,15 @@
+firejail (0.9.56-2parrot2) testing; urgency=medium
+
+  [ CoffeeFou ]
+  * Fix discord profile.
+
+  [ Lorenzo "Palinuro" Faletra ]
+  * Fix torbrowser-launcher startup.
+  * Fix firefox profile (dbus and qbittorrent integration).
+  * Disable torbrowser-launcher profile (let's use apparmor for it).
+
+ -- CoffeeFou <coffeefou@protonmail.com>  Thu, 18 Oct 2018 14:20:22 +0200
+
 firejail (0.9.56-2parrot1) testing; urgency=medium
 
   * Import new Debian patch to disable unwanted tests.
