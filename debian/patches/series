@@ -1,3 +1,4 @@
 disable-internet-tests.patch
 skip-tests.patch
 parrot-patches.patch
+fix-playonlinux-python-interpreters.patch

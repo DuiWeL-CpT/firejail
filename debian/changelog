@@ -1,3 +1,9 @@
+firejail (0.9.56-2parrot3) testing; urgency=medium
+
+  * Fix playonlinux profile (it needs python).
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 17 Nov 2018 03:34:57 +0100
+
 firejail (0.9.56-2parrot2) testing; urgency=medium
 
   [ CoffeeFou ]
