@@ -2,33 +2,36 @@
 # Description: Fast, lightweight and user-friendly GTK+2 based email client
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/claws-mail.local
+include claws-mail.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.claws-mail
 noblacklist ${HOME}/.gnupg
 noblacklist ${HOME}/.signature
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-passwdmgr.inc
+include disable-programs.inc
 
 caps.drop all
 netfilter
+no3d
 nodvd
 nogroups
 nonewprivs
 noroot
 nosound
 notv
+nou2f
 novideo
 protocol unix,inet,inet6
 seccomp
 shell none
 
+private-cache
 private-dev
 private-tmp
 

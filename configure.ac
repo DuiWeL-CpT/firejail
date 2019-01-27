@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT(firejail, 0.9.56, netblue30@yahoo.com, , https://firejail.wordpress.com)
+AC_INIT(firejail, 0.9.58, netblue30@yahoo.com, , https://firejail.wordpress.com)
 AC_CONFIG_SRCDIR([src/firejail/main.c])
 #AC_CONFIG_HEADERS([config.h])
 
@@ -183,7 +183,7 @@ AC_SUBST(HAVE_SECCOMP_H)
 
 # set sysconfdir
 if test "$prefix" = /usr; then
-	sysconfdir="/etc"
+	test "$sysconfdir" = '${prefix}/etc' && sysconfdir="/etc"
 fi
 
 AC_OUTPUT(Makefile src/common.mk src/lib/Makefile src/fcopy/Makefile src/fnet/Makefile src/firejail/Makefile src/fnetfilter/Makefile \

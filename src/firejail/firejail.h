@@ -32,6 +32,7 @@
 #define RUN_FIREJAIL_DIR	"/run/firejail"
 #define RUN_FIREJAIL_APPIMAGE_DIR	"/run/firejail/appimage"
 #define RUN_FIREJAIL_NAME_DIR	"/run/firejail/name" // also used in src/lib/pid.c - todo: move it in a common place
+#define RUN_FIREJAIL_LIB_DIR		"/run/firejail/lib"
 #define RUN_FIREJAIL_X11_DIR	"/run/firejail/x11"
 #define RUN_FIREJAIL_NETWORK_DIR	"/run/firejail/network"
 #define RUN_FIREJAIL_BANDWIDTH_DIR	"/run/firejail/bandwidth"
@@ -45,6 +46,7 @@
 #define RUN_CPU_CFG	"/run/firejail/mnt/cpu"
 #define RUN_GROUPS_CFG	"/run/firejail/mnt/groups"
 #define RUN_PROTOCOL_CFG	"/run/firejail/mnt/protocol"
+#define RUN_NONEWPRIVS_CFG	"/run/firejail/mnt/nonewprivs"
 #define RUN_HOME_DIR	"/run/firejail/mnt/home"
 #define RUN_ETC_DIR	"/run/firejail/mnt/etc"
 #define RUN_OPT_DIR	"/run/firejail/mnt/opt"
@@ -55,7 +57,7 @@
 #define RUN_LIB_FILE	"/run/firejail/mnt/libfiles"
 #define RUN_DNS_ETC	"/run/firejail/mnt/dns-etc"
 
-
+#define RUN_SECCOMP_LIST	"/run/firejail/mnt/seccomp.list"	// list of seccomp files installed
 #define RUN_SECCOMP_PROTOCOL	"/run/firejail/mnt/seccomp.protocol"	// protocol filter
 #define RUN_SECCOMP_CFG	"/run/firejail/mnt/seccomp"			// configured filter
 #define RUN_SECCOMP_32	"/run/firejail/mnt/seccomp.32"		// 32bit arch filter installed on 64bit architectures
@@ -74,6 +76,7 @@
 
 #define RUN_WHITELIST_X11_DIR	"/run/firejail/mnt/orig-x11"
 #define RUN_WHITELIST_HOME_DIR	"/run/firejail/mnt/orig-home"	// default home directory masking
+#define RUN_WHITELIST_RUN_DIR	"/run/firejail/mnt/orig-run"	// default run directory masking
 #define RUN_WHITELIST_HOME_USER_DIR	"/run/firejail/mnt/orig-home-user"	// home directory whitelisting
 #define RUN_WHITELIST_TMP_DIR	"/run/firejail/mnt/orig-tmp"
 #define RUN_WHITELIST_MEDIA_DIR	"/run/firejail/mnt/orig-media"
@@ -357,7 +360,7 @@ extern int arg_private_bin;	// private bin directory
 extern int arg_private_tmp;	// private tmp directory
 extern int arg_private_lib;	// private lib directory
 extern int arg_scan;		// arp-scan all interfaces
-extern int arg_whitelist;	// whitelist commad
+extern int arg_whitelist;	// whitelist command
 extern int arg_nosound;	// disable sound
 extern int arg_noautopulse; // disable automatic ~/.config/pulse init
 extern int arg_novideo; //disable video devices in /dev
@@ -378,7 +381,7 @@ extern char *arg_audit_prog;	// audit
 extern int arg_apparmor;	// apparmor
 extern int arg_allow_debuggers;	// allow debuggers
 extern int arg_x11_block;	// block X11
-extern int arg_x11_xorg;	// use X11 security extention
+extern int arg_x11_xorg;	// use X11 security extension
 extern int arg_allusers;	// all user home directories visible
 extern int arg_machineid;	// preserve /etc/machine-id
 extern int arg_disable_mnt;	// disable /mnt and /media
@@ -414,6 +417,7 @@ void net_configure_veth_pair(Bridge *br, const char *ifname, pid_t child);
 void net_check_cfg(void);
 void net_dns_print(pid_t pid);
 void network_main(pid_t child);
+void net_print(pid_t pid);
 
 // network.c
 int check_ip46_address(const char *addr);
@@ -434,12 +438,16 @@ void preproc_mount_mnt_dir(void);
 void preproc_clean_run(void);
 
 // fs.c
-// blacklist files or directoies by mounting empty files on top of them
+// blacklist files or directories by mounting empty files on top of them
 void fs_blacklist(void);
+// mount a writable tmpfs
+void fs_tmpfs(const char *dir, unsigned check_owner);
 // remount a directory read-only
 void fs_rdonly(const char *dir);
+void fs_rdonly_rec(const char *dir);
 // remount a directory noexec, nodev and nosuid
 void fs_noexec(const char *dir);
+void fs_noexec_rec(const char *dir);
 // mount /proc and /sys directories
 void fs_proc_sys_dev_boot(void);
 // build a basic read-only filesystem
@@ -452,11 +460,11 @@ void fs_chroot(const char *rootdir);
 void fs_check_chroot_dir(const char *rootdir);
 void fs_private_tmp(void);
 void fs_private_cache(void);
-void fs_mnt(void);
+void fs_mnt(const int enforce);
 
 // profile.c
 // find and read the profile specified by name from dir directory
-int profile_find(const char *name, const char *dir);
+int profile_find_firejail(const char *name, int add_ext);
 // read a profile file
 void profile_read(const char *fname);
 // check profile line; if line == 0, this was generated from a command line option
@@ -494,10 +502,11 @@ int arp_check(const char *dev, uint32_t destaddr);
 uint32_t arp_assign(const char *dev, Bridge *br);
 
 // macros.c
-char *expand_home(const char *path, const char *homedir);
+char *expand_macros(const char *path);
 char *resolve_macro(const char *name);
 void invalid_filename(const char *fname, int globbing);
 int is_macro(const char *name);
+int macro_id(const char *name);
 
 
 // util.c
@@ -520,6 +529,7 @@ int is_link(const char *fname);
 void trim_trailing_slash_or_dot(char *path);
 char *line_remove_spaces(const char *buf);
 char *split_comma(char *str);
+char *clean_pathname(const char *path);
 void check_unsigned(const char *str, const char *msg);
 int find_child(pid_t parent, pid_t *child);
 void check_private_dir(void);
@@ -531,6 +541,7 @@ uid_t pid_get_uid(pid_t pid);
 uid_t get_group_id(const char *group);
 int remove_overlay_directory(void);
 void flush_stdin(void);
+int create_empty_dir_as_user(const char *dir, mode_t mode);
 void create_empty_dir_as_root(const char *dir, mode_t mode);
 void create_empty_file_as_root(const char *dir, mode_t mode);
 int set_perms(const char *fname, uid_t uid, gid_t gid, mode_t mode);
@@ -540,17 +551,23 @@ void disable_file_or_dir(const char *fname);
 void disable_file_path(const char *path, const char *file);
 int safe_fd(const char *path, int flags);
 int invalid_sandbox(const pid_t pid);
+int has_handler(pid_t pid, int signal);
+void enter_network_namespace(pid_t pid);
 
 // Get info regarding the last kernel mount operation from /proc/self/mountinfo
 // The return value points to a static area, and will be overwritten by subsequent calls.
 // The function does an exit(1) if anything goes wrong.
 typedef struct {
+	int mountid; // id of the mount
 	char *fsname; // the pathname of the directory in the filesystem which forms the root of this mount
 	char *dir;	// mount destination
 	char *fstype; // filesystem type
 } MountData;
-MountData *get_last_mount(void);
 
+// mountinfo.c
+MountData *get_last_mount(void);
+int get_mount_id(const char *path);
+char **build_mount_array(const int mount_id, const char *path);
 
 // fs_var.c
 void fs_var_log(void);	// mounting /var/log
@@ -591,6 +608,7 @@ int seccomp_filter_keep(void);
 void seccomp_print_filter(pid_t pid);
 
 // caps.c
+void seccomp_load_file_list(void);
 int caps_default_filter(void);
 void caps_print(void);
 void caps_drop_all(void);
@@ -758,6 +776,7 @@ enum {
 	CFG_JOIN,
 	CFG_ARP_PROBES,
 	CFG_XPRA_ATTACH,
+	CFG_BROWSER_DISABLE_U2F,
 	CFG_PRIVATE_LIB,
 	CFG_APPARMOR,
 	CFG_DBUS,
@@ -787,16 +806,32 @@ void build_appimage_cmdline(char **command_line, char **window_title, int argc, 
 
 // sbox.c
 // programs
-#define PATH_FNET (LIBDIR "/firejail/fnet")
-#define PATH_FNETFILTER (LIBDIR "/firejail/fnetfilter")
+#define PATH_FNET_MAIN (LIBDIR "/firejail/fnet")		// when called from main thread
+#define PATH_FNET (RUN_FIREJAIL_LIB_DIR "/fnet")	// when called from sandbox thread
+
+//#define PATH_FNETFILTER (LIBDIR "/firejail/fnetfilter")
+#define PATH_FNETFILTER (RUN_FIREJAIL_LIB_DIR "/fnetfilter")
+
 #define PATH_FIREMON (PREFIX "/bin/firemon")
 #define PATH_FIREJAIL (PREFIX "/bin/firejail")
-#define PATH_FSECCOMP (LIBDIR "/firejail/fseccomp")
+
+#define PATH_FSECCOMP_MAIN (LIBDIR "/firejail/fseccomp")		// when called from main thread
+#define PATH_FSECCOMP ( RUN_FIREJAIL_LIB_DIR "/fseccomp")	// when called from sandbox thread
+
+// FSEC_PRINT is run outside of sandbox by --seccomp.print
+// it is also run from inside the sandbox by --debug; in this case we do an access(filename, X_OK) test first
 #define PATH_FSEC_PRINT (LIBDIR "/firejail/fsec-print")
-#define PATH_FSEC_OPTIMIZE (LIBDIR "/firejail/fsec-optimize")
-#define PATH_FCOPY (LIBDIR "/firejail/fcopy")
+
+//#define PATH_FSEC_OPTIMIZE (LIBDIR "/firejail/fsec-optimize")
+#define PATH_FSEC_OPTIMIZE (RUN_FIREJAIL_LIB_DIR "/fsec-optimize")
+
+//#define PATH_FCOPY (LIBDIR "/firejail/fcopy")
+#define PATH_FCOPY (RUN_FIREJAIL_LIB_DIR "/fcopy")
+
 #define SBOX_STDIN_FILE "/run/firejail/mnt/sbox_stdin"
-#define PATH_FLDD (LIBDIR "/firejail/fldd")
+
+//#define PATH_FLDD (LIBDIR "/firejail/fldd")
+#define PATH_FLDD (RUN_FIREJAIL_LIB_DIR "/fldd")
 
 // bitmapped filters for sbox_run
 #define SBOX_ROOT (1 << 0)			// run the sandbox as root

@@ -1,9 +1,9 @@
 # Firejail profile for x-terminal-emulator
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/x-terminal-emulator.local
+include x-terminal-emulator.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 caps.drop all
 ipc-namespace
@@ -12,6 +12,7 @@ netfilter
 nodbus
 nogroups
 noroot
+nou2f
 protocol unix
 seccomp
 

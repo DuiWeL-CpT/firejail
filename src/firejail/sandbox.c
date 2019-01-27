@@ -39,6 +39,9 @@
 #ifndef PR_SET_NO_NEW_PRIVS
 # define PR_SET_NO_NEW_PRIVS 38
 #endif
+#ifndef PR_GET_NO_NEW_PRIVS
+# define PR_GET_NO_NEW_PRIVS 39
+#endif
 
 #ifdef HAVE_APPARMOR
 #include <sys/apparmor.h>
@@ -46,13 +49,11 @@
 #include <syscall.h>
 
 
-#ifdef HAVE_SECCOMP
-int enforce_seccomp = 0;
-#endif
-
+static int force_nonewprivs = 0;
 
 static int monitored_pid = 0;
 static void sandbox_handler(int sig){
+	usleep(10000); // don't race to print a message
 	fmessage("\nChild received signal %d, shutting down the sandbox...\n", sig);
 
 	// broadcast sigterm to all processes in the group
@@ -81,9 +82,7 @@ static void sandbox_handler(int sig){
 			monsec--;
 		}
 		free(monfile);
-
 	}
-
 
 	// broadcast a SIGKILL
 	kill(-1, SIGKILL);
@@ -92,6 +91,23 @@ static void sandbox_handler(int sig){
 	exit(sig);
 }
 
+static void install_handler(void) {
+	struct sigaction sga;
+
+	// block SIGTERM while handling SIGINT
+	sigemptyset(&sga.sa_mask);
+	sigaddset(&sga.sa_mask, SIGTERM);
+	sga.sa_handler = sandbox_handler;
+	sga.sa_flags = 0;
+	sigaction(SIGINT, &sga, NULL);
+
+	// block SIGINT while handling SIGTERM
+	sigemptyset(&sga.sa_mask);
+	sigaddset(&sga.sa_mask, SIGINT);
+	sga.sa_handler = sandbox_handler;
+	sga.sa_flags = 0;
+	sigaction(SIGTERM, &sga, NULL);
+}
 
 static void set_caps(void) {
 	if (arg_caps_drop_all)
@@ -109,7 +125,7 @@ static void set_caps(void) {
 		caps_drop_dac_override();
 }
 
-void save_nogroups(void) {
+static void save_nogroups(void) {
 	if (arg_nogroups == 0)
 		return;
 
@@ -123,10 +139,25 @@ void save_nogroups(void) {
 		fprintf(stderr, "Error: cannot save nogroups state\n");
 		exit(1);
 	}
-
 }
 
-void save_umask(void) {
+static void save_nonewprivs(void) {
+	if (arg_nonewprivs == 0)
+		return;
+
+	FILE *fp = fopen(RUN_NONEWPRIVS_CFG, "wxe");
+	if (fp) {
+		fprintf(fp, "\n");
+		SET_PERMS_STREAM(fp, 0, 0, 0644); // assume mode 0644
+		fclose(fp);
+	}
+	else {
+		fprintf(stderr, "Error: cannot save nonewprivs state\n");
+		exit(1);
+	}
+}
+
+static void save_umask(void) {
 	FILE *fp = fopen(RUN_UMASK_FILE, "wxe");
 	if (fp) {
 		fprintf(fp, "%o\n", orig_umask);
@@ -219,9 +250,17 @@ static void chk_chroot(void) {
 }
 
 static int monitor_application(pid_t app_pid) {
+	EUID_ASSERT();
 	monitored_pid = app_pid;
-	signal (SIGTERM, sandbox_handler);
-	EUID_USER();
+
+	// block signals and install handler
+	sigset_t oldmask, newmask;
+	sigemptyset(&oldmask);
+	sigemptyset(&newmask);
+	sigaddset(&newmask, SIGTERM);
+	sigaddset(&newmask, SIGINT);
+	sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+	install_handler();
 
 	// handle --timeout
 	int options = 0;;
@@ -244,16 +283,25 @@ static int monitor_application(pid_t app_pid) {
 
 		pid_t rv;
 		do {
+			// handle signals asynchronously
+			sigprocmask(SIG_SETMASK, &oldmask, NULL);
+
 			rv = waitpid(-1, &status, options);
-			if (rv == -1)
+
+			// block signals again
+			sigprocmask(SIG_BLOCK, &newmask, NULL);
+
+			if (rv == -1) { // we can get here if we have processes joining the sandbox (ECHILD)
+				sleep(1);
 				break;
+			}
 
 			// handle --timeout
 			if (options) {
 				if (--timeout == 0)  {
 					kill(-1, SIGTERM);
-					flush_stdin();
 					sleep(1);
+					flush_stdin();
 					_exit(1);
 				}
 				else
@@ -263,11 +311,6 @@ static int monitor_application(pid_t app_pid) {
 		while(rv != monitored_pid);
 		if (arg_debug)
 			printf("Sandbox monitor: waitpid %d retval %d status %d\n", monitored_pid, rv, status);
-		if (rv == -1) { // we can get here if we have processes joining the sandbox (ECHILD)
-			if (arg_debug)
-				perror("waitpid");
-			sleep(1);
-		}
 
 		DIR *dir;
 		if (!(dir = opendir("/proc"))) {
@@ -523,32 +566,17 @@ void start_application(int no_sandbox, FILE *fp) {
 }
 
 static void enforce_filters(void) {
-	// force default seccomp inside the chroot, no keep or drop list
-	// the list build on top of the default drop list is kept intact
+	// enforce NO_NEW_PRIVS
 	arg_nonewprivs = 1;
-	arg_seccomp = 1;
-#ifdef HAVE_SECCOMP
-	enforce_seccomp = 1;
-#endif
-	if (cfg.seccomp_list_drop) {
-		free(cfg.seccomp_list_drop);
-		cfg.seccomp_list_drop = NULL;
-	}
-	if (cfg.seccomp_list_keep) {
-		free(cfg.seccomp_list_keep);
-		cfg.seccomp_list_keep = NULL;
-	}
+	force_nonewprivs = 1;
 
 	// disable all capabilities
-	if (arg_caps_default_filter || arg_caps_list)
-		fwarning("all capabilities disabled for a regular user in chroot\n");
+	fmessage("\n**     Warning: dropping all Linux capabilities     **\n");
 	arg_caps_drop_all = 1;
 
 	// drop all supplementary groups; /etc/group file inside chroot
 	// is controlled by a regular usr
 	arg_nogroups = 1;
-	fmessage("\n** Warning: dropping all Linux capabilities and enforcing  **\n");
-	fmessage("**                  default seccomp filter                 **\n\n");
 }
 
 int sandbox(void* sandbox_arg) {
@@ -587,6 +615,9 @@ int sandbox(void* sandbox_arg) {
 	}
 	// ... and mount a tmpfs on top of /run/firejail/mnt directory
 	preproc_mount_mnt_dir();
+	// bind-mount firejail binaries and helper programs
+	if (mount(LIBDIR "/firejail", RUN_FIREJAIL_LIB_DIR, "none", MS_BIND, NULL) < 0)
+		errExit("mounting " RUN_FIREJAIL_LIB_DIR);
 
 	//****************************
 	// log sandbox data
@@ -601,11 +632,6 @@ int sandbox(void* sandbox_arg) {
 	else
 		fs_logger("sandbox filesystem: local");
 	fs_logger("install mount namespace");
-
-	//****************************
-	// save the umask
-	//****************************
-	save_umask();
 
 	//****************************
 	// netfilter
@@ -749,13 +775,13 @@ int sandbox(void* sandbox_arg) {
 
 	// need ld.so.preload if tracing or seccomp with any non-default lists
 	bool need_preload = arg_trace || arg_tracelog || arg_seccomp_postexec;
-	// for --appimage, --chroot and --overlay* we replace the seccomp filter with the default one
-	// we also drop all capabilities
+	// for --appimage, --chroot and --overlay* we force NO_NEW_PRIVS
+	// and drop all capabilities
 	if (getuid() != 0 && (arg_appimage || cfg.chrootdir || arg_overlay)) {
 		enforce_filters();
 		need_preload = arg_trace || arg_tracelog;
-		arg_seccomp = 1;
 	}
+
 	// trace pre-install
 	if (need_preload)
 		fs_trace_preload();
@@ -923,8 +949,10 @@ int sandbox(void* sandbox_arg) {
 	//****************************
 	// handle /mnt and /media
 	//****************************
-	if (arg_disable_mnt || checkcfg(CFG_DISABLE_MNT))
-		fs_mnt();
+	if (checkcfg(CFG_DISABLE_MNT))
+		fs_mnt(1);
+	else if (arg_disable_mnt)
+		fs_mnt(0);
 
 	//****************************
 	// apply the profile file
@@ -983,8 +1011,6 @@ int sandbox(void* sandbox_arg) {
 	//****************************
 	// set application environment
 	//****************************
-	prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
-
 	EUID_USER();
 	int cwd = 0;
 	if (cfg.cwd) {
@@ -1029,9 +1055,15 @@ int sandbox(void* sandbox_arg) {
 	if (arg_x11_xorg)
 		x11_xorg();
 
+	// save original umask
+	save_umask();
+
 	//****************************
 	// set security filters
 	//****************************
+	// save state of nonewprivs
+	save_nonewprivs();
+
 	// set capabilities
 	set_caps();
 
@@ -1131,8 +1163,13 @@ int sandbox(void* sandbox_arg) {
 	if (arg_nonewprivs) {
 		prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 
-		if (prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) != 1)
-			fwarning("NO_NEW_PRIVS disabled, it requires a Linux kernel version 3.5 or newer.\n");
+		if (prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) != 1) {
+			fwarning("cannot set NO_NEW_PRIVS, it requires a Linux kernel version 3.5 or newer.\n");
+			if (force_nonewprivs) {
+				fprintf(stderr, "Error: NO_NEW_PRIVS required for this sandbox, exiting ...\n");
+				exit(1);
+			}
+		}
 		else if (arg_debug)
 			printf("NO_NEW_PRIVS set\n");
 	}
@@ -1141,6 +1178,7 @@ int sandbox(void* sandbox_arg) {
 	// drop privileges, fork the application and monitor it
 	//****************************************
 	drop_privs(arg_nogroups);
+	prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the sandbox in case the parent died
 	pid_t app_pid = fork();
 	if (app_pid == -1)
 		errExit("fork");
@@ -1160,9 +1198,8 @@ int sandbox(void* sandbox_arg) {
 #endif
 		// set rlimits
 		set_rlimits();
-
-		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
-		start_application(0, fp);	// start app
+		// start app
+		start_application(0, fp);
 	}
 
 	fclose(fp);

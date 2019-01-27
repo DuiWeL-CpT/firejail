@@ -5,18 +5,29 @@ profile \- Security profile file syntax for Firejail
 .SH USAGE
 .TP
 firejail \-\-profile=filename.profile
+.RE
+firejail \-\-profile=profile_name
 
 .SH DESCRIPTION
 Several command line options can be passed to the program using
 profile files. Firejail chooses the profile file as follows:
 
-\fB1.\fR If a profile file is provided by the user with \-\-profile option, the profile file is loaded.
+\fB1.\fR If a profile file is provided by the user with \-\-profile option, the profile file is loaded. If a profile name is given, it is searched for first in the ~/.config/firejail directory and if not found then in  /etc/firejail directory. Profile names do not include the .profile suffix.
 Example:
 .PP
 .RS
 $ firejail --profile=/home/netblue/icecat.profile icecat
 .br
 Reading profile /home/netblue/icecat.profile
+.br
+[...]
+.RE
+
+.PP
+.RS
+$ firejail --profile=icecat icecat-wrapper.sh
+.br
+Reading profile /etc/firejail/icecat.profile
 .br
 [...]
 .RE
@@ -76,6 +87,18 @@ Example: "blacklist ~/My Virtual Machines"
 \fB# this is a comment
 
 .TP
+\fB?CONDITIONAL: profile line
+Conditionally add profile line.
+
+Example: "?HAS_APPIMAGE: whitelist ${HOME}/special/appimage/dir"
+
+This example will load the whitelist profile line only if the \-\-appimage option has been specified on the command line.
+
+Currently the only conditionals supported are HAS_APPIMAGE, HAS_NODBUS and BROWSER_DISABLE_U2F.
+
+The profile line may be any profile line that you would normally use in a profile \fBexcept\fR for "quiet" and "include" lines.
+
+.TP
 \fBinclude other.profile
 Include other.profile file.
 
@@ -89,6 +112,10 @@ Firejail system configuration directory - in most cases /etc/firejail or
 Example: "include ${HOME}/myprofiles/profile1" will load "~/myprofiles/profile1" file.
 
 Example: "include ${CFG}/firefox.profile" will load "/etc/firejail/firefox.profile" file.
+
+The file name may also be just the name without the leading directory components.  In this case, first the user config directory (${HOME}/.config/firejail) is searched for the file name and if not found then the system configuration directory is search for the file name.  Note: Unlike the \-\-profile option which takes a profile name without the '.profile' suffix, include must be given the full file name.
+
+Example: "include firefox.profile" will load "${HOME}/.config/firejail/firefox.profile" file and if it does not exist "${CFG}/firefox.profile" will be loaded.
 
 System configuration files in ${CFG} are overwritten during software installation.
 Persistent configuration at system level is handled in ".local" files. For every
@@ -248,7 +275,7 @@ Build a new /lib directory and bring in the libraries required by the applicatio
 This feature is still under development, see \fBman 1 firejail\fR for some examples.
 .TP
 \fBprivate-opt file,directory
-Build a new /optin a temporary
+Build a new /opt in a temporary
 filesystem, and copy the files and directories in the list.
 All modifications are discarded when the sandbox is closed.
 .TP

@@ -22,12 +22,15 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/prctl.h>
 #include <errno.h>
+
+#include <sys/prctl.h>
+#ifndef PR_SET_NO_NEW_PRIVS
+# define PR_SET_NO_NEW_PRIVS 38
+#endif
 
 static int apply_caps = 0;
 static uint64_t caps = 0;
-static int apply_seccomp = 0;
 static unsigned display = 0;
 #define BUFLEN 4096
 
@@ -37,7 +40,15 @@ static void signal_handler(int sig){
 	exit(sig);
 }
 
+static void install_handler(void) {
+	struct sigaction sga;
 
+	// handle SIGTERM
+	sigemptyset(&sga.sa_mask);
+	sga.sa_handler = signal_handler;
+	sga.sa_flags = 0;
+	sigaction(SIGTERM, &sga, NULL);
+}
 
 static void extract_x11_display(pid_t pid) {
 	char *fname;
@@ -100,10 +111,27 @@ static void extract_nogroups(pid_t pid) {
 		errExit("asprintf");
 
 	struct stat s;
-	if (stat(fname, &s) == -1)
+	if (stat(fname, &s) == -1) {
+		free(fname);
 		return;
+	}
 
 	arg_nogroups = 1;
+	free(fname);
+}
+
+static void extract_nonewprivs(pid_t pid) {
+	char *fname;
+	if (asprintf(&fname, "/proc/%d/root%s", pid, RUN_NONEWPRIVS_CFG) == -1)
+		errExit("asprintf");
+
+	struct stat s;
+	if (stat(fname, &s) == -1) {
+		free(fname);
+		return;
+	}
+
+	arg_nonewprivs = 1;
 	free(fname);
 }
 
@@ -113,8 +141,10 @@ static void extract_cpu(pid_t pid) {
 		errExit("asprintf");
 
 	struct stat s;
-	if (stat(fname, &s) == -1)
+	if (stat(fname, &s) == -1) {
+		free(fname);
 		return;
+	}
 
 	// there is a CPU_CFG file, load it!
 	load_cpu(fname);
@@ -127,15 +157,17 @@ static void extract_cgroup(pid_t pid) {
 		errExit("asprintf");
 
 	struct stat s;
-	if (stat(fname, &s) == -1)
+	if (stat(fname, &s) == -1) {
+		free(fname);
 		return;
+	}
 
 	// there is a cgroup file CGROUP_CFG, load it!
 	load_cgroup(fname);
 	free(fname);
 }
 
-static void extract_caps_seccomp(pid_t pid) {
+static void extract_caps(pid_t pid) {
 	// open stat file
 	char *file;
 	if (asprintf(&file, "/proc/%u/status", pid) == -1) {
@@ -143,32 +175,35 @@ static void extract_caps_seccomp(pid_t pid) {
 		exit(1);
 	}
 	FILE *fp = fopen(file, "r");
-	if (!fp) {
-		free(file);
-		fprintf(stderr, "Error: cannot open stat file for process %u\n", pid);
-		exit(1);
-	}
+	if (!fp)
+		goto errexit;
 
 	char buf[BUFLEN];
 	while (fgets(buf, BUFLEN - 1, fp)) {
-		if (strncmp(buf, "Seccomp:", 8) == 0) {
-			char *ptr = buf + 8;
-			int val;
-			sscanf(ptr, "%d", &val);
-			if (val == 2)
-				apply_seccomp = 1;
-			break;
-		}
-		else if (strncmp(buf, "CapBnd:", 7) == 0) {
+		if (strncmp(buf, "CapBnd:", 7) == 0) {
 			char *ptr = buf + 7;
 			unsigned long long val;
-			sscanf(ptr, "%llx", &val);
+			if (sscanf(ptr, "%llx", &val) != 1)
+				goto errexit;
 			apply_caps = 1;
 			caps = val;
+		}
+		else if (strncmp(buf, "NoNewPrivs:", 11) == 0) {
+			char *ptr = buf + 11;
+			int val;
+			if (sscanf(ptr, "%d", &val) != 1)
+				goto errexit;
+			if (val)
+				arg_nonewprivs = 1;
 		}
 	}
 	fclose(fp);
 	free(file);
+	return;
+
+errexit:
+	fprintf(stderr, "Error: cannot read stat file for process %u\n", pid);
+	exit(1);
 }
 
 static void extract_user_namespace(pid_t pid) {
@@ -229,7 +264,7 @@ pid_t switch_to_child(pid_t pid) {
 	char *comm = pid_proc_comm(pid);
 	if (!comm) {
 		if (errno == ENOENT) {
-			fprintf(stderr, "Error: cannot find process with id %d\n", pid);
+			fprintf(stderr, "Error: cannot find process with pid %d\n", pid);
 			exit(1);
 		}
 		else {
@@ -285,7 +320,8 @@ void join(pid_t pid, int argc, char **argv, int index) {
 	EUID_ROOT();
 	// in user mode set caps seccomp, cpu, cgroup, etc
 	if (getuid() != 0) {
-		extract_caps_seccomp(pid);
+		extract_nonewprivs(pid);  // redundant on Linux >= 4.10; duplicated in function extract_caps
+		extract_caps(pid);
 		extract_cpu(pid);
 		extract_cgroup(pid);
 		extract_nogroups(pid);
@@ -296,7 +332,7 @@ void join(pid_t pid, int argc, char **argv, int index) {
 	if (cfg.cgroup)	// not available for uid 0
 		set_cgroup(cfg.cgroup);
 
-	// get umask, it will be set by start_application()
+	// set umask, also uid 0
 	extract_umask(pid);
 
 	// join namespaces
@@ -336,8 +372,6 @@ void join(pid_t pid, int argc, char **argv, int index) {
 				printf("changing root to %s\n", rootdir);
 		}
 
-		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
-
 		EUID_USER();
 		if (chdir("/") < 0)
 			errExit("chdir");
@@ -359,15 +393,8 @@ void join(pid_t pid, int argc, char **argv, int index) {
 		if (apply_caps == 1)	// not available for uid 0
 			caps_set(caps);
 #ifdef HAVE_SECCOMP
-		// read cfg.protocol from file
 		if (getuid() != 0)
-			protocol_filter_load(RUN_PROTOCOL_CFG);
-		if (cfg.protocol) 	// not available for uid 0
-			seccomp_load(RUN_SECCOMP_PROTOCOL);	// install filter
-
-		// set seccomp filter
-		if (apply_seccomp == 1)	 // not available for uid 0
-			seccomp_load(RUN_SECCOMP_CFG);
+			seccomp_load_file_list();
 #endif
 
 		// mount user namespace or drop privileges
@@ -381,6 +408,13 @@ void join(pid_t pid, int argc, char **argv, int index) {
 			// set caps filter
 			if (apply_caps == 1)	// not available for uid 0
 				caps_set(caps);
+		}
+
+		// set nonewprivs
+		if (arg_nonewprivs == 1) {	// not available for uid 0
+			int rv = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+			if (arg_debug && rv == 0)
+				printf("NO_NEW_PRIVS set\n");
 		}
 
 		EUID_USER();
@@ -431,13 +465,35 @@ void join(pid_t pid, int argc, char **argv, int index) {
 		}
 
 		drop_privs(arg_nogroups);
+		prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0); // kill the child in case the parent died
 		start_application(0, NULL);
 
 		// it will never get here!!!
 	}
 
+	int status = 0;
+	//*****************************
+	// following code is signal-safe
+
+	install_handler();
+
 	// wait for the child to finish
-	waitpid(child, NULL, 0);
+	waitpid(child, &status, 0);
+
+	// restore default signal action
+	signal(SIGTERM, SIG_DFL);
+
+	// end of signal-safe code
+	//*****************************
 	flush_stdin();
-	exit(0);
+
+	if (WIFEXITED(status)) {
+		status = WEXITSTATUS(status);
+	} else if (WIFSIGNALED(status)) {
+		status = WTERMSIG(status);
+	} else {
+		status = 0;
+	}
+
+	exit(status);
 }

@@ -69,7 +69,7 @@ Macro macro[] = {
 };
 
 // return -1 if not found
-static int macro_id(const char *name) {
+int macro_id(const char *name) {
 	int i = 0;
 	while (macro[i].name != NULL) {
 		if (strcmp(name, macro[i].name) == 0)
@@ -192,9 +192,8 @@ char *resolve_macro(const char *name) {
 // directory (supplied).
 // The return value is allocated using malloc and must be freed by the caller.
 // The function returns NULL if there are any errors.
-char *expand_home(const char *path, const char *homedir) {
+char *expand_macros(const char *path) {
 	assert(path);
-	assert(homedir);
 
 	int called_as_root = 0;
 
@@ -210,14 +209,14 @@ char *expand_home(const char *path, const char *homedir) {
 	// Replace home macro
 	char *new_name = NULL;
 	if (strncmp(path, "${HOME}", 7) == 0) {
-		if (asprintf(&new_name, "%s%s", homedir, path + 7) == -1)
+		if (asprintf(&new_name, "%s%s", cfg.homedir, path + 7) == -1)
 			errExit("asprintf");
 		if(called_as_root)
 			EUID_ROOT();
 		return new_name;
 	}
 	else if (*path == '~') {
-		if (asprintf(&new_name, "%s%s", homedir, path + 1) == -1)
+		if (asprintf(&new_name, "%s%s", cfg.homedir, path + 1) == -1)
 			errExit("asprintf");
 		if(called_as_root)
 			EUID_ROOT();
@@ -225,6 +224,13 @@ char *expand_home(const char *path, const char *homedir) {
 	}
 	else if (strncmp(path, "${CFG}", 6) == 0) {
 		if (asprintf(&new_name, "%s%s", SYSCONFDIR, path + 6) == -1)
+			errExit("asprintf");
+		if(called_as_root)
+			EUID_ROOT();
+		return new_name;
+	}
+	else if (strncmp(path, "${RUNUSER}", 10) == 0) {
+		if (asprintf(&new_name, "/run/user/%u%s", getuid(), path + 10) == -1)
 			errExit("asprintf");
 		if(called_as_root)
 			EUID_ROOT();
@@ -261,6 +267,8 @@ void invalid_filename(const char *fname, int globbing) {
 		ptr = fname + 7;
 	else if (strncmp(ptr, "${PATH}", 7) == 0)
 		ptr = fname + 7;
+	else if (strncmp(ptr, "${RUNUSER}", 10) == 0)
+		ptr = fname + 10;
 	else {
 		int id = macro_id(fname);
 		if (id != -1)

@@ -25,26 +25,31 @@ extern char *xephyr_screen;
 #define MAX_READ 8192				  // line buffer for profile files
 
 // find and read the profile specified by name from dir directory
-int profile_find(const char *name, const char *dir) {
+// return  1 if a profile was found
+static int profile_find(const char *name, const char *dir, int add_ext) {
 	EUID_ASSERT();
 	assert(name);
 	assert(dir);
 
 	int rv = 0;
 	DIR *dp;
-	char *pname;
-	if (asprintf(&pname, "%s.profile", name) == -1)
-		errExit("asprintf");
+	char *pname = NULL;
+	if (add_ext) {
+		if (asprintf(&pname, "%s.profile", name) == -1)
+			errExit("asprintf");
+		else
+			name = pname;
+	}
 
 	dp = opendir (dir);
 	if (dp != NULL) {
 		struct dirent *ep;
 		while ((ep = readdir(dp)) != NULL) {
-			if (strcmp(ep->d_name, pname) == 0) {
+			if (strcmp(ep->d_name, name) == 0) {
 				if (arg_debug)
 					printf("Found %s profile in %s directory\n", name, dir);
 				char *etcpname;
-				if (asprintf(&etcpname, "%s/%s", dir, pname) == -1)
+				if (asprintf(&etcpname, "%s/%s", dir, name) == -1)
 					errExit("asprintf");
 				profile_read(etcpname);
 				free(etcpname);
@@ -55,10 +60,27 @@ int profile_find(const char *name, const char *dir) {
 		(void) closedir (dp);
 	}
 
-	free(pname);
+	if (pname)
+		free(pname);
 	return rv;
 }
 
+// search and read the profile specified by name from firejail directories
+// return  1 if a profile was found
+int profile_find_firejail(const char *name, int add_ext) {
+	// look for a profile in ~/.config/firejail directory
+	char *usercfgdir;
+	if (asprintf(&usercfgdir, "%s/.config/firejail", cfg.homedir) == -1)
+		errExit("asprintf");
+	int rv = profile_find(name, usercfgdir, add_ext);
+	free(usercfgdir);
+
+	if (!rv)
+		// look for a user profile in /etc/firejail directory
+		rv = profile_find(name, SYSCONFDIR, add_ext);
+
+	return rv;
+}
 
 //***************************************************
 // run-time profiles
@@ -112,12 +134,118 @@ void profile_add_ignore(const char *str) {
 	}
 }
 
+typedef struct cond_t {
+	const char *name;	// conditional name
+	int (*check)(void);	// true if set
+} Cond;
+
+static int check_appimage(void) {
+	return arg_appimage != 0;
+}
+
+static int check_nodbus(void) {
+	return arg_nodbus != 0;
+}
+
+static int check_disable_u2f(void) {
+	return checkcfg(CFG_BROWSER_DISABLE_U2F) != 0;
+}
+
+Cond conditionals[] = {
+	{"HAS_APPIMAGE", check_appimage},
+	{"HAS_NODBUS", check_nodbus},
+	{"BROWSER_DISABLE_U2F", check_disable_u2f},
+	{ NULL, NULL }
+};
+
+int profile_check_conditional(char *ptr, int lineno, const char *fname) {
+	char *tmp = ptr, *msg = NULL;
+
+	if (*ptr++ != '?')
+		return 1;
+
+	Cond *cond = conditionals;
+	while (cond->name) {
+		// continue if not this conditional
+		if (strncmp(ptr, cond->name, strlen(cond->name)) != 0) {
+			cond++;
+			continue;
+		}
+		ptr += strlen(cond->name);
+
+		if (*ptr == ' ')
+			ptr++;
+		if (*ptr++ != ':') {
+			msg = "invalid conditional syntax: colon must come after conditional";
+			ptr = tmp;
+			goto error;
+		}
+		if (*ptr == '\0') {
+			msg = "invalid conditional syntax: no profile line after conditional";
+			ptr = tmp;
+			goto error;
+		}
+		if (*ptr == ' ')
+			ptr++;
+
+		// if set, continue processing statement in caller
+		int value = cond->check();
+		if (value) {
+			// move ptr to start of profile line
+			ptr = strdup(ptr);
+			if (!ptr)
+				errExit("strdup");
+
+			// check that the profile line does not contain either
+			// quiet or include directives
+			if ((strncmp(ptr, "quiet", 5) == 0) ||
+			    (strncmp(ptr, "include", 7) == 0)) {
+				msg = "invalid conditional syntax: quiet and include not allowed in conditionals";
+				ptr = tmp;
+				goto error;
+			}
+			free(tmp);
+
+			// verify syntax, exit in case of error
+			if (arg_debug)
+				printf("conditional %s, %s\n", cond->name, ptr);
+			if (profile_check_line(ptr, lineno, fname))
+				profile_add(ptr);
+		}
+		// tell caller to ignore
+		return 0;
+	}
+
+	tmp = ptr;
+	// get the conditional used
+	while (*tmp != ':' && *tmp != '\0')
+		tmp++;
+	*tmp = '\0';
+
+	// this was a '?' prefix, but didn't match any of the conditionals
+	msg = "invalid/unsupported conditional";
+
+error:
+	fprintf(stderr, "Error: %s (\"%s\"", msg, ptr);
+	if (lineno == 0) ;
+	else if (fname != NULL)
+		fprintf(stderr, " on line %d in %s", lineno, fname);
+	else
+		fprintf(stderr, " on line %d in the custom profile", lineno);
+	fprintf(stderr, ")\n");
+	exit(1);
+}
+
 
 // check profile line; if line == 0, this was generated from a command line option
 // return 1 if the command is to be added to the linked list of profile commands
 // return 0 if the command was already executed inside the function
 int profile_check_line(char *ptr, int lineno, const char *fname) {
 	EUID_ASSERT();
+
+	// check and process conditional profile lines
+	if (profile_check_conditional(ptr, lineno, fname) == 0)
+		return 0;
 
 	// check ignore list
 	if (is_in_ignore_list(ptr))
@@ -1261,7 +1389,7 @@ void profile_read(const char *fname) {
 		if (ptr && strlen(ptr) == 6)
 			return;
 
-		fprintf(stderr, "Error: cannot access profile file\n");
+		fprintf(stderr, "Error: cannot access profile file: %s\n", fname);
 		exit(1);
 	}
 
@@ -1323,17 +1451,28 @@ void profile_read(const char *fname) {
 		if (strncmp(ptr, "include ", 8) == 0) {
 			include_level++;
 
-			// extract profile filename and new skip params
-			char *newprofile = ptr + 8; // profile name
+			// expand macros in front of the include profile file
+			char *newprofile = expand_macros(ptr + 8);
 
-			// expand ${HOME}/ in front of the new profile file
-			char *newprofile2 = expand_home(newprofile, cfg.homedir);
+			char *ptr2 = newprofile;
+			while (*ptr2 != '/' && *ptr2 != '\0')
+				ptr2++;
+			// profile path contains no / chars, do a search
+			if (*ptr2 == '\0') {
+				int rv = profile_find_firejail(newprofile, 0); // returns 1 if a profile was found in sysconfig directory
+				if (!rv) {
+					// maybe this is a file in the local working directory?
+					// it will stop the sandbox if not!
+					// Note: if the file ends in .local it will not stop the program
+					profile_read(newprofile);
+				}
+			}
+			else {
+				profile_read(newprofile);
+			}
 
-			// recursivity
-			profile_read((newprofile2)? newprofile2:newprofile);
 			include_level--;
-			if (newprofile2)
-				free(newprofile2);
+			free(newprofile);
 			free(ptr);
 			continue;
 		}

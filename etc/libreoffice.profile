@@ -2,9 +2,9 @@
 # Description: Office productivity suite
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/libreoffice.local
+include libreoffice.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.java
 noblacklist /usr/local/sbin
@@ -17,29 +17,34 @@ noblacklist /usr/lib/java
 noblacklist /etc/java
 noblacklist /usr/share/java
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-passwdmgr.inc
+include disable-programs.inc
 
-include /etc/firejail/whitelist-var-common.inc
+include whitelist-var-common.inc
 
-# Ubuntu 18.04 uses its own apparmor profile
-# uncomment the next line if you are not on Ubuntu
-#apparmor
+# ubuntu 18.04 comes with its own apparmor profile, but it is not in enforce mode.
+# comment the next line to use the ubuntu profile instead of firejail's apparmor profile
+apparmor
 caps.drop all
-machine-id
+#machine-id
 netfilter
 #nodbus
 nodvd
 nogroups
-#nonewprivs - fix for Ubuntu 18.04/Debian 10
+# comment nonewprivs when using the ubuntu 18.04/debian 10 apparmor profile
+nonewprivs
 noroot
 notv
-#protocol unix,inet,inet6  - fix for Ubuntu 18.04/Debian 10
-#seccomp  - fix for Ubuntu 18.04/Debian 10
+nou2f
+# comment the protocol line when using the ubuntu 18.04/debian 10 apparmor profile
+protocol unix,inet,inet6
+# comment seccomp when using the ubuntu 18.04/debian 10 apparmor profile
+seccomp
 shell none
-#tracelog - problems reported by Ubuntu 18.04 apparmor profile in /var/log/syslog
+# comment tracelog when using the ubuntu 18.04/debian 10 apparmor profile
+tracelog
 
 private-dev
 private-tmp

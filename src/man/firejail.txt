@@ -100,8 +100,8 @@ $ firejail --allusers
 Enable AppArmor confinement. For more information, please see \fBAPPARMOR\fR section below.
 .TP
 \fB\-\-appimage
-Sandbox an AppImage (https://appimage.org/) application. If the sandbox is started as a
-regular user, default seccomp and capabilities filters are enabled.
+Sandbox an AppImage (https://appimage.org/) application. If the sandbox is started
+as a regular user, nonewprivs and a default capabilities filter are enabled.
 .br
 
 .br
@@ -186,7 +186,9 @@ Example:
 $ firejail --build=vlc.profile vlc ~/Videos/test.mp4
 .TP
 \fB\-c
-Execute command and exit.
+Login shell compatibility option. This option is use by some login programs when executing
+the login shell, such as when firejail is used as a restricted login shell. It currently does
+not change the execution of firejail.
 .TP
 \fB\-\-caps
 Linux capabilities is a kernel feature designed to split up the root privilege into a set of distinct privileges.
@@ -273,7 +275,7 @@ Example:
 \fB\-\-chroot=dirname
 Chroot the sandbox into a root filesystem. Unlike the regular filesystem container,
 the system directories are mounted read-write. If the sandbox is started as a
-regular user, default seccomp and capabilities filters are enabled.
+regular user, nonewprivs and a default capabilities filter are enabled.
 .br
 
 .br
@@ -395,7 +397,7 @@ $ firejail \-\-net=eth0 \-\-defaultgw=10.10.20.1 firefox
 
 .TP
 \fB\-\-disable-mnt
-Disable /mnt, /media, /run/mount and /run/media access.
+Blacklist /mnt, /media, /run/mount and /run/media access.
 .br
 
 .br
@@ -849,6 +851,23 @@ Note: \-\-net=none can crash the application on some platforms.
 In these cases, it can be replaced with \-\-protocol=unix.
 
 .TP
+\fB\-\-net.print=name|pid
+If a new network namespace is enabled, print network interface configuration for the sandbox specified by name or PID. Example:
+.br
+
+.br
+$ firejail --net.print=browser
+.br
+Switching to pid 1853, the first child process inside the sandbox
+.br
+Interface  MAC               IP            Mask        Status
+.br
+lo                           127.0.0.1     255.0.0.0     UP
+.br
+eth0-1852  5e:fb:8e:27:29:26 192.168.1.186 255.255.255.0 UP
+.br
+
+.TP
 \fB\-\-netfilter
 Enable a default firewall if a new network namespace is created inside the sandbox.
 This option has no effect for sandboxes using the system network namespace.
@@ -1268,7 +1287,7 @@ Similar to \-\-output, but stderr is also stored.
 Mount a filesystem overlay on top of the current filesystem.  Unlike the regular filesystem container,
 the system directories are mounted read-write. All filesystem modifications go into the overlay.
 Directories /run, /tmp and /dev are not covered by the overlay. The overlay is stored in $HOME/.firejail/<PID> directory.
-If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
+If the sandbox is started as a regular user, nonewprivs and a default capabilities filter are enabled.
 .br
 
 .br
@@ -1288,7 +1307,7 @@ Mount a filesystem overlay on top of the current filesystem.  Unlike the regular
 the system directories are mounted read-write. All filesystem modifications go into the overlay.
 Directories /run, /tmp and /dev are not covered by the overlay. The overlay is stored in $HOME/.firejail/<NAME> directory.
 The created overlay can be reused between multiple sessions.
-If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
+If the sandbox is started as a regular user, nonewprivs and a default capabilities filter are enabled.
 .br
 
 .br
@@ -1306,7 +1325,7 @@ $ firejail \-\-overlay-named=jail1 firefox
 \fB\-\-overlay-tmpfs
 Mount a filesystem overlay on top of the current filesystem. All filesystem modifications
 are discarded when the sandbox is closed. Directories /run, /tmp and /dev are not covered by the overlay.
-If the sandbox is started as a regular user, default seccomp and capabilities filters are enabled.
+If the sandbox is started as a regular user, nonewprivs and a default capabilities filter are enabled.
 .br
 
 .br
@@ -1531,7 +1550,7 @@ drwxrwxrwt  2 nobody nogroup 4096 Apr 30 10:52 .X11-unix
 
 
 .TP
-\fB\-\-profile=filename
+\fB\-\-profile=filename_or_profilename
 Load a custom security profile from filename. For filename use an absolute path or a path relative to the current path.
 For more information, see \fBSECURITY PROFILES\fR section below.
 .br
@@ -1681,19 +1700,19 @@ Enable seccomp filter and blacklist the syscalls in the default list (@default).
 _sysctl, acct, add_key, adjtimex, afs_syscall, bdflush, bpf, break, chroot, clock_adjtime, clock_settime,
 create_module, delete_module, fanotify_init, finit_module, ftime, get_kernel_syms, getpmsg, gtty, init_module,
 io_cancel, io_destroy, io_getevents, io_setup, io_submit, ioperm, iopl, ioprio_set, kcmp, kexec_file_load,
-kexec_load, keyctl, lock, lookup_dcookie, mbind, mfsservctl, migrate_pages, modify_ldt, mount, move_pages, mpx,
-name_to_handle_at, open_by_handle_at, pciconfig_iobase, pciconfig_read, pciconfig_write, perf_event_open,
-personality, pivot_root, process_vm_readv, process_vm_writev, process_vm_writev, prof, profil, ptrace, putpmsg,
+kexec_load, keyctl, lock, lookup_dcookie, mbind, migrate_pages, modify_ldt, mount, move_pages, mpx,
+name_to_handle_at, nfsservctl, ni_syscall, open_by_handle_at, pciconfig_iobase, pciconfig_read, pciconfig_write, perf_event_open,
+personality, pivot_root, process_vm_readv, process_vm_writev, prof, profil, ptrace, putpmsg,
 query_module, reboot, remap_file_pages, request_key, rtas, s390_mmio_read, s390_mmio_write, s390_runtime_instr,
 security, set_mempolicy, setdomainname, sethostname, settimeofday, sgetmask, ssetmask, stime, stty, subpage_prot,
-swapoff, swapon, switch_endian, sysfs, syslog, tuxcall, ulimit, umount, umount2, uselib, userfaultfd, ustat, vhangup,
+swapoff, swapon, switch_endian, sys_debug_setcontext, sysfs, syslog, tuxcall, ulimit, umount, umount2, uselib, userfaultfd, ustat, vhangup,
 vm86, vm86old, vmsplice and vserver.
 
 .br
 To help creating useful seccomp filters more easily, the following
 system call groups are defined: @clock, @cpu-emulation, @debug,
 @default, @default-nodebuggers, @default-keep, @module, @obsolete,
-@privileged, @raw-io, @reboot, @resources and @swap. In addtion, a
+@privileged, @raw-io, @reboot, @resources and @swap. In addition, a
 system call can be specified by its number instead of name with prefix
 $, so for example $165 would be equal to mount on i386.
 
@@ -2039,7 +2058,7 @@ Kill the sandbox automatically after the time has elapsed. The time is specified
 $ firejail \-\-timeout=01:30:00 firefox
 .TP
 \fB\-\-tmpfs=dirname
-Mount a tmpfs filesystem on directory dirname. This option is available only when running the sandbox as root.
+Mount a writable tmpfs filesystem on directory dirname. This option is available only when running the sandbox as root.
 File globbing is supported, see \fBFILE GLOBBING\fR section for more details.
 .br
 
@@ -2465,7 +2484,7 @@ Globbing is the operation that expands a wildcard pattern into the list of pathn
 - '[' denotes a range of characters
 .br
 .TP
-The gobing feature is implemented using glibc glob command. For more information on the wildcard syntax see man 7 glob.
+The globbing feature is implemented using glibc glob command. For more information on the wildcard syntax see man 7 glob.
 .br
 
 .br
@@ -2494,33 +2513,33 @@ AppArmor support is disabled by default at compile time. Use --enable-apparmor c
 .br
 $ ./configure --prefix=/usr --enable-apparmor
 .TP
-During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The profile needs to be loaded into the kernel by running the following command as root:
+During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The local customizations can be placed in /etc/apparmor.d/local/firejail-local. The profile needs to be loaded into the kernel by reloading apparmor.service, rebooting the system or running the following command as root:
 .br
 
 .br
-# aa-enforce firejail-default
+# apparmor_parser -r /etc/apparmor.d/firejail-default
 .TP
-The installed profile tries to replicate some advanced security features inspired by kernel-based Grsecurity:
+The installed profile is supplemental for main firejail functions and among other things does the following:
 .br
 
 .br
-- Prevent information leakage in /proc and /sys directories. The resulting filesystem is barely enough for running
-commands such as "top" and "ps aux".
+- Disable ptrace. With ptrace it is possible to inspect and hijack running programs. Usually this is needed only for debugging. You should have no problems running Chromium or Firefox. This feature is available only on Ubuntu kernels.
 .br
 
 .br
-- Allow running programs only from well-known system paths, such as /bin, /sbin, /usr/bin etc. Running
-programs and scripts from user home or other directories writable by the user is not allowed.
+- Whitelist write access to several files under /run, /proc and /sys.
 .br
 
 .br
-- Allow access to files only in the following standard directories: /bin, /dev, /etc, /home, /lib*, /media, /mnt, /opt,
-/proc, /root, /run, /sbin, /srv, /sys, /tmp, /usr, and /var
+- Allow running programs only from well-known system paths, such as /bin, /sbin, /usr/bin etc. Those paths are available as read-only. Running programs and scripts from user home or other directories writable by the user is not allowed.
 .br
 
 .br
-- Disable D-Bus. D-Bus has long been a huge security hole, and most programs don't use it anyway.
-You should have no problems running Chromium or Firefox. This feature is available only on Ubuntu kernels.
+- Prevent using non-standard network sockets. Only unix, inet, inet6, netlink, raw and packet are allowed.
+.br
+
+.br
+- Deny access to known sensitive paths like .snapshots.
 
 .TP
 To enable AppArmor confinement on top of your current Firejail security features, pass \fB\-\-apparmor\fR flag to Firejail command line. You can also include \fBapparmor\fR command in a Firejail profile file. Example:
@@ -2657,7 +2676,7 @@ Option \-\-netstats prints network statistics for active sandboxes installing ne
 
 
 Listed below are the available fields (columns) in alphabetical
-order for \-\-top and \-\-netstat options:
+order for \-\-top and \-\-netstats options:
 
 .TP
 Command
@@ -2701,13 +2720,22 @@ The owner of the sandbox.
 Several command line options can be passed to the program using
 profile files. Firejail chooses the profile file as follows:
 
-1. If a profile file is provided by the user with --profile option, the profile file is loaded.
+1. If a profile file is provided by the user with --profile=FILE option, the profile FILE is loaded. If a profile name is given, it is searched for first in the ~/.config/firejail directory and if not found then in  /etc/firejail directory. Profile names do not include the .profile suffix. If there is a file with the same name as the given profile name, it will be used instead of doing the profile search. To force a profile search, prefix the profile name with a colon (:), eg. --profile=:PROFILE_NAME.
 Example:
 .PP
 .RS
 $ firejail --profile=/home/netblue/icecat.profile icecat
 .br
 Reading profile /home/netblue/icecat.profile
+.br
+[...]
+.RE
+
+.PP
+.RS
+$ firejail --profile=icecat icecat-wrapper.sh
+.br
+Reading profile /etc/firejail/icecat.profile
 .br
 [...]
 .RE

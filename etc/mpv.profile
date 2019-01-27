@@ -2,9 +2,9 @@
 # Description: Video player based on MPlayer/mplayer2
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/mpv.local
+include mpv.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.config/mpv
 noblacklist ${HOME}/.netrc
@@ -16,15 +16,17 @@ noblacklist ${PATH}/python2*
 noblacklist ${PATH}/python3*
 noblacklist /usr/lib/python2*
 noblacklist /usr/lib/python3*
+noblacklist /usr/local/lib/python2*
+noblacklist /usr/local/lib/python3*
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
-include /etc/firejail/disable-xdg.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-passwdmgr.inc
+include disable-programs.inc
+include disable-xdg.inc
 
-include /etc/firejail/whitelist-var-common.inc
+include whitelist-var-common.inc
 
 apparmor
 caps.drop all
@@ -34,6 +36,7 @@ nodbus
 nogroups
 nonewprivs
 noroot
+nou2f
 protocol unix,inet,inet6
 seccomp
 shell none

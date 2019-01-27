@@ -20,6 +20,7 @@
 #include "firejail.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -227,7 +228,7 @@ void x11_start_xvfb(int argc, char **argv) {
 
 	assert(xvfb_screen);
 
-	char *server_argv[256] = {		  // rest initialyzed to NULL
+	char *server_argv[256] = {		  // rest initialized to NULL
 		"Xvfb", display_str, "-screen", "0", xvfb_screen
 	};
 	unsigned pos = 0;
@@ -417,7 +418,7 @@ void x11_start_xephyr(int argc, char **argv) {
 	pid_t jail = 0;
 	pid_t server = 0;
 
-	// default xephyr screen can be overwriten by a --xephyr-screen= command line option
+	// default xephyr screen can be overwritten by a --xephyr-screen= command line option
 	char *newscreen = extract_setting(argc, argv, "--xephyr-screen=");
 	if (newscreen)
 		xephyr_screen = newscreen;
@@ -445,7 +446,7 @@ void x11_start_xephyr(int argc, char **argv) {
 		errExit("asprintf");
 
 	assert(xephyr_screen);
-	char *server_argv[256] = {		  // rest initialyzed to NULL
+	char *server_argv[256] = {		  // rest initialized to NULL
 		"Xephyr", "-ac", "-br", "-noreset", "-screen", xephyr_screen
 	};
 	unsigned pos = 0;
@@ -626,7 +627,7 @@ void x11_start_xpra_old(int argc, char **argv, int display, char *display_str) {
 	pid_t server = 0;
 
 	// build the start command
-	char *server_argv[256] = {		  // rest initialyzed to NULL
+	char *server_argv[256] = {		  // rest initialized to NULL
 		"xpra", "start", display_str, "--no-daemon",
 	};
 	unsigned pos = 0;
@@ -860,7 +861,7 @@ void x11_start_xpra_new(int argc, char **argv, char *display_str) {
 	pid_t server = 0;
 
 	// build the start command
-	char *server_argv[256] = {		  // rest initialyzed to NULL
+	char *server_argv[256] = {		  // rest initialized to NULL
 		"xpra", "start", display_str, "--daemon=no", "--attach=yes", "--exit-with-children=yes"
 	};
 	unsigned spos = 0;
@@ -1163,12 +1164,20 @@ void x11_xorg(void) {
 	unlink(tmpfname);
 	umount("/tmp");
 
+	// remount RUN_XAUTHORITY_SEC_FILE noexec, nodev, nosuid
+	fs_noexec(RUN_XAUTHORITY_SEC_FILE);
+
 	// Ensure there is already a file in the usual location, so that bind-mount below will work.
 	char *dest;
 	if (asprintf(&dest, "%s/.Xauthority", cfg.homedir) == -1)
 		errExit("asprintf");
-	if (lstat(dest, &s) == -1)
+	if (lstat(dest, &s) == -1) {
 		touch_file_as_user(dest, 0600);
+		if (stat(dest, &s) == -1) {
+			fprintf(stderr, "Error: cannot create %s\n", dest);
+			exit(1);
+		}
+	}
 
 	// get a file descriptor for .Xauthority
 	fd = safe_fd(dest, O_PATH|O_NOFOLLOW|O_CLOEXEC);
@@ -1184,6 +1193,12 @@ void x11_xorg(void) {
 			fprintf(stderr, "Error: .Xauthority is not a user owned regular file\n");
 		exit(1);
 	}
+	// preserve a read-only mount
+	struct statvfs vfs;
+	if (fstatvfs(fd, &vfs) == -1)
+		errExit("fstatvfs");
+	if ((vfs.f_flag & MS_RDONLY) == MS_RDONLY)
+		fs_rdonly(RUN_XAUTHORITY_SEC_FILE);
 
 	// mount via the link in /proc/self/fd
 	char *proc;

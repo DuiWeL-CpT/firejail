@@ -33,14 +33,16 @@ Maintainer:
 - netblue30 (netblue30@yahoo.com)
 
 Committers
+- chiraag-nataraj (https://github.com/chiraag-nataraj)
+- crass (https://github.com/crass)
+- glitsj16 (https://github.com/glitsj16)
 - Fred-Barclay (https://github.com/Fred-Barclay)
 - Reiner Herrmann (https://github.com/reinerh - Debian/Ubuntu maintainer)
 - smithsohu (https://github.com/smitsohu)
 - SkewedZeppelin (https://github.com/SkewedZeppelin)
-- startx2017 (https://github.com/startx2017) - 0.9.38-LTS and *bugfixes branches maintainer)
+- startx2017 (https://github.com/startx2017) - LTS and *bugfixes branches maintainer)
 - Topi Miettinen (https://github.com/topimiettinen)
 - Vincent43 (https://github.com/Vincent43)
-- chiraag-nataraj (https://github.com/chiraag-nataraj)
 - netblue30 (netblue30@yahoo.com)
 
 
@@ -62,7 +64,7 @@ Aleksey Manevich (https://github.com/manevich)
 	- fix double quotes/single quotes problem
 	- big rework of argument processing subsystem
 	- --join fixes
-	- spliting up cmdline.c
+	- splitting up cmdline.c
 	- Busybox support
 	- X11 support rewrite
 	- gether shell selection code in one place
@@ -85,6 +87,8 @@ andrew160 (https://github.com/andrew160)
 	- profile and man pages fixes
 announ (https://github.com/announ)
 	- mpv and youtube-dl profile fixes
+	- git profile fix
+	- evince profile fix
 Antonio Russo (https://github.com/aerusso)
 	- enumerate root directories in apparmor profile
 	- fix join-or-start
@@ -122,6 +126,8 @@ bn0785ac (https://github.com/bn0785ac)
 	- fix inox, add snox profile
 BogDan Vatra (https://github.com/bog-dan-ro)
 	- zoom profile
+Brad Ackerman
+	- blacklist Bitwarden config in disable-passwdmgr.inc
 Bruno Nova (https://github.com/brunonova)
 	- whitelist fix
 	- bash arguments fix
@@ -147,6 +153,10 @@ Christian Stadelmann (https://github.com/genodeftest)
 	- evolution profile fix
 Clayton Williams (https://github.com/gosre)
 	- addition of RLIMIT_AS
+crass (https://github.com/crass)
+	- extract_command_name fixes
+	- update appimage size calculation to newest code from libappimage
+	- firejail should look for processes with names exactly named
 curiosity-seeker (https://github.com/curiosity-seeker)
 	- tightening unbound and dnscrypt-proxy profiles
 	- correct and tighten QuiteRss profile
@@ -158,6 +168,7 @@ curiosity-seeker (https://github.com/curiosity-seeker)
 	- added VirtualBox.profile
 	- various other profile fixes
 	- added digiKam profile
+	- write-protection for thumbnailer dir
 da2x (https://github.com/da2x)
 	- matched RPM license tag
 Daan Bakker (https://github.com/dbakker)
@@ -268,6 +279,17 @@ glitsj16 (https://github.com/glitsj16)
 	- spelling fixes
 	- bitblbee profile fixes
 	- fix firefox common addons
+	- many profile fixes
+	- profile fixes: file, strings, claws-mail,
+	- new profiles: QMediathekView, aria2c, Authenticator, checkbashisms
+	- new profiles: devilspie, devilspie2, easystroke, github-desktop, min
+	- new profiles: bsdcat, bsdcpio, bsdtar, lzmadec, lbunzip2, lbzcat
+	- new profiles: lbzip2, lzcat, lzcmp, lzdiff, lzegrep, lzfgrep, lzgrep
+	- new profiles: lzless, lzma, lzmainfo, lzmore, unlzma, unxz, xzcat
+	- new profiles: xzcmp, xzdiff, xzegrep, xzfgrep, xzgrep, xzless, xzmore
+	- new profiles: lzip, artha, nitroshare, nitroshare-cli, nitroshare-nmh
+	- new profiles: nirtoshare-send, nitroshare-ui, mencoder, gnome-pie
+	- new profiles: masterpdfeditor
 graywolf (https://github.com/graywolf)
 	- spelling fix
 greigdp (https://github.com/greigdp)
@@ -309,7 +331,7 @@ Jaykishan Mutkawoa (https://github.com/jmutkawoa)
 	- cpio profile
 James Elford (https://github.com/jelford)
 	- pass password manager support
-	- removed shell none from ssh-agent configuration, fixing the infinit loop
+	- removed shell none from ssh-agent configuration, fixing the infinite loop
 	- added gcloud profile
 	- blacklist sensitive cloud provider files in disable-common
 Jean Lucas (https://github.com/flacks)
@@ -375,6 +397,8 @@ LaurentGH (https://github.com/LaurentGH)
 	- allow private-bin parameters to be absolute paths
 Loïc Damien (https://github.com/dzamlo)
 	- small fixes
+luzpaz (https://github.com/luzpaz)
+	- code spelling fixes
 maces (https://github.com/maces)
 	- Franz messenger profile
 Madura A (https://github.com/manushanga)
@@ -411,7 +435,8 @@ mustaqimM (https://github.com/mustaqimM)
     - added profile for Nylas Mail
 n1trux (https://github.com/n1trux)
 	- fix flashpeak-slimjet profile typos
-netblue30 (netblue30@yahoo.com)
+NickMolloy (https://github.com/NickMolloy)
+	- ARP address length fix
 Niklas Haas (https://github.com/haasn)
 	- blacklisting for keybase.io's client
 nyancat18 (https://github.com/nyancat18)
@@ -426,6 +451,8 @@ Paul Moore <pmoore@redhat.com>
 	-src/fsec-print/print.c extracted from libseccomp software package
 Paupiah Yash (https://github.com/CaffeinatedStud)
 	- gzip  profile
+Pawel (https://github.com/grimskies)
+	- make --join return exit code of the invoked program
 Peter Millerchip (https://github.com/pmillerchip)
 	- memory allocation fix
 	- --private.keep to --private-home transition
@@ -446,6 +473,9 @@ PharmaceuticalCobweb (https://github.com/PharmaceuticalCobweb)
 	- added profile for gnome-ring
 pirate486743186 (https://github.com/pirate486743186)
 	- KMail profile
+	- mpsyt profile
+	- fix youtube-dl and mpv
+	- fix gnome-mpv profile
 Pixel Fairy (https://github.com/xahare)
 	- added fjclip.py, fjdisplay.py and fjresize.py in contrib section
 PizzaDude (https://github.com/pizzadude)
@@ -495,6 +525,15 @@ rogshdo (https://github.com/rogshdo)
 	- BitlBee profile
 Ruan (https://github.com/ruany)
 	- fixed hexchat profile
+rusty-snake (https://github.com/rusty-snake)
+	- fixed kdenlive profile
+	- added thunderbird-wayland and supertuxkart profiles
+	- fix bible-time, rhythmbox profiles
+	- more blacklists in disable-common.inc
+	- fixed some missing paths in disable-programs.inc
+	- added ghostwriter profle
+	- fix gajim profile, added gajim-history-manager profile
+	- updates for ~/.cargo
 Salvo 'LtWorf' Tomaselli (https://github.com/ltworf)
 	- fixed ktorrent profile
 sarneaud (https://github.com/sarneaud)
@@ -611,6 +650,8 @@ Thomas Jarosch (https://github.com/thomasjfox)
 	- added lstat() / lstat64() support to libtrace
 	- include mkuid.sh in make dist
 	- cppcheck bugfixes
+tinmanx (https://github.com/tinmanx)
+	- remove network access from cherrytree.profile
 Tom Mellor (https://github.com/kalegrill)
 	- mupen64plus profile
 Tomasz Jan Góralczyk (https://github.com/tjg)
@@ -660,6 +701,9 @@ veloute (https://github.com/veloute)
 	- added standardnotes profile
 	- added flameshot profile
 	- added jdownloader profile
+	- fixed discord profile
+	- fixes for various profiles
+	- removed vim and ranger from firecfg
 Vincent43 (https://github.com/Vincent43)
 	- apparmor enhancements
 vismir2 (https://github.com/vismir2)

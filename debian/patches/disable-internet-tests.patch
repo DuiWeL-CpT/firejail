@@ -95,7 +95,7 @@ Forwarded: not-needed
  fi
 --- a/test/utils/utils.sh
 +++ b/test/utils/utils.sh
-@@ -65,8 +65,7 @@
+@@ -69,8 +69,7 @@
  echo "TESTING: fs.print (test/utils/fs-print.exp)"
  ./fs-print.exp
  

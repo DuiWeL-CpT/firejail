@@ -1,0 +1,30 @@
+From: Reiner Herrmann <reiner@reiner-h.de>
+Subject: Allow processes confined with AppArmor to obtain some process information
+Origin: upstream, https://github.com/netblue30/firejail/commit/54c0982
+
+'firejail --apparmor chromium' logged a huge amount of apparmor denials,
+because it wants to use read/readby permissions.
+Allow those accesses, but keep full tracing disabled by default.
+
+See also: https://bugs.debian.org/912587 and apparmor.d(5)
+
+Bug-Debian: https://bugs.debian.org/912587
+
+--- a/etc/firejail-default
++++ b/etc/firejail-default
+@@ -21,10 +21,13 @@
+ dbus,
+ 
+ ##########
+-# With ptrace it is possible to inspect and hijack running programs. Usually this
+-# is needed only for debugging. To allow ptrace, uncomment the following line.
++# With ptrace it is possible to inspect and hijack running programs.
++# Some browsers are also using ptrace for their sandboxing.
+ ##########
++# Uncomment this line to allow all ptrace access
+ #ptrace,
++# Allow obtaining some process information, but not ptrace(2)
++ptrace (read,readby) peer=firejail-default,
+ 
+ ##########
+ # Allow read access to whole filesystem and control it from firejail.

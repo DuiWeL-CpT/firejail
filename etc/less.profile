@@ -3,10 +3,10 @@
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
-include /etc/firejail/less.local
+include less.local
 # Persistent global definitions
 # added by included default.profile
-#include /etc/firejail/globals.local
+#include globals.local
 
 blacklist /tmp/.X11-unix
 
@@ -17,6 +17,7 @@ nodbus
 nodvd
 nosound
 notv
+nou2f
 novideo
 shell none
 tracelog
@@ -33,4 +34,4 @@ memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
 
-include /etc/firejail/default.profile
+include default.profile

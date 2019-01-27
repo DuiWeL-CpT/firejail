@@ -6,13 +6,14 @@
 export MALLOC_CHECK_=3
 export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 
-echo "TESTING: default profiles installed in /etc"
-PROFILES=`ls /etc/firejail/*.profile`
-for PROFILE in $PROFILES
-do
-	echo "TESTING: $PROFILE"
-	./test-profile.exp $PROFILE
-done
+echo "TESTING: profile conditional (test/profiles/conditional.exp)"
+./conditional.exp
+
+echo "TESTING: profile recursivity (test/profiles/profile_recursivity.exp)"
+./profile_recursivity.exp
+
+echo "TESTING: profile application name (test/profiles/profile_appname.exp)"
+./profile_appname.exp
 
 echo "TESTING: profile syntax (test/profiles/profile_syntax.exp)"
 ./profile_syntax.exp
@@ -31,4 +32,15 @@ echo "TESTING: profile read-only links (test/profiles/profile_readonly.exp)"
 
 echo "TESTING: profile no permissions (test/profiles/profile_noperm.exp)"
 ./profile_noperm.exp
+
+
+
+
+echo "TESTING: default profiles installed in /etc"
+PROFILES=`ls /etc/firejail/*.profile`
+for PROFILE in $PROFILES
+do
+	echo "TESTING: $PROFILE"
+	./test-profile.exp $PROFILE
+done
 
