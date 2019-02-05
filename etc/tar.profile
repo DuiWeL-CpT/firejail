@@ -3,10 +3,10 @@
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
-include /etc/firejail/tar.local
+include tar.local
 # Persistent global definitions
 # added by included default.profile
-#include /etc/firejail/globals.local
+#include globals.local
 
 blacklist /tmp/.X11-unix
 
@@ -18,6 +18,7 @@ nodbus
 nodvd
 nosound
 notv
+nou2f
 novideo
 shell none
 tracelog
@@ -28,4 +29,7 @@ private-dev
 private-etc passwd,group,localtime
 private-lib
 
-include /etc/firejail/default.profile
+# Debian based distributions need this for 'dpkg --unpack' (incl. synaptic)
+writable-var
+
+include default.profile

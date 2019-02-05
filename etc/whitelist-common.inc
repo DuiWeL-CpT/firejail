@@ -1,5 +1,5 @@
 # Local customizations come here
-include /etc/firejail/whitelist-common.local
+include whitelist-common.local
 
 # common whitelist for all profiles
 
@@ -13,11 +13,16 @@ whitelist ${HOME}/.config/user-dirs.dirs
 read-only ${HOME}/.config/user-dirs.dirs
 whitelist ${HOME}/.drirc
 whitelist ${HOME}/.icons
+?HAS_APPIMAGE: whitelist ${HOME}/.local/share/appimagekit
 whitelist ${HOME}/.local/share/applications
 read-only ${HOME}/.local/share/applications
 whitelist ${HOME}/.local/share/icons
 whitelist ${HOME}/.local/share/mime
 whitelist ${HOME}/.mime.types
+
+# dconf
+mkdir ${HOME}/.config/dconf
+whitelist ${HOME}/.config/dconf
 
 # fonts
 whitelist ${HOME}/.cache/fontconfig
@@ -47,11 +52,8 @@ whitelist ${HOME}/.kde4/share/config/gtkrc-2.0
 whitelist ${HOME}/.local/share/themes
 whitelist ${HOME}/.themes
 
-# dconf
-mkdir ${HOME}/.config/dconf
-whitelist ${HOME}/.config/dconf
-
 # qt/kde
+whitelist ${HOME}/.cache/kioexec/krun
 whitelist ${HOME}/.config/Kvantum
 whitelist ${HOME}/.config/Trolltech.conf
 whitelist ${HOME}/.config/kdeglobals
@@ -72,4 +74,3 @@ whitelist ${HOME}/.kde4/share/config/ksslcablacklist
 whitelist ${HOME}/.kde4/share/config/oxygenrc
 whitelist ${HOME}/.kde4/share/icons
 whitelist ${HOME}/.local/share/qt5ct
-whitelist ${HOME}/.cache/kioexec/krun

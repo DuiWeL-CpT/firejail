@@ -355,7 +355,7 @@ void fs_check_private_dir(void) {
 	invalid_filename(cfg.home_private, 0); // no globbing
 
 	// Expand the home directory
-	char *tmp = expand_home(cfg.home_private, cfg.homedir);
+	char *tmp = expand_macros(cfg.home_private);
 	cfg.home_private = realpath(tmp, NULL);
 	free(tmp);
 
@@ -378,7 +378,7 @@ static char *check_dir_or_file(const char *name) {
 		printf("Private home: checking %s\n", name);
 
 	// expand home directory
-	char *fname = expand_home(name, cfg.homedir);
+	char *fname = expand_macros(name);
 	assert(fname);
 
 	// If it doesn't start with '/', it must be relative to homedir
@@ -393,6 +393,8 @@ static char *check_dir_or_file(const char *name) {
 	// we allow only files in user home directory or symbolic links to files or directories owned by the user
 	struct stat s;
 	if (lstat(fname, &s) == 0 && S_ISLNK(s.st_mode)) {
+		if (strncmp(fname, cfg.homedir, strlen(cfg.homedir)) != 0 || fname[strlen(cfg.homedir)] != '/')
+			goto errexit;
 		if (stat(fname, &s) == 0) {
 			if (s.st_uid != getuid()) {
 				fprintf(stderr, "Error: symbolic link %s to file or directory not owned by the user\n", fname);

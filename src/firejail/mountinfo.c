@@ -19,16 +19,19 @@
 */
 
 #include "firejail.h"
+#include <fcntl.h>
 
 #define MAX_BUF 4096
+
 static char mbuf[MAX_BUF];
 static MountData mdata;
+
 
 // Convert octal escape sequence to decimal value
 static int read_oct(const char *path) {
 	int decimal = 0;
 	int digit, i;
-	// there are always three octal digits
+	// there are always exactly three octal digits
 	for (i = 1; i < 4; i++) {
 		digit = *(path + i);
 		if (digit < '0' || digit > '7') {
@@ -61,43 +64,38 @@ static void unmangle_path(char *path) {
 	}
 }
 
-// Get info regarding the last kernel mount operation.
-// The return value points to a static area, and will be overwritten by subsequent calls.
-// The function does an exit(1) if anything goes wrong.
-MountData *get_last_mount(void) {
-	// open /proc/self/mountinfo
-	FILE *fp = fopen("/proc/self/mountinfo", "r");
-	if (!fp)
-		goto errexit;
-
-	mbuf[0] = '\0';
-	while (fgets(mbuf, MAX_BUF, fp));
-	fclose(fp);
-	if (arg_debug)
-		printf("%s", mbuf);
-
-	// extract filesystem name, directory and filesystem type
+// Parse a line from /proc/self/mountinfo,
+// the function does an exit(1) if anything goes wrong.
+static void parse_line(char *line, MountData *output) {
+	assert(line && output);
+	memset(output, 0, sizeof(*output));
+	// extract mount id, filesystem name, directory and filesystem types
 	// examples:
 	//	587 543 8:1 /tmp /etc rw,relatime master:1 - ext4 /dev/sda1 rw,errors=remount-ro,data=ordered
-	//		mdata.fsname: /tmp
-	//		mdata.dir: /etc
-	//		mdata.fstype: ext4
+	//		output.mountid: 587
+	//		output.fsname: /tmp
+	//		output.dir: /etc
+	//		output.fstype: ext4
 	//	585 564 0:76 / /home/netblue/.cache rw,nosuid,nodev - tmpfs tmpfs rw
-	//		mdata.fsname: /
-	//		mdata.dir: /home/netblue/.cache
-	//		mdata.fstype: tmpfs
-	memset(&mdata, 0, sizeof(mdata));
-	char *ptr = strtok(mbuf, " ");
+	//		output.mountid: 585
+	//		output.fsname: /
+	//		output.dir: /home/netblue/.cache
+	//		output.fstype: tmpfs
+
+	char *ptr = strtok(line, " ");
 	if (!ptr)
 		goto errexit;
-
+	if (ptr != line)
+		goto errexit;
+	output->mountid = atoi(ptr);
 	int cnt = 1;
+
 	while ((ptr = strtok(NULL, " ")) != NULL) {
 		cnt++;
 		if (cnt == 4)
-			mdata.fsname = ptr;
+			output->fsname = ptr;
 		else if (cnt == 5) {
-			mdata.dir = ptr;
+			output->dir = ptr;
 			break;
 		}
 	}
@@ -109,21 +107,179 @@ MountData *get_last_mount(void) {
 	ptr = strtok(NULL, " ");
 	if (!ptr)
 		goto errexit;
-	mdata.fstype = ptr++;
+	output->fstype = ptr++;
 
-	if (mdata.fsname == NULL ||
-	    mdata.dir == NULL ||
-	    mdata.fstype == NULL)
+
+	if (output->mountid == 0 ||
+	    output->fsname == NULL ||
+	    output->dir == NULL ||
+	    output->fstype == NULL)
 		goto errexit;
 
-	unmangle_path(mdata.fsname);
-	unmangle_path(mdata.dir);
+	// restore empty spaces
+	unmangle_path(output->fsname);
+	unmangle_path(output->dir);
 
-	if (arg_debug)
-		printf("fsname=%s dir=%s fstype=%s\n", mdata.fsname, mdata.dir, mdata.fstype);
-	return &mdata;
+	return;
 
 errexit:
 	fprintf(stderr, "Error: cannot read /proc/self/mountinfo\n");
 	exit(1);
+}
+
+// The return value points to a static area, and will be overwritten by subsequent calls.
+MountData *get_last_mount(void) {
+	// open /proc/self/mountinfo
+	FILE *fp = fopen("/proc/self/mountinfo", "re");
+	if (!fp) {
+		perror("fopen");
+		fprintf(stderr, "Error: cannot read /proc/self/mountinfo\n");
+		exit(1);
+	}
+
+	mbuf[0] = '\0';
+	// go to the last line
+	while (fgets(mbuf, MAX_BUF, fp));
+	fclose(fp);
+	if (arg_debug)
+		printf("%s", mbuf);
+
+	parse_line(mbuf, &mdata);
+
+	if (arg_debug)
+		printf("mountid=%d fsname=%s dir=%s fstype=%s\n", mdata.mountid, mdata.fsname, mdata.dir, mdata.fstype);
+	return &mdata;
+}
+
+// Extract the mount id from /proc/self/fdinfo and return it.
+int get_mount_id(const char *path) {
+	assert(path);
+
+	int fd = open(path, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		return -1;
+
+	char *fdinfo;
+	if (asprintf(&fdinfo, "/proc/self/fdinfo/%d", fd) == -1)
+		errExit("asprintf");
+	FILE *fp = fopen(fdinfo, "re");
+	if (!fp) {
+		perror("fopen");
+		fprintf(stderr, "Error: cannot open %s\n", fdinfo);
+		exit(1);
+	}
+
+	// read the file
+	char buf[MAX_BUF];
+	if (fgets(buf, MAX_BUF, fp) == NULL) {
+		fprintf(stderr, "Error: cannot read %s\n", fdinfo);
+		exit(1);
+	}
+	do {
+		if (strncmp(buf, "mnt_id:", 7) == 0) {
+			char *ptr = buf + 7;
+			while (*ptr != '\0' && (*ptr == ' ' || *ptr == '\t')) {
+				ptr++;
+			}
+			if (*ptr == '\0') {
+				fprintf(stderr, "Error: cannot read %s\n", fdinfo);
+				exit(1);
+			}
+			fclose(fp);
+			close(fd);
+			free(fdinfo);
+			return atoi(ptr);
+		}
+	} while (fgets(buf, MAX_BUF, fp));
+
+	// fallback, kernels older than 3.15 don't expose the mount id in this place
+	fclose(fp);
+	close(fd);
+	free(fdinfo);
+	return -2;
+}
+
+// Check /proc/self/mountinfo if path contains any mounts points.
+// Returns an array that can be iterated over for recursive remounting.
+char **build_mount_array(const int mount_id, const char *path) {
+	assert(path);
+
+	// open /proc/self/mountinfo
+	FILE *fp = fopen("/proc/self/mountinfo", "re");
+	if (!fp) {
+		perror("fopen");
+		fprintf(stderr, "Error: cannot read /proc/self/mountinfo\n");
+		exit(1);
+	}
+
+	// array to be returned
+	size_t cnt = 0;
+	size_t size = 32;
+	char **rv = malloc(size * sizeof(*rv));
+	if (!rv)
+		errExit("malloc");
+
+	// read /proc/self/mountinfo
+	size_t pathlen = strlen(path);
+	char buf[MAX_BUF];
+	MountData mntp;
+	int found = 0;
+
+	if (fgets(buf, MAX_BUF, fp) == NULL) {
+		fprintf(stderr, "Error: cannot read /proc/self/mountinfo\n");
+		exit(1);
+	}
+	do {
+		// find mount point with mount id
+		if (!found) {
+			parse_line(buf, &mntp);
+			if (mntp.mountid == mount_id) {
+				// give up if mount id has been reassigned,
+				// don't remount blacklisted path
+				if (strncmp(mntp.dir, path, strlen(mntp.dir)) ||
+				    strstr(mntp.fsname, "firejail.ro.dir") ||
+				    strstr(mntp.fsname, "firejail.ro.file"))
+					    break;
+
+				*rv = strdup(path);
+				if (*rv == NULL)
+					errExit("strdup");
+				cnt++;
+				found = 1;
+				continue;
+			}
+			else
+				continue;
+		}
+		// from here on add all mount points below path,
+		// don't remount blacklisted paths
+		parse_line(buf, &mntp);
+		if (strncmp(mntp.dir, path, pathlen) == 0 &&
+		    mntp.dir[pathlen] == '/' &&
+		    strstr(mntp.fsname, "firejail.ro.dir") == NULL &&
+		    strstr(mntp.fsname, "firejail.ro.file") == NULL) {
+
+			if (cnt == size) {
+				size *= 2;
+				rv = realloc(rv, size * sizeof(*rv));
+				if (!rv)
+					errExit("realloc");
+			}
+			rv[cnt] = strdup(mntp.dir);
+			if (rv[cnt] == NULL)
+				errExit("strdup");
+			cnt++;
+		}
+	} while (fgets(buf, MAX_BUF, fp));
+
+	if (cnt == size) {
+		size++;
+		rv = realloc(rv, size * sizeof(*rv));
+		if (!rv)
+			errExit("realloc");
+	}
+	rv[cnt] = NULL; // end of the array
+
+	fclose(fp);
+	return rv;
 }

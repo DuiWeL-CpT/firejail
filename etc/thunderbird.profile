@@ -2,9 +2,9 @@
 # Description: Email, RSS and newsgroup client with integrated spam filter
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/thunderbird.local
+include thunderbird.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 # Users have thunderbird set to open a browser by clicking a link in an email
 # We are not allowed to blacklist browser-specific directories
@@ -14,6 +14,10 @@ noblacklist ${HOME}/.gnupg
 # noblacklist ${HOME}/.icedove
 noblacklist ${HOME}/.thunderbird
 
+# If you have setup Thunderbird to archive emails to a local folder,
+# make sure you add the path to that folder to the mkdir and whitelist
+# rules below. Otherwise they will be deleted when you close Thunderbird.
+# See https://github.com/netblue30/firejail/issues/2357
 mkdir ${HOME}/.cache/thunderbird
 mkdir ${HOME}/.gnupg
 # mkdir ${HOME}/.icedove
@@ -38,4 +42,6 @@ writable-run-user
 
 # allow browsers
 # Redirect
-include /etc/firejail/firefox.profile
+# Uncomment if you use enigmail
+# ignore nodbus
+include firefox.profile

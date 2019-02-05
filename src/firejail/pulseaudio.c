@@ -20,6 +20,7 @@
 #include "firejail.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/mount.h>
 #include <dirent.h>
 #include <sys/wait.h>
@@ -82,10 +83,8 @@ void pulseaudio_init(void) {
 	// create the new user pulseaudio directory
 	if (mkdir(RUN_PULSE_DIR, 0700) == -1)
 		errExit("mkdir");
-	// make it a mount point and add mount flags
-	if (mount(RUN_PULSE_DIR, RUN_PULSE_DIR, NULL, MS_BIND, NULL) < 0 ||
-	    mount(NULL, RUN_PULSE_DIR, NULL, MS_NOEXEC|MS_NODEV|MS_NOSUID|MS_BIND|MS_REMOUNT, NULL) < 0)
-		errExit("mount RUN_PULSE_DIR");
+	// mount it nosuid, noexec, nodev
+	fs_noexec(RUN_PULSE_DIR);
 
 	// create the new client.conf file
 	char *pulsecfg = NULL;
@@ -93,7 +92,7 @@ void pulseaudio_init(void) {
 		errExit("asprintf");
 	if (copy_file("/etc/pulse/client.conf", pulsecfg, -1, -1, 0644)) // root needed
 		errExit("copy_file");
-	FILE *fp = fopen(pulsecfg, "a+");
+	FILE *fp = fopen(pulsecfg, "a");
 	if (!fp)
 		errExit("fopen");
 	fprintf(fp, "%s", "\nenable-shm = no\n");
@@ -104,92 +103,55 @@ void pulseaudio_init(void) {
 		errExit("set_perms");
 
 	// create ~/.config/pulse directory if not present
-	char *dir1;
-	if (asprintf(&dir1, "%s/.config", cfg.homedir) == -1)
-		errExit("asprintf");
-	if (lstat(dir1, &s) == -1) {
-		pid_t child = fork();
-		if (child < 0)
-			errExit("fork");
-		if (child == 0) {
-			// drop privileges
-			drop_privs(0);
-
-			int rv = mkdir(dir1, 0755);
-			if (rv == 0) {
-				if (chmod(dir1, 0755))
-					{;} // do nothing
-			}
-#ifdef HAVE_GCOV
-			__gcov_flush();
-#endif
-			_exit(0);
-		}
-		// wait for the child to finish
-		waitpid(child, NULL, 0);
-		fs_logger2("create", dir1);
-	}
-	else {
-		// we expect a user owned directory
-		if (!S_ISDIR(s.st_mode) || s.st_uid != getuid()) {
-			if (S_ISLNK(s.st_mode))
-				fprintf(stderr, "Error: user .config is a symbolic link\n");
-			else
-				fprintf(stderr, "Error: user .config is not a directory owned by the current user\n");
-			exit(1);
-		}
-	}
-	free(dir1);
-
-	if (asprintf(&dir1, "%s/.config/pulse", cfg.homedir) == -1)
-		errExit("asprintf");
-	if (lstat(dir1, &s) == -1) {
-		pid_t child = fork();
-		if (child < 0)
-			errExit("fork");
-		if (child == 0) {
-			// drop privileges
-			drop_privs(0);
-
-			int rv = mkdir(dir1, 0700);
-			if (rv == 0) {
-				if (chmod(dir1, 0700))
-					{;} // do nothing
-			}
-#ifdef HAVE_GCOV
-			__gcov_flush();
-#endif
-			_exit(0);
-		}
-		// wait for the child to finish
-		waitpid(child, NULL, 0);
-		fs_logger2("create", dir1);
-	}
-	else {
-		// we expect a user owned directory
-		if (!S_ISDIR(s.st_mode) || s.st_uid != getuid()) {
-			if (S_ISLNK(s.st_mode))
-				fprintf(stderr, "Error: user .config/pulse is a symbolic link\n");
-			else
-				fprintf(stderr, "Error: user .config/pulse is not a directory owned by the current user\n");
-			exit(1);
-		}
-	}
-	free(dir1);
-
-	// if we have ~/.config/pulse mount the new directory, else set environment variable.
 	char *homeusercfg;
+	if (asprintf(&homeusercfg, "%s/.config", cfg.homedir) == -1)
+		errExit("asprintf");
+	if (lstat(homeusercfg, &s) == -1) {
+		if (create_empty_dir_as_user(homeusercfg, 0700))
+			fs_logger2("create", homeusercfg);
+	}
+	else if (!S_ISDIR(s.st_mode)) {
+		if (S_ISLNK(s.st_mode))
+			fprintf(stderr, "Error: %s is a symbolic link\n", homeusercfg);
+		else
+			fprintf(stderr, "Error: %s is not a directory\n", homeusercfg);
+		exit(1);
+	}
+	free(homeusercfg);
+
 	if (asprintf(&homeusercfg, "%s/.config/pulse", cfg.homedir) == -1)
 		errExit("asprintf");
+	if (lstat(homeusercfg, &s) == -1) {
+		if (create_empty_dir_as_user(homeusercfg, 0700))
+			fs_logger2("create", homeusercfg);
+	}
+	else if (!S_ISDIR(s.st_mode)) {
+		if (S_ISLNK(s.st_mode))
+			fprintf(stderr, "Error: %s is a symbolic link\n", homeusercfg);
+		else
+			fprintf(stderr, "Error: %s is not a directory\n", homeusercfg);
+		exit(1);
+	}
+
+	// if we have ~/.config/pulse mount the new directory, else set environment variable.
 	if (stat(homeusercfg, &s) == 0) {
 		// get a file descriptor for ~/.config/pulse, fails if there is any symlink
 		int fd = safe_fd(homeusercfg, O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
 		if (fd == -1)
 			errExit("safe_fd");
 		// confirm the actual mount destination is owned by the user
-		if (fstat(fd, &s) == -1 || s.st_uid != getuid())
+		if (fstat(fd, &s) == -1)
 			errExit("fstat");
-
+		if (s.st_uid != getuid()) {
+			fprintf(stderr, "Error: %s is not owned by the current user\n", homeusercfg);
+			exit(1);
+		}
+		// preserve a read-only mount
+		struct statvfs vfs;
+		if (fstatvfs(fd, &vfs) == -1)
+			errExit("fstatvfs");
+		if ((vfs.f_flag & MS_RDONLY) == MS_RDONLY)
+			fs_rdonly(RUN_PULSE_DIR);
 		// mount via the link in /proc/self/fd
 		char *proc;
 		if (asprintf(&proc, "/proc/self/fd/%d", fd) == -1)

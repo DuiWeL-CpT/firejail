@@ -1,4 +1,6 @@
 # Firejail profile alias for Android Studio
+# This file is overwritten after every install/update
+
 
 # Redirect
-include /etc/firejail/android-studio.profile
+include android-studio.profile

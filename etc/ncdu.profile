@@ -2,9 +2,9 @@
 # Description: Ncurses disk usage viewer
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/ncdu.local
+include ncdu.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 caps.drop all
 ipc-namespace
@@ -17,6 +17,7 @@ nonewprivs
 noroot
 nosound
 notv
+nou2f
 novideo
 protocol unix
 seccomp

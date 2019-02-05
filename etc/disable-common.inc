@@ -1,6 +1,11 @@
 # This file is overwritten during software install.
 # Persistent customizations should go in a .local file.
-include /etc/firejail/disable-common.local
+include disable-common.local
+
+# The following block breaks trash functionality in file managers
+#read-only ${HOME}/.local
+#read-write ${HOME}/.local/share
+blacklist ${HOME}/.local/share/Trash
 
 # History files in $HOME and clipboard managers
 blacklist-nolog ${HOME}/.*_history
@@ -113,11 +118,12 @@ read-only ${HOME}/.local/share/konsole
 read-only ${HOME}/.local/share/kservices5
 read-only ${HOME}/.local/share/kssl
 
-# kdeinit socket
-blacklist /run/user/*/kdeinit5__*
-# blacklist /run/user/*/ksocket-*/kdeinit4__*
-# blacklist /tmp/ksocket-*/kdeinit4__*
-#  - causes issues when kdeinit4 gets killed; enable on KDE Plasma 4
+# KDE sockets
+blacklist ${RUNUSER}/*.slave-socket
+blacklist ${RUNUSER}/kdeinit5__*
+blacklist ${RUNUSER}/kdesud_*
+?HAS_NODBUS: blacklist ${RUNUSER}/ksocket-*
+?HAS_NODBUS: blacklist /tmp/ksocket-*
 
 # gnome
 # contains extensions, last used times of applications, and notifications
@@ -128,7 +134,7 @@ blacklist ${HOME}/.config/systemd
 blacklist ${HOME}/.local/share/systemd
 blacklist /var/lib/systemd
 # blacklist /var/run/systemd
-#  - creates problems on Arch where /etc/resolv.conf is a symlink to /var/run/systemd/resolve/resolv.conf
+# creates problems on Arch where /etc/resolv.conf is a symlink to /var/run/systemd/resolve/resolv.conf
 
 # VirtualBox
 blacklist ${HOME}/.VirtualBox
@@ -168,7 +174,7 @@ blacklist /var/lib/mysqld/mysql.sock
 blacklist /var/lib/pacman
 blacklist /var/lib/upower
 # blacklist /var/log - a virtual /var/log directory (mostly empty) is build up by default for
-#          every sandbox, unless --writeble-var-log switch is activated
+# every sandbox, unless --writeble-var-log switch is activated
 blacklist /var/mail
 blacklist /var/opt
 blacklist /var/run/acpid.socket
@@ -262,16 +268,19 @@ read-only ${HOME}/.gem
 read-only ${HOME}/.luarocks
 read-only ${HOME}/.npm-packages
 read-only ${HOME}/bin
-
-# The following block breaks trash functionality in file managers
-#read-only  ${HOME}/.local
-#read-write ${HOME}/.local/share
-#noexec     ${HOME}/.local/share
-blacklist   ${HOME}/.local/share/Trash
+read-only ${HOME}/.bin
+read-only ${HOME}/.local/bin
+read-only ${HOME}/.cargo/bin
+read-only ${HOME}/.cargo/env
+blacklist ${HOME}/.cargo/registry
+blacklist ${HOME}/.cargo/config
 
 # Write-protection for desktop entries
 read-only ${HOME}/.config/menus
 read-only ${HOME}/.local/share/applications
+
+# Write-protection for thumbnailer dir
+read-only ${HOME}/.local/share/thumbnailers
 
 # top secret
 blacklist ${HOME}/*.kdb
@@ -314,9 +323,11 @@ blacklist /var/backup
 # cloud provider configuration
 blacklist ${HOME}/.aws
 blacklist ${HOME}/.boto
-blacklist /etc/boto.cfg
 blacklist ${HOME}/.config/gcloud
 blacklist ${HOME}/.kube
+blacklist ${HOME}/.passwd-s3fs
+blacklist ${HOME}/.s3cmd
+blacklist /etc/boto.cfg
 
 # system directories
 blacklist /sbin
@@ -388,14 +399,11 @@ blacklist /vmlinuz*
 # snapshot files
 blacklist /.snapshots
 
-# complement noexec ${HOME} and noexec /tmp
-noexec /tmp/.X11-unix
-
 # flatpak
-blacklist ${HOME}/*.config/flatpak
-blacklist ${HOME}/*.var
-blacklist ${HOME}/*.local/share/flatpak
-blacklist /var/lib/flatpak
+blacklist ${HOME}/.config/flatpak
+blacklist ${HOME}/.local/share/flatpak
+blacklist ${HOME}/.var
 blacklist /usr/share/flatpak
+blacklist /var/lib/flatpak
 # most of the time bwrap is SUID binary
 blacklist ${PATH}/bwrap

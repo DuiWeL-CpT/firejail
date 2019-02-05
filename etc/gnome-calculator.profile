@@ -3,19 +3,19 @@
 # This file is overwritten after every install/update
 quiet
 # Persistent local customizations
-include /etc/firejail/gnome-calculator.local
+include gnome-calculator.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-programs.inc
-include /etc/firejail/disable-xdg.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-passwdmgr.inc
+include disable-interpreters.inc
+include disable-programs.inc
+include disable-xdg.inc
 
-include /etc/firejail/whitelist-common.inc
-include /etc/firejail/whitelist-var-common.inc
+include whitelist-common.inc
+include whitelist-var-common.inc
 
 # apparmor - makes settings immutable
 caps.drop all
@@ -29,6 +29,7 @@ nonewprivs
 noroot
 nosound
 notv
+nou2f
 novideo
 protocol unix,inet,inet6
 seccomp
@@ -36,6 +37,7 @@ shell none
 
 disable-mnt
 private-bin gnome-calculator
+private-cache
 private-dev
 private-lib gdk-pixbuf-2.*,gio,girepository-1.*,gvfs,libgconf-2.so.*,libgnutls.so.*,libproxy.so.*,librsvg-2.so.*,libxml2.so.*
 private-tmp

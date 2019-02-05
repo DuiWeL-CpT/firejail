@@ -1,19 +1,20 @@
 # Firejail profile for transmission-cli
 # Description: Lightweight BitTorrent client
 # This file is overwritten after every install/update
+quiet
 # Persistent local customizations
-include /etc/firejail/transmission-cli.local
+include transmission-cli.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.cache/transmission
 noblacklist ${HOME}/.config/transmission
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-passwdmgr.inc
+include disable-programs.inc
 
 caps.drop all
 machine-id
@@ -23,6 +24,7 @@ nonewprivs
 noroot
 nosound
 notv
+nou2f
 novideo
 protocol unix,inet,inet6
 seccomp

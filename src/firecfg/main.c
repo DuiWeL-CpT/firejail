@@ -66,6 +66,7 @@ static void usage(void) {
 static void list(void) {
 	DIR *dir = opendir(arg_bindir);
 	if (!dir) {
+		perror("opendir");
 		fprintf(stderr, "Error: cannot open %s directory\n", arg_bindir);
 		exit(1);
 	}
@@ -103,6 +104,7 @@ static void clean(void) {
 
 	DIR *dir = opendir(arg_bindir);
 	if (!dir) {
+		perror("opendir");
 		fprintf(stderr, "Error: cannot open %s directory\n", arg_bindir);
 		exit(1);
 	}
@@ -182,6 +184,7 @@ static void set_links_firecfg(void) {
 	// parse /usr/lib/firejail/firecfg.cfg file
 	FILE *fp = fopen(cfgfile, "r");
 	if (!fp) {
+		perror("fopen");
 		fprintf(stderr, "Error: cannot open %s\n", cfgfile);
 		exit(1);
 	}
@@ -247,7 +250,8 @@ static void set_links_homedir(const char *homedir) {
 
 	DIR *dir = opendir(dirname);
 	if (!dir) {
-		fprintf(stderr, "Error: cannot open ~/.config/firejail directory\n");
+		perror("opendir");
+		fprintf(stderr, "Error: cannot open %s directory\n", dirname);
 		free(dirname);
 		return;
 	}
@@ -337,7 +341,12 @@ int main(int argc, char **argv) {
 
 			// exit if the directory does not exist, or if we don't have access to it
 			if (access(arg_bindir, R_OK | W_OK | X_OK)) {
-				fprintf(stderr, "Error: directory %s not found\n", arg_bindir);
+				if (errno == EACCES)
+					fprintf(stderr, "Error: firecfg needs full permissions on directory %s\n", arg_bindir);
+				else {
+					perror("access");
+					fprintf(stderr, "Error: cannot access directory %s\n", arg_bindir);
+				}
 				exit(1);
 			}
 		}
@@ -379,6 +388,8 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 
+			// set umask, access database must be world-readable
+			umask(022);
 			for (j = i + 1; j < argc; j++) {
 				printf("Adding user %s to Firejail access database in %s/firejail.users\n", argv[j], SYSCONFDIR);
 				firejail_user_add(argv[j]);
@@ -405,6 +416,7 @@ int main(int argc, char **argv) {
 	}
 	else if (bindir_set == 0) {
 		// create /usr/local directory if it doesn't exist (Solus distro)
+		mode_t orig_umask = umask(022); // temporarily set the umask
 		struct stat s;
 		if (stat("/usr/local", &s) != 0) {
 			printf("Creating /usr/local directory\n");
@@ -415,13 +427,14 @@ int main(int argc, char **argv) {
 			}
 		}
 		if (stat(arg_bindir, &s) != 0) {
-			printf("Creating /usr/local directory\n");
+			printf("Creating %s directory\n", arg_bindir);
 			int rv = mkdir(arg_bindir, 0755);
 			if (rv != 0) {
 				fprintf(stderr, "Error: cannot create %s directory\n", arg_bindir);
 				return 1;
 			}
 		}
+		umask(orig_umask);
 	}
 
 	// clear all symlinks
@@ -433,7 +446,10 @@ int main(int argc, char **argv) {
 	// add user to firejail access database - only for root
 	if (getuid() == 0) {
 		printf("\nAdding user %s to Firejail access database in %s/firejail.users\n", user, SYSCONFDIR);
+		// temporarily set the umask, access database must be world-readable
+		mode_t orig_umask = umask(022);
 		firejail_user_add(user);
+		umask(orig_umask);
 	}
 
 	// set new symlinks based on ~/.config/firejail directory

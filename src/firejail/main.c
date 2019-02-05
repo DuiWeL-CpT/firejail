@@ -93,7 +93,7 @@ int arg_private_bin = 0;			// private bin directory
 int arg_private_tmp = 0;			// private tmp directory
 int arg_private_lib = 0;			// private lib directory
 int arg_scan = 0;				// arp-scan all interfaces
-int arg_whitelist = 0;				// whitelist commad
+int arg_whitelist = 0;				// whitelist command
 int arg_nosound = 0;				// disable sound
 int arg_noautopulse = 0;			// disable automatic ~/.config/pulse init
 int arg_novideo = 0;			//disable video devices in /dev
@@ -114,7 +114,7 @@ char *arg_audit_prog = NULL;			// audit
 int arg_apparmor = 0;				// apparmor
 int arg_allow_debuggers = 0;			// allow debuggers
 int arg_x11_block = 0;				// block X11
-int arg_x11_xorg = 0;				// use X11 security extention
+int arg_x11_xorg = 0;				// use X11 security extension
 int arg_allusers = 0;				// all user home directories visible
 int arg_machineid = 0;				// preserve /etc/machine-id
 int arg_allow_private_blacklist = 0; 		// blacklist things in private directories
@@ -157,12 +157,35 @@ static void myexit(int rv) {
 	exit(rv);
 }
 
-static void my_handler(int s){
-	EUID_ROOT();
+static void my_handler(int s) {
 	fmessage("\nParent received signal %d, shutting down the child process...\n", s);
 	logsignal(s);
-	kill(child, SIGTERM);
-	myexit(1);
+	if (waitpid(child, NULL, WNOHANG) == 0) {
+		if (has_handler(child, s)) // signals are not delivered if there is no handler yet
+			kill(child, s);
+		else
+			kill(child, SIGKILL);
+		waitpid(child, NULL, 0);
+	}
+	myexit(s);
+}
+
+static void install_handler(void) {
+	struct sigaction sga;
+
+	// block SIGTERM while handling SIGINT
+	sigemptyset(&sga.sa_mask);
+	sigaddset(&sga.sa_mask, SIGTERM);
+	sga.sa_handler = my_handler;
+	sga.sa_flags = 0;
+	sigaction(SIGINT, &sga, NULL);
+
+	// block SIGINT while handling SIGTERM
+	sigemptyset(&sga.sa_mask);
+	sigaddset(&sga.sa_mask, SIGINT);
+	sga.sa_handler = my_handler;
+	sga.sa_flags = 0;
+	sigaction(SIGTERM, &sga, NULL);
 }
 
 // return 1 if error, 0 if a valid pid was found
@@ -233,9 +256,8 @@ static void init_cfg(int argc, char **argv) {
 	// build home directory name
 	cfg.homedir = NULL;
 	if (pw->pw_dir != NULL) {
-		cfg.homedir = strdup(pw->pw_dir);
-		if (!cfg.homedir)
-			errExit("strdup");
+		cfg.homedir = clean_pathname(pw->pw_dir);
+		assert(cfg.homedir);
 	}
 	else {
 		fprintf(stderr, "Error: user %s doesn't have a user directory assigned\n", cfg.username);
@@ -457,7 +479,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 #ifdef HAVE_SECCOMP
 	else if (strcmp(argv[i], "--debug-syscalls") == 0) {
 		if (checkcfg(CFG_SECCOMP)) {
-			int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP, "debug-syscalls");
+			int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP_MAIN, "debug-syscalls");
 			exit(rv);
 		}
 		else
@@ -465,7 +487,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 	}
 	else if (strcmp(argv[i], "--debug-errnos") == 0) {
 		if (checkcfg(CFG_SECCOMP)) {
-			int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP, "debug-errnos");
+			int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP_MAIN, "debug-errnos");
 			exit(rv);
 		}
 		else
@@ -483,7 +505,7 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 		exit(0);
 	}
 	else if (strcmp(argv[i], "--debug-protocols") == 0) {
-		int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP, "debug-protocols");
+		int rv = sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP, 2, PATH_FSECCOMP_MAIN, "debug-protocols");
 		exit(rv);
 	}
 	else if (strncmp(argv[i], "--protocol.print=", 17) == 0) {
@@ -588,6 +610,16 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 			else
 				sbox_run(SBOX_USER | SBOX_CAPS_NONE | SBOX_SECCOMP | SBOX_ALLOW_STDIN,
 					2, PATH_FIREMON, "--netstats");
+			exit(0);
+		}
+		else
+			exit_err_feature("networking");
+	}
+	else if (strncmp(argv[i], "--net.print=", 12) == 0) {
+		if (checkcfg(CFG_NETWORK)) {
+			// extract pid or sandbox name
+			pid_t pid = require_pid(argv[i] + 12);
+			net_print(pid);
 			exit(0);
 		}
 		else
@@ -857,7 +889,6 @@ int main(int argc, char **argv) {
 	int lockfd_directory = -1;
 	int option_cgroup = 0;
 	int custom_profile = 0;	// custom profile loaded
-	int arg_seccomp_cmdline = 0; 	// seccomp requested on command line (used to break out of --chroot)
 	int arg_caps_cmdline = 0; 	// caps requested on command line (used to break out of --chroot)
 
 	// drop permissions by default and rise them when required
@@ -869,6 +900,7 @@ int main(int argc, char **argv) {
 
 	// check if the user is allowed to use firejail
 	init_cfg(argc, argv);
+	assert(cfg.homedir);
 
 	// get starting timestamp, process --quiet
 	start_timestamp = getticks();
@@ -1143,7 +1175,6 @@ int main(int argc, char **argv) {
 				}
 				arg_seccomp = 1;
 				cfg.seccomp_list = seccomp_check_list(argv[i] + 10);
-				arg_seccomp_cmdline = 1;
 			}
 			else
 				exit_err_feature("seccomp");
@@ -1156,7 +1187,6 @@ int main(int argc, char **argv) {
 				}
 				arg_seccomp = 1;
 				cfg.seccomp_list_drop = seccomp_check_list(argv[i] + 15);
-				arg_seccomp_cmdline = 1;
 			}
 			else
 				exit_err_feature("seccomp");
@@ -1169,7 +1199,6 @@ int main(int argc, char **argv) {
 				}
 				arg_seccomp = 1;
 				cfg.seccomp_list_keep = seccomp_check_list(argv[i] + 15);
-				arg_seccomp_cmdline = 1;
 			}
 			else
 				exit_err_feature("seccomp");
@@ -1481,12 +1510,38 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 
-			char *ppath = expand_home(argv[i] + 10, cfg.homedir);
+			char *ppath = expand_macros(argv[i] + 10);
 			if (!ppath)
 				errExit("strdup");
 
-			profile_read(ppath);
-			custom_profile = 1;
+			if (*ppath == ':' || access(ppath, R_OK) || is_dir(ppath)) {
+				int has_colon = (*ppath == ':');
+				char *ptr = ppath;
+				while (*ptr != '/' && *ptr != '.' && *ptr != '\0')
+					ptr++;
+				// profile path contains no / or . chars,
+				// assume its a profile name
+				if (*ptr != '\0') {
+					fprintf(stderr, "Error: inaccessible profile file: %s\n", ppath);
+					exit(1);
+				}
+
+				// profile was not read in previously, try to see if
+				// we were given a profile name.
+				if (!profile_find_firejail(ppath + has_colon, 1)) {
+					// do not fall through to default profile,
+					// because the user should be notified that
+					// given profile arg could not be used.
+					fprintf(stderr, "Error: no profile with name \"%s\" found.\n", ppath);
+					exit(1);
+				}
+				else
+					custom_profile = 1;
+			}
+			else {
+				profile_read(ppath);
+				custom_profile = 1;
+			}
 			free(ppath);
 		}
 		else if (strcmp(argv[i], "--noprofile") == 0) {
@@ -2209,21 +2264,18 @@ int main(int argc, char **argv) {
 				return 1;
 			}
 		}
-		else if (strcmp(argv[i], "--") == 0) {
-			// double dash - positional params to follow
-			arg_doubledash = 1;
-			i++;
-			if (i  >= argc) {
-				fprintf(stderr, "Error: program name not found\n");
-				exit(1);
-			}
-			extract_command_name(i, argv);
-			prog_index = i;
-			break;
-		}
 		else {
+			// double dash - positional params to follow
+			if (strcmp(argv[i], "--") == 0) {
+				arg_doubledash = 1;
+				i++;
+				if (i  >= argc) {
+					fprintf(stderr, "Error: program name not found\n");
+					exit(1);
+				}
+			}
 			// is this an invalid option?
-			if (*argv[i] == '-') {
+			else if (*argv[i] == '-') {
 				fprintf(stderr, "Error: invalid %s command line option\n", argv[i]);
 				return 1;
 			}
@@ -2245,12 +2297,21 @@ int main(int argc, char **argv) {
 	}
 	EUID_ASSERT();
 
-	// exit for --chroot sandboxes when secomp or caps are explicitly specified on command line
-	if (getuid() != 0 && cfg.chrootdir && (arg_seccomp_cmdline || arg_caps_cmdline)) {
-		fprintf(stderr, "Error: for chroot sandboxes, default seccomp and capabilities filters are\n"
-			"enabled by default. Please remove all --seccomp and --caps options from the\n"
-			"command line.\n");
-		exit(1);
+	// exit chroot, overlay and appimage sandboxes when caps are explicitly specified on command line
+	if (getuid() != 0 && arg_caps_cmdline) {
+		char *opt = NULL;
+		if (arg_appimage)
+			opt = "appimage";
+		else if (arg_overlay)
+			opt = "overlay";
+		else if (cfg.chrootdir)
+			opt = "chroot";
+
+		if (opt) {
+			fprintf(stderr, "Error: all capabilities are dropped for %s by default.\n"
+				"Please remove --caps options from the command line.\n", opt);
+			exit(1);
+		}
 	}
 
 	// prog_index could still be -1 if no program was specified
@@ -2327,21 +2388,8 @@ int main(int argc, char **argv) {
 
 
 	// load the profile
-	if (!arg_noprofile) {
-		if (!custom_profile) {
-			// look for a profile in ~/.config/firejail directory
-			char *usercfgdir;
-			if (asprintf(&usercfgdir, "%s/.config/firejail", cfg.homedir) == -1)
-				errExit("asprintf");
-			int rv = profile_find(cfg.command_name, usercfgdir);
-			free(usercfgdir);
-			custom_profile = rv;
-		}
-		if (!custom_profile) {
-			// look for a user profile in /etc/firejail directory
-			int rv = profile_find(cfg.command_name, SYSCONFDIR);
-			custom_profile = rv;
-		}
+	if (!arg_noprofile && !custom_profile) {
+		custom_profile = profile_find_firejail(cfg.command_name, 1);
 	}
 
 	// use default.profile as the default
@@ -2352,16 +2400,7 @@ int main(int argc, char **argv) {
 		if (arg_debug)
 			printf("Attempting to find %s.profile...\n", profile_name);
 
-		// look for the profile in ~/.config/firejail directory
-		char *usercfgdir;
-		if (asprintf(&usercfgdir, "%s/.config/firejail", cfg.homedir) == -1)
-			errExit("asprintf");
-		custom_profile = profile_find(profile_name, usercfgdir);
-		free(usercfgdir);
-
-		if (!custom_profile)
-			// look for the profile in /etc/firejail directory
-			custom_profile = profile_find(profile_name, SYSCONFDIR);
+		custom_profile = profile_find_firejail(profile_name, 1);
 
 		if (!custom_profile) {
 			fprintf(stderr, "Error: no default.profile installed\n");
@@ -2585,15 +2624,24 @@ int main(int argc, char **argv) {
 		flock(lockfd_network, LOCK_UN);
 		close(lockfd_network);
 	}
+	EUID_USER();
+
+	int status = 0;
+	//*****************************
+	// following code is signal-safe
 
 	// handle CTRL-C in parent
-	signal (SIGINT, my_handler);
-	signal (SIGTERM, my_handler);
+	install_handler();
 
 	// wait for the child to finish
-	EUID_USER();
-	int status = 0;
 	waitpid(child, &status, 0);
+
+	// restore default signal actions
+	signal(SIGTERM, SIG_DFL);
+	signal(SIGINT, SIG_DFL);
+
+	// end of signal-safe code
+	//*****************************
 
 	// free globals
 	if (cfg.profile) {

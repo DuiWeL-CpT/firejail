@@ -29,12 +29,15 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#define MAX_BUF 4096
+#define EMPTY_STRING ("")
 // check noblacklist statements not matched by a proper blacklist in disable-*.inc files
 //#define TEST_NO_BLACKLIST_MATCHING
 
 
-
+static int mount_warning = 0;
 static void fs_rdwr(const char *dir);
+static void fs_rdwr_rec(const char *dir);
 
 
 
@@ -70,7 +73,7 @@ static void disable_file(OPERATION op, const char *filename) {
 	if (fname == NULL && errno == EACCES) {
 		if (arg_debug)
 			printf("Debug: no access to file %s, forcing mount\n", filename);
-		// realpath and stat funtions will fail on FUSE filesystems
+		// realpath and stat functions will fail on FUSE filesystems
 		// they don't seem to like a uid of 0
 		// force mounting
 		int rv = mount(RUN_RO_DIR, filename, "none", MS_BIND, "mode=400,gid=0");
@@ -147,37 +150,21 @@ static void disable_file(OPERATION op, const char *filename) {
 		}
 	}
 	else if (op == MOUNT_READONLY) {
-		if (arg_debug)
-			printf("Mounting read-only %s\n", fname);
-		fs_rdonly(fname);
+		fs_rdonly_rec(fname);
 // todo: last_disable = SUCCESSFUL;
 	}
 	else if (op == MOUNT_RDWR) {
-		if (arg_debug)
-			printf("Mounting read-only %s\n", fname);
-		fs_rdwr(fname);
+		fs_rdwr_rec(fname);
 // todo: last_disable = SUCCESSFUL;
 	}
 	else if (op == MOUNT_NOEXEC) {
-		if (arg_debug)
-			printf("Mounting noexec %s\n", fname);
-		fs_noexec(fname);
+		fs_noexec_rec(fname);
 // todo: last_disable = SUCCESSFUL;
 	}
 	else if (op == MOUNT_TMPFS) {
 		if (S_ISDIR(s.st_mode)) {
-			if (arg_debug)
-				printf("Mounting tmpfs on %s\n", fname);
-			// preserve owner and mode for the directory
-			if (mount("tmpfs", fname, "tmpfs", MS_NOSUID | MS_NODEV | MS_STRICTATIME | MS_REC,  0) < 0)
-				errExit("mounting tmpfs");
-			/* coverity[toctou] */
-			if (chown(fname, s.st_uid, s.st_gid) == -1)
-				errExit("mounting tmpfs chown");
-			if (chmod(fname, s.st_mode) == -1)
-				errExit("mounting tmpfs chmod");
+			fs_tmpfs(fname, 0);
 			last_disable = SUCCESSFUL;
-			fs_logger2("tmpfs", fname);
 		}
 		else
 			fwarning("%s is not a directory; cannot mount a tmpfs on top of it.\n", fname);
@@ -257,8 +244,6 @@ static void globbing(OPERATION op, const char *pattern, const char *noblacklist[
 
 // blacklist files or directories by mounting empty files on top of them
 void fs_blacklist(void) {
-	char *homedir = cfg.homedir;
-	assert(homedir);
 	ProfileEntry *entry = cfg.profile;
 	if (!entry)
 		return;
@@ -335,7 +320,7 @@ void fs_blacklist(void) {
 				enames = calloc(2, sizeof(char *));
 				if (!enames)
 					errExit("calloc");
-				enames[0] = expand_home(entry->data + 12, homedir);
+				enames[0] = expand_macros(entry->data + 12);
 				assert(enames[1] == 0);
 			}
 
@@ -401,7 +386,7 @@ void fs_blacklist(void) {
 		}
 
 		// replace home macro in blacklist array
-		char *new_name = expand_home(ptr, homedir);
+		char *new_name = expand_macros(ptr);
 		ptr = new_name;
 
 		// expand path macro - look for the file in /usr/local/bin,  /usr/local/sbin, /bin, /usr/bin, /sbin and  /usr/sbin directories
@@ -459,9 +444,52 @@ static int get_mount_flags(const char *path, unsigned long *flags) {
 
 //***********************************************
 // mount namespace
+//		- functions need fully resolved paths
 //***********************************************
 
-// remount a directory read-only
+// mount a writable tmpfs on directory
+void fs_tmpfs(const char *dir, unsigned check_owner) {
+	assert(dir);
+	// get a file descriptor for dir, fails if there is any symlink
+	int fd = safe_fd(dir, O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+	if (fd == -1)
+		errExit("safe_fd");
+	struct stat s;
+	if (fstat(fd, &s) == -1)
+		errExit("fstat");
+	if (check_owner && s.st_uid != getuid()) {
+		fwarning("no tmpfs mounted on %s: not owned by the current user\n", dir);
+		close(fd);
+		return;
+	}
+	if (arg_debug)
+		printf("Mounting tmpfs on %s\n", dir);
+	// preserve ownership, mode
+	char *options;
+	if (asprintf(&options, "mode=%o,uid=%u,gid=%u", s.st_mode & 07777, s.st_uid, s.st_gid) == -1)
+		errExit("asprintf");
+	// preserve mount flags, but remove read-only flag
+	struct statvfs buf;
+	if (fstatvfs(fd, &buf) == -1)
+		errExit("fstatvfs");
+	unsigned long flags = buf.f_flag & ~(MS_RDONLY|MS_BIND);
+	// mount via the symbolic link in /proc/self/fd
+	char *proc;
+	if (asprintf(&proc, "/proc/self/fd/%d", fd) == -1)
+		errExit("asprintf");
+	if (mount("tmpfs", proc, "tmpfs", flags|MS_NOSUID|MS_NODEV, options) < 0)
+		errExit("mounting tmpfs");
+	// check the last mount operation
+	MountData *mdata = get_last_mount();
+	if (strcmp(mdata->fstype, "tmpfs") != 0 || strcmp(mdata->dir, dir) != 0)
+		errLogExit("invalid tmpfs mount");
+	fs_logger2("tmpfs", dir);
+	free(options);
+	free(proc);
+	close(fd);
+}
+
+// remount directory read-only
 void fs_rdonly(const char *dir) {
 	assert(dir);
 	// check directory exists
@@ -473,83 +501,177 @@ void fs_rdonly(const char *dir) {
 		if ((flags & MS_RDONLY) == MS_RDONLY)
 			return;
 		flags |= MS_RDONLY;
+		if (arg_debug)
+			printf("Mounting read-only %s\n", dir);
 		// mount --bind /bin /bin
 		// mount --bind -o remount,ro /bin
 		if (mount(dir, dir, NULL, MS_BIND|MS_REC, NULL) < 0 ||
-		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT|MS_REC, NULL) < 0)
+		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT, NULL) < 0)
 			errExit("mount read-only");
 		fs_logger2("read-only", dir);
 	}
 }
 
-static void fs_rdwr(const char *dir) {
+// remount directory read-only recursively
+void fs_rdonly_rec(const char *dir) {
 	assert(dir);
-	// check directory exists and ensure we have a resolved path
-	// the resolved path allows to run a sanity check after the mount
-	char *path = realpath(dir, NULL);
-	if (path == NULL)
+	// get mount point of the directory
+	int mountid = get_mount_id(dir);
+	if (mountid == -1)
 		return;
-	// allow only user owned directories, except the user is root
-	uid_t u = getuid();
-	struct stat s;
-	int rv = stat(path, &s);
-	if (rv) {
-		free(path);
-		return;
-	}
-	if (u != 0 && s.st_uid != u) {
-		fwarning("you are not allowed to change %s to read-write\n", path);
-		free(path);
+	if (mountid == -2) {
+		// falling back to a simple remount on old kernels
+		if (!mount_warning) {
+			fwarning("read-only, read-write and noexec options are not applied recursively\n");
+			mount_warning = 1;
+		}
+		fs_rdonly(dir);
 		return;
 	}
-	// mount --bind /bin /bin
-	// mount --bind -o remount,rw /bin
-	unsigned long flags = 0;
-	get_mount_flags(path, &flags);
-	if ((flags & MS_RDONLY) == 0) {
-		free(path);
-		return;
+	// build array with all mount points that need to get remounted
+	char **arr = build_mount_array(mountid, dir);
+	assert(arr);
+	// remount
+	char **tmp = arr;
+	while (*tmp) {
+		fs_rdonly(*tmp);
+		free(*tmp++);
 	}
-	flags &= ~MS_RDONLY;
-	if (mount(path, path, NULL, MS_BIND|MS_REC, NULL) < 0 ||
-	    mount(NULL, path, NULL, flags|MS_BIND|MS_REMOUNT|MS_REC, NULL) < 0)
-		errExit("mount read-write");
-	fs_logger2("read-write", path);
-
-	// run a check on /proc/self/mountinfo to validate the mount
-	MountData *mptr = get_last_mount();
-	if (strncmp(mptr->dir, path, strlen(path)) != 0)
-		errLogExit("invalid read-write mount");
-
-	free(path);
+	free(arr);
 }
 
+// remount directory read-write
+static void fs_rdwr(const char *dir) {
+	assert(dir);
+	// check directory exists
+	struct stat s;
+	int rv = stat(dir, &s);
+	if (rv == 0) {
+		// allow only user owned directories, except the user is root
+		uid_t u = getuid();
+		if (u != 0 && s.st_uid != u) {
+			fwarning("you are not allowed to change %s to read-write\n", dir);
+			return;
+		}
+		unsigned long flags = 0;
+		get_mount_flags(dir, &flags);
+		if ((flags & MS_RDONLY) == 0)
+			return;
+		flags &= ~MS_RDONLY;
+		if (arg_debug)
+			printf("Mounting read-write %s\n", dir);
+		// mount --bind /bin /bin
+		// mount --bind -o remount,rw /bin
+		if (mount(dir, dir, NULL, MS_BIND|MS_REC, NULL) < 0 ||
+		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT, NULL) < 0)
+			errExit("mount read-write");
+		fs_logger2("read-write", dir);
+		// run a sanity check on /proc/self/mountinfo
+		MountData *mptr = get_last_mount();
+		size_t len = strlen(dir);
+		if (strncmp(mptr->dir, dir, len) != 0 ||
+		   (*(mptr->dir + len) != '\0' && *(mptr->dir + len) != '/'))
+			errLogExit("invalid read-write mount");
+	}
+}
+
+// remount directory read-write recursively
+static void fs_rdwr_rec(const char *dir) {
+	assert(dir);
+	// get mount point of the directory
+	int mountid = get_mount_id(dir);
+	if (mountid == -1)
+		return;
+	if (mountid == -2) {
+		// falling back to a simple remount on old kernels
+		if (!mount_warning) {
+			fwarning("read-only, read-write and noexec options are not applied recursively\n");
+			mount_warning = 1;
+		}
+		fs_rdwr(dir);
+		return;
+	}
+	// build array with all mount points that need to get remounted
+	char **arr = build_mount_array(mountid, dir);
+	assert(arr);
+	// remount
+	char **tmp = arr;
+	while (*tmp) {
+		fs_rdwr(*tmp);
+		free(*tmp++);
+	}
+	free(arr);
+}
+
+// remount directory noexec, nodev, nosuid
 void fs_noexec(const char *dir) {
 	assert(dir);
 	// check directory exists
 	struct stat s;
 	int rv = stat(dir, &s);
 	if (rv == 0) {
-		// mount --bind /bin /bin
-		// mount --bind -o remount,ro /bin
 		unsigned long flags = 0;
 		get_mount_flags(dir, &flags);
 		if ((flags & (MS_NOEXEC|MS_NODEV|MS_NOSUID)) == (MS_NOEXEC|MS_NODEV|MS_NOSUID))
 			return;
 		flags |= MS_NOEXEC|MS_NODEV|MS_NOSUID;
+		if (arg_debug)
+			printf("Mounting noexec %s\n", dir);
+		// mount --bind /bin /bin
+		// mount --bind -o remount,noexec /bin
 		if (mount(dir, dir, NULL, MS_BIND|MS_REC, NULL) < 0 ||
-		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT|MS_REC, NULL) < 0)
+		    mount(NULL, dir, NULL, flags|MS_BIND|MS_REMOUNT, NULL) < 0)
 			errExit("mount noexec");
 		fs_logger2("noexec", dir);
 	}
 }
 
+// remount directory noexec, nodev, nosuid recursively
+void fs_noexec_rec(const char *dir) {
+	assert(dir);
+	// get mount point of the directory
+	int mountid = get_mount_id(dir);
+	if (mountid == -1)
+		return;
+	if (mountid == -2) {
+		// falling back to a simple remount on old kernels
+		if (!mount_warning) {
+			fwarning("read-only, read-write and noexec options are not applied recursively\n");
+			mount_warning = 1;
+		}
+		fs_noexec(dir);
+		return;
+	}
+	// build array with all mount points that need to get remounted
+	char **arr = build_mount_array(mountid, dir);
+	assert(arr);
+	// remount
+	char **tmp = arr;
+	while (*tmp) {
+		fs_noexec(*tmp);
+		free(*tmp++);
+	}
+	free(arr);
+}
+
 // Disable /mnt, /media, /run/mount and /run/media access
-void fs_mnt(void) {
-	disable_file(BLACKLIST_FILE, "/mnt");
-	disable_file(BLACKLIST_FILE, "/media");
-	disable_file(BLACKLIST_FILE, "/run/mount");
-	disable_file(BLACKLIST_FILE, "//run/media");
+void fs_mnt(const int enforce) {
+	if (enforce) {
+		// disable-mnt set in firejail.config
+		// overriding with noblacklist is not possible in this case
+		disable_file(BLACKLIST_FILE, "/mnt");
+		disable_file(BLACKLIST_FILE, "/media");
+		disable_file(BLACKLIST_FILE, "/run/mount");
+		disable_file(BLACKLIST_FILE, "/run/media");
+	}
+	else {
+		EUID_USER();
+		profile_add("blacklist /mnt");
+		profile_add("blacklist /media");
+		profile_add("blacklist /run/mount");
+		profile_add("blacklist /run/media");
+		EUID_ROOT();
+	}
 }
 
 
@@ -645,26 +767,8 @@ void fs_proc_sys_dev_boot(void) {
 			char *fnamegpg;
 			if (asprintf(&fnamegpg, "/run/user/%d/gnupg", getuid()) == -1)
 				errExit("asprintf");
-			if (stat(fnamegpg, &s) == -1) {
-				pid_t child = fork();
-				if (child < 0)
-					errExit("fork");
-				if (child == 0) {
-					// drop privileges
-					drop_privs(0);
-					if (mkdir(fnamegpg, 0700) == 0) {
-						if (chmod(fnamegpg, 0700) == -1)
-							{;} // do nothing
-					}
-#ifdef HAVE_GCOV
-					__gcov_flush();
-#endif
-					_exit(0);
-				}
-				// wait for the child to finish
-				waitpid(child, NULL, 0);
+			if (create_empty_dir_as_user(fnamegpg, 0700))
 				fs_logger2("create", fnamegpg);
-			}
 			if (stat(fnamegpg, &s) == 0)
 				disable_file(BLACKLIST_FILE, fnamegpg);
 			free(fnamegpg);
@@ -673,26 +777,8 @@ void fs_proc_sys_dev_boot(void) {
 			char *fnamesysd;
 			if (asprintf(&fnamesysd, "/run/user/%d/systemd", getuid()) == -1)
 				errExit("asprintf");
-			if (stat(fnamesysd, &s) == -1) {
-				pid_t child = fork();
-				if (child < 0)
-					errExit("fork");
-				if (child == 0) {
-					// drop privileges
-					drop_privs(0);
-					if (mkdir(fnamesysd, 0755) == 0) {
-						if (chmod(fnamesysd, 0755) == -1)
-							{;} // do nothing
-					}
-#ifdef HAVE_GCOV
-					__gcov_flush();
-#endif
-					_exit(0);
-				}
-				// wait for the child to finish
-				waitpid(child, NULL, 0);
+			if (create_empty_dir_as_user(fnamesysd, 0755))
 				fs_logger2("create", fnamesysd);
-			}
 			if (stat(fnamesysd, &s) == 0)
 				disable_file(BLACKLIST_FILE, fnamesysd);
 			free(fnamesysd);
@@ -735,20 +821,17 @@ void fs_basic_fs(void) {
 	uid_t uid = getuid();
 
 	if (arg_debug)
-		printf("Mounting read-only /bin, /sbin, /lib, /lib32, /lib64, /usr");
+		printf("Basic read-only filesystem:\n");
 	if (!arg_writable_etc) {
 		fs_rdonly("/etc");
 		if (uid)
 			fs_noexec("/etc");
-		if (arg_debug) printf(", /etc");
 	}
 	if (!arg_writable_var) {
 		fs_rdonly("/var");
 		if (uid)
 			fs_noexec("/var");
-		if (arg_debug) printf(", /var");
 	}
-	if (arg_debug) printf("\n");
 	fs_rdonly("/bin");
 	fs_rdonly("/sbin");
 	fs_rdonly("/lib");
@@ -805,31 +888,11 @@ char *fs_check_overlay_dir(const char *subdirname, int allow_reuse) {
 	}
 	else {
 		// create ~/.firejail directory
-		pid_t child = fork();
-		if (child < 0)
-			errExit("fork");
-		if (child == 0) {
-			// drop privileges
-			drop_privs(0);
-
-			// create directory
-			if (mkdir(dirname, 0700))
-				errExit("mkdir");
-			if (chmod(dirname, 0700) == -1)
-				errExit("chmod");
-			ASSERT_PERMS(dirname, getuid(), getgid(), 0700);
-#ifdef HAVE_GCOV
-			__gcov_flush();
-#endif
-			_exit(0);
-		}
-		// wait for the child to finish
-		waitpid(child, NULL, 0);
+		create_empty_dir_as_user(dirname, 0700);
 		if (stat(dirname, &s) == -1) {
-			fprintf(stderr, "Error: cannot create ~/.firejail directory\n");
+			fprintf(stderr, "Error: cannot create directory %s\n", dirname);
 			exit(1);
 		}
-		fs_logger2("create", dirname);
 	}
 	free(dirname);
 
@@ -1152,9 +1215,8 @@ void fs_overlayfs(void) {
 void fs_check_chroot_dir(const char *rootdir) {
 	EUID_ASSERT();
 	assert(rootdir);
+	char *dir = EMPTY_STRING;
 	struct stat s;
-	int fd = -1;
-	int parentfd = -1;
 
 	char *overlay;
 	if (asprintf(&overlay, "%s/.firejail", cfg.homedir) == -1)
@@ -1166,7 +1228,7 @@ void fs_check_chroot_dir(const char *rootdir) {
 	free(overlay);
 
 	// fails if there is any symlink or if rootdir is not a directory
-	parentfd = safe_fd(rootdir, O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+	int parentfd = safe_fd(rootdir, O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
 	if (parentfd == -1) {
 		fprintf(stderr, "Error: invalid chroot directory %s\n", rootdir);
 		exit(1);
@@ -1185,73 +1247,58 @@ void fs_check_chroot_dir(const char *rootdir) {
 	}
 
 	// check /dev
-	fd = openat(parentfd, "dev", O_PATH|O_CLOEXEC);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot open /dev in chroot directory\n");
-		exit(1);
-	}
+	dir = "dev";
+	int fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		goto error1;
 	if (fstat(fd, &s) == -1)
 		errExit("fstat");
-	if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-		fprintf(stderr, "Error: chroot /dev should be a directory owned by root\n");
-		exit(1);
-	}
+	if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+		goto error2;
 	close(fd);
 
 	// check /var/tmp
-	fd = openat(parentfd, "var/tmp", O_PATH|O_CLOEXEC);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot open /var/tmp in chroot directory\n");
-		exit(1);
-	}
+	dir = "var/tmp";
+	fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		goto error1;
 	if (fstat(fd, &s) == -1)
 		errExit("fstat");
-	if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-		fprintf(stderr, "Error: chroot /var/tmp should be a directory owned by root\n");
-		exit(1);
-	}
+	if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+		goto error2;
 	close(fd);
 
 	// check /proc
-	fd = openat(parentfd, "proc", O_PATH|O_CLOEXEC);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot open /proc in chroot directory\n");
-		exit(1);
-	}
+	dir = "proc";
+	fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		goto error1;
 	if (fstat(fd, &s) == -1)
 		errExit("fstat");
-	if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-		fprintf(stderr, "Error: chroot /proc should be a directory owned by root\n");
-		exit(1);
-	}
+	if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+		goto error2;
 	close(fd);
 
 	// check /tmp
-	fd = openat(parentfd, "tmp", O_PATH|O_CLOEXEC);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot open /tmp in chroot directory\n");
-		exit(1);
-	}
+	dir = "tmp";
+	fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		goto error1;
 	if (fstat(fd, &s) == -1)
 		errExit("fstat");
-	if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-		fprintf(stderr, "Error: chroot /tmp should be a directory owned by root\n");
-		exit(1);
-	}
+	if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+		goto error2;
 	close(fd);
 
 	// check /etc
-	fd = openat(parentfd, "etc", O_PATH|O_CLOEXEC);
-	if (fd == -1) {
-		fprintf(stderr, "Error: cannot open /etc in chroot directory\n");
-		exit(1);
-	}
+	dir = "etc";
+	fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+	if (fd == -1)
+		goto error1;
 	if (fstat(fd, &s) == -1)
 		errExit("fstat");
-	if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-		fprintf(stderr, "Error: chroot /etc should be a directory owned by root\n");
-		exit(1);
-	}
+	if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+		goto error2;
 	if (((S_IWGRP|S_IWOTH) & s.st_mode) != 0) {
 		fprintf(stderr, "Error: only root user should be given write permission on chroot /etc\n");
 		exit(1);
@@ -1288,21 +1335,31 @@ void fs_check_chroot_dir(const char *rootdir) {
 
 	// check x11 socket directory
 	if (getenv("FIREJAIL_X11")) {
-		fd = openat(parentfd, "tmp/.X11-unix", O_PATH|O_CLOEXEC);
-		if (fd == -1) {
-			fprintf(stderr, "Error: cannot open /tmp/.X11-unix in chroot directory\n");
-			exit(1);
-		}
+		dir = "tmp/.X11-unix";
+		fd = openat(parentfd, dir, O_PATH|O_CLOEXEC);
+		if (fd == -1)
+			goto error1;
 		if (fstat(fd, &s) == -1)
 			errExit("fstat");
-		if (!S_ISDIR(s.st_mode) || s.st_uid != 0) {
-			fprintf(stderr, "Error: chroot /tmp/.X11-unix should be a directory owned by root\n");
-			exit(1);
-		}
+		if (!S_ISDIR(s.st_mode) || s.st_uid != 0)
+			goto error2;
 		close(fd);
 	}
 
 	close(parentfd);
+	return;
+
+error1:
+	if (errno == ENOENT)
+		fprintf(stderr, "Error: cannot find /%s in chroot directory\n", dir);
+	else {
+		perror("open");
+		fprintf(stderr, "Error: cannot open /%s in chroot directory\n", dir);
+	}
+	exit(1);
+error2:
+	fprintf(stderr, "Error: chroot /%s should be a directory owned by root\n", dir);
+	exit(1);
 }
 
 // chroot into an existing directory; mount exiting /dev and update /etc/resolv.conf
@@ -1365,6 +1422,16 @@ void fs_chroot(const char *rootdir) {
 	if (mkdir(rundir, 0755) == -1 && errno != EEXIST)
 		errExit("mkdir");
 	ASSERT_PERMS(rundir, 0, 0, 0755);
+	free(rundir);
+
+	// create /run/firejail/lib directory in chroot and mount it
+	if (asprintf(&rundir, "%s%s", rootdir, RUN_FIREJAIL_LIB_DIR) == -1)
+		errExit("asprintf");
+	if (mkdir(rundir, 0755) == -1 && errno != EEXIST)
+		errExit("mkdir");
+	ASSERT_PERMS(rundir, 0, 0, 0755);
+	if (mount(RUN_FIREJAIL_LIB_DIR, rundir, NULL, MS_BIND|MS_REC, NULL) < 0)
+		errExit("mount bind");
 	free(rundir);
 
 	// create /run/firejail/mnt directory in chroot and mount the current one
@@ -1470,8 +1537,6 @@ void fs_private_tmp(void) {
 		}
 	}
 	closedir(dir);
-
-
 }
 
 // this function is called from sandbox.c before blacklist/whitelist functions
@@ -1481,53 +1546,20 @@ void fs_private_cache(void) {
 		errExit("asprintf");
 	// check if ~/.cache is a valid destination
 	struct stat s;
-	if (is_link(cache)) {
-		fwarning("user .cache is a symbolic link, tmpfs not mounted\n");
+	if (lstat(cache, &s) == -1) {
+		fwarning("cannot find %s, tmpfs not mounted\n", cache);
 		free(cache);
 		return;
 	}
-	if (stat(cache, &s) == -1 || !S_ISDIR(s.st_mode)) {
-		fwarning("no user .cache directory found, tmpfs not mounted\n");
+	if (!S_ISDIR(s.st_mode)) {
+		if (S_ISLNK(s.st_mode))
+			fwarning("%s is a symbolic link, tmpfs not mounted\n", cache);
+		else
+			fwarning("%s is not a directory; cannot mount a tmpfs on top of it\n", cache);
 		free(cache);
 		return;
 	}
-	if (s.st_uid != getuid()) {
-		fwarning("user .cache is not owned by current user, tmpfs not mounted\n");
-		free(cache);
-		return;
-	}
-
-	if (arg_debug)
-		printf("Mounting tmpfs on %s\n", cache);
-	// get a file descriptor for ~/.cache, fails if there is any symlink
-	int fd = safe_fd(cache, O_PATH|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
-	if (fd == -1)
-		errExit("safe_fd");
-	// confirm that actual mount destination is owned by the user
-	if (fstat(fd, &s) == -1 || s.st_uid != getuid())
-		errExit("fstat");
-
-	// mount a tmpfs on ~/.cache via the symbolic link in /proc/self/fd
-	char *proc;
-	if (asprintf(&proc, "/proc/self/fd/%d", fd) == -1)
-		errExit("asprintf");
-	if (mount("tmpfs", proc, "tmpfs", MS_NOSUID | MS_NODEV | MS_STRICTATIME | MS_REC, 0) < 0)
-		errExit("mounting tmpfs");
-	fs_logger2("tmpfs", cache);
-	free(proc);
-	close(fd);
-	// check the last mount operation
-	MountData *mdata = get_last_mount();
-	assert(mdata);
-	if (strcmp(mdata->fstype, "tmpfs") != 0 || strcmp(mdata->dir, cache) != 0)
-		errLogExit("invalid .cache mount");
-
-	// get a new file descriptor for ~/.cache, the old directory is masked by the tmpfs
-	fd = safe_fd(cache, O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
-	if (fd == -1)
-		errExit("safe_fd");
+	// do the mount
+	fs_tmpfs(cache, getuid()); // check ownership of ~/.cache
 	free(cache);
-	// restore permissions
-	SET_PERMS_FD(fd, s.st_uid, s.st_gid, s.st_mode);
-	close(fd);
 }

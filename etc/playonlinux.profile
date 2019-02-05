@@ -2,9 +2,9 @@
 # Description: Front-end for Wine
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/playonlinux.local
+include playonlinux.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.Steam
 noblacklist ${HOME}/.local/share/Steam
@@ -15,18 +15,23 @@ noblacklist ${HOME}/.PlayOnLinux
 # nc is needed to run playonlinux
 noblacklist ${PATH}/nc
 
-# Allow access to perl
+# Allow python (blacklisted by disable-interpreters.inc)
+noblacklist ${PATH}/python2*
+noblacklist ${PATH}/python3*
+noblacklist /usr/lib/python2*
+noblacklist /usr/lib/python3*
+
+# Allow perl (blacklisted by disable-interpreters.inc)
 noblacklist ${PATH}/cpan*
 noblacklist ${PATH}/core_perl
 noblacklist ${PATH}/perl
 noblacklist /usr/lib/perl*
 noblacklist /usr/share/perl*
 
-include /etc/firejail/disable-common.inc
-# playonlinux uses perl
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-programs.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-programs.inc
 
 caps.drop all
 netfilter

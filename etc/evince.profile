@@ -2,21 +2,21 @@
 # Description: Document (PostScript, PDF) viewer
 # This file is overwritten after every install/update
 # Persistent local customizations
-include /etc/firejail/evince.local
+include evince.local
 # Persistent global definitions
-include /etc/firejail/globals.local
+include globals.local
 
 noblacklist ${HOME}/.config/evince
 noblacklist ${DOCUMENTS}
 
-include /etc/firejail/disable-common.inc
-include /etc/firejail/disable-devel.inc
-include /etc/firejail/disable-interpreters.inc
-include /etc/firejail/disable-passwdmgr.inc
-include /etc/firejail/disable-programs.inc
-include /etc/firejail/disable-xdg.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-passwdmgr.inc
+include disable-programs.inc
+include disable-xdg.inc
 
-include /etc/firejail/whitelist-var-common.inc
+include whitelist-var-common.inc
 
 caps.drop all
 machine-id
@@ -30,6 +30,7 @@ nonewprivs
 noroot
 nosound
 notv
+nou2f
 novideo
 protocol unix
 seccomp
@@ -38,9 +39,9 @@ tracelog
 
 private-bin evince,evince-previewer,evince-thumbnailer
 private-dev
-private-etc fonts
+private-etc fonts,machine-id
 
-private-lib evince,gdk-pixbuf-2.*,gio,gvfs/libgvfscommon.so,libdjvulibre.so.*,libgconf-2.so.*,libpoppler-glib.so.*,librsvg-2.so.*
+private-lib evince,gdk-pixbuf-2.*,gio,gvfs/libgvfscommon.so,libdjvulibre.so.*,libgconf-2.so.*,libpoppler-glib.so.*,librsvg-2.so.*,gconv
 
 private-tmp
 

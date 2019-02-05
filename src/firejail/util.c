@@ -454,7 +454,6 @@ void trim_trailing_slash_or_dot(char *path) {
 	assert(path);
 
 	char *end = strchr(path, '\0');
-	assert(end);
 	if ((end - path) > 1) {
 		end--;
 		while (*end == '/' ||
@@ -471,11 +470,13 @@ void trim_trailing_slash_or_dot(char *path) {
 char *line_remove_spaces(const char *buf) {
 	EUID_ASSERT();
 	assert(buf);
-	if (strlen(buf) == 0)
+	size_t len = strlen(buf);
+	if (len == 0)
 		return NULL;
+	assert(len + 1 != 0 && buf[len] == '\0');
 
 	// allocate memory for the new string
-	char *rv = malloc(strlen(buf) + 1);
+	char *rv = malloc(len + 1);
 	if (rv == NULL)
 		errExit("malloc");
 
@@ -530,6 +531,44 @@ char *split_comma(char *str) {
 	if (*ptr == '\0')
 		return NULL;
 	return ptr;
+}
+
+
+// remove consecutive and trailing slashes
+// and return allocated memory
+// e.g. /home//user/ -> /home/user
+char *clean_pathname(const char *path) {
+	assert(path);
+	size_t len = strlen(path);
+	assert(len + 1 != 0 && path[len] == '\0');
+
+	char *rv = malloc(len + 1);
+	if (!rv)
+		errExit("malloc");
+
+	if (len > 0) {
+		size_t i, j, cnt;
+		for (i = 0, j = 0, cnt = 0; i < len; i++) {
+			if (path[i] == '/')
+				cnt++;
+			else
+				cnt = 0;
+
+			if (cnt < 2) {
+				rv[j] = path[i];
+				j++;
+			}
+		}
+		rv[j] = '\0';
+
+		// remove a trailing slash
+		if (j > 1 && rv[j - 1] == '/')
+			rv[j - 1] = '\0';
+	}
+	else
+		*rv = '\0';
+
+	return rv;
 }
 
 
@@ -636,33 +675,33 @@ void extract_command_name(int index, char **argv) {
 	if (!cfg.command_name)
 		errExit("strdup");
 
-	// restrict the command name to the first word
-	char *ptr = cfg.command_name;
-	while (*ptr != ' ' && *ptr != '\t' && *ptr != '\0')
-		ptr++;
-	*ptr = '\0';
-
 	// remove the path: /usr/bin/firefox becomes firefox
-	ptr = strrchr(cfg.command_name, '/');
+	char *basename = cfg.command_name;
+	char *ptr = strrchr(cfg.command_name, '/');
 	if (ptr) {
-		ptr++;
+		basename = ++ptr;
 		if (*ptr == '\0') {
 			fprintf(stderr, "Error: invalid command name\n");
 			exit(1);
 		}
+	}
+	else
+		ptr = basename;
 
-		char *tmp = strdup(ptr);
-		if (!tmp)
+	// restrict the command name to the first word
+	while (*ptr != ' ' && *ptr != '\t' && *ptr != '\0')
+		ptr++;
+
+	// command name is a substring of cfg.command_name
+	if (basename != cfg.command_name || *ptr != '\0') {
+		*ptr = '\0';
+
+		basename = strdup(basename);
+		if (!basename)
 			errExit("strdup");
 
-		// limit the command to the first ' '
-		char *ptr2 = tmp;
-		while (*ptr2 != ' ' && *ptr2 != '\0')
-			ptr2++;
-		*ptr2 = '\0';
-
 		free(cfg.command_name);
-		cfg.command_name = tmp;
+		cfg.command_name = basename;
 	}
 }
 
@@ -901,9 +940,7 @@ int remove_overlay_directory(void) {
 		// wait for the child to finish
 		waitpid(child, NULL, 0);
 		// check if ~/.firejail was deleted
-		if (stat(path, &s) == -1)
-			return 0;
-		else
+		if (stat(path, &s) == 0)
 			return 1;
 	}
 	return 0;
@@ -919,6 +956,44 @@ void flush_stdin(void) {
 			(void) rv;
 		}
 	}
+}
+
+// return 1 if new directory was created, else return 0
+int create_empty_dir_as_user(const char *dir, mode_t mode) {
+	assert(dir);
+	mode &= 07777;
+	struct stat s;
+
+	if (stat(dir, &s)) {
+		if (arg_debug)
+			printf("Creating empty %s directory\n", dir);
+		pid_t child = fork();
+		if (child < 0)
+			errExit("fork");
+		if (child == 0) {
+			// drop privileges
+			drop_privs(0);
+
+			if (mkdir(dir, mode) == 0) {
+				if (chmod(dir, mode) == -1)
+					{;} // do nothing
+			}
+			else if (arg_debug) {
+				char *str;
+				if (asprintf(&str, "Directory %s not created", dir) == -1)
+					errExit("asprintf");
+				perror(str);
+			}
+#ifdef HAVE_GCOV
+			__gcov_flush();
+#endif
+			_exit(0);
+		}
+		waitpid(child, NULL, 0);
+		if (stat(dir, &s) == 0)
+			return 1;
+	}
+	return 0;
 }
 
 void create_empty_dir_as_root(const char *dir, mode_t mode) {
@@ -1015,8 +1090,13 @@ unsigned extract_timeout(const char *str) {
 		fprintf(stderr, "Error: invalid timeout, please use a hh:mm:ss format\n");
 		exit(1);
 	}
+	unsigned timeout = h * 3600 + m * 60 + s;
+	if (timeout == 0) {
+		fprintf(stderr, "Error: invalid timeout\n");
+		exit(1);
+	}
 
-	return h * 3600 + m * 60 + s;
+	return timeout;
 }
 
 void disable_file_or_dir(const char *fname) {
@@ -1184,4 +1264,73 @@ int invalid_sandbox(const pid_t pid) {
 	}
 
 	return 0;
+}
+
+int has_handler(pid_t pid, int signal) {
+	if (signal > 0) {
+		char *fname;
+		if (asprintf(&fname, "/proc/%d/status", pid) == -1)
+			errExit("asprintf");
+		EUID_ROOT();
+		FILE *fp = fopen(fname, "re");
+		EUID_USER();
+		free(fname);
+		if (fp) {
+			char buf[BUFLEN];
+			while (fgets(buf, BUFLEN, fp)) {
+				if (strncmp(buf, "SigCgt:", 7) == 0) {
+					char *ptr = buf + 7;
+					unsigned long long val;
+					if (sscanf(ptr, "%llx", &val) != 1) {
+						fprintf(stderr, "Error: cannot read /proc file\n");
+						exit(1);
+					}
+					val >>= (signal - 1);
+					val &= 1;
+					fclose(fp);
+					return val;  // 1 if process has a handler for the signal, else 0
+				}
+			}
+			fclose(fp);
+		}
+	}
+	return 0;
+}
+
+void enter_network_namespace(pid_t pid) {
+	// in case the pid is that of a firejail process, use the pid of the first child process
+	pid_t child = switch_to_child(pid);
+
+	// now check if the pid belongs to a firejail sandbox
+	if (invalid_sandbox(child)) {
+		fprintf(stderr, "Error: no valid sandbox\n");
+		exit(1);
+	}
+
+	// check privileges for non-root users
+	uid_t uid = getuid();
+	if (uid != 0) {
+		uid_t sandbox_uid = pid_get_uid(pid);
+		if (uid != sandbox_uid) {
+			fprintf(stderr, "Error: permission is denied to join a sandbox created by a different user.\n");
+			exit(1);
+		}
+	}
+
+	// check network namespace
+	char *name;
+	if (asprintf(&name, "/run/firejail/network/%d-netmap", pid) == -1)
+		errExit("asprintf");
+	struct stat s;
+	if (stat(name, &s) == -1) {
+		fprintf(stderr, "Error: the sandbox doesn't use a new network namespace\n");
+		exit(1);
+	}
+
+	// join the namespace
+	EUID_ROOT();
+	if (join_namespace(child, "net")) {
+		fprintf(stderr, "Error: cannot join the network namespace\n");
+		exit(1);
+	}
 }
