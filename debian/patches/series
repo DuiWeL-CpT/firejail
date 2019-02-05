@@ -1,3 +1,4 @@
 disable-internet-tests.patch
 apparmor-ptrace.patch
 config-hardening.patch
+parrot-patches.patch

@@ -1,0 +1,828 @@
+Description: Add parrot profiles to improve system usability
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-02-05
+
+--- firejail-0.9.58.orig/etc/QOwnNotes.profile
++++ firejail-0.9.58/etc/QOwnNotes.profile
+@@ -15,7 +15,12 @@ mkdir ${DOCUMENTS}
+ mkdir ${HOME}/Nextcloud/Notes
+ mkdir ${HOME}.config/PBE
+ mkdir ${HOME}/.local/share/PBE
++whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
+ whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/Nextcloud/Notes
+ whitelist ${HOME}/.config/PBE
+ whitelist ${HOME}/.local/share/PBE
+--- firejail-0.9.58.orig/etc/amarok.profile
++++ firejail-0.9.58/etc/amarok.profile
+@@ -7,6 +7,9 @@ include amarok.local
+ include globals.local
+ 
+ noblacklist ${MUSIC}
++noblacklist ${DOWNLOADS}
++noblacklist ${DESKTOP}
++noblacklist ${DOCUMENTS}
+ 
+ include disable-common.inc
+ include disable-devel.inc
+--- firejail-0.9.58.orig/etc/ardour5.profile
++++ firejail-0.9.58/etc/ardour5.profile
+@@ -11,6 +11,7 @@ noblacklist ${HOME}/.lv2
+ noblacklist ${HOME}/.vst
+ noblacklist ${DOCUMENTS}
+ noblacklist ${MUSIC}
++noblacklist ${DOWNLOADS}
+ 
+ include disable-common.inc
+ include disable-devel.inc
+--- firejail-0.9.58.orig/etc/arduino.profile
++++ firejail-0.9.58/etc/arduino.profile
+@@ -10,6 +10,8 @@ noblacklist ${HOME}/.arduino15
+ noblacklist ${HOME}/.java
+ noblacklist ${HOME}/Arduino
+ noblacklist ${DOCUMENTS}
++noblacklist ${DOWNLOADS}
++noblacklist ${DDESKTOP}
+ 
+ # Allow access to java
+ noblacklist ${PATH}/java
+--- firejail-0.9.58.orig/etc/atom.profile
++++ firejail-0.9.58/etc/atom.profile
+@@ -37,3 +37,5 @@ private-tmp
+ 
+ noexec ${HOME}
+ noexec /tmp
++
++join-or-start atom
+--- firejail-0.9.58.orig/etc/atril.profile
++++ firejail-0.9.58/etc/atril.profile
+@@ -9,6 +9,8 @@ include globals.local
+ noblacklist ${HOME}/.cache/atril
+ noblacklist ${HOME}/.config/atril
+ noblacklist ${DOCUMENTS}
++noblacklist ${DESKTOP}
++noblacklist ${DOWNLOADS}
+ 
+ #noblacklist ${HOME}/.local/share
+ # it seems to use only ${HOME}/.local/share/webkitgtk
+@@ -39,9 +41,9 @@ seccomp
+ shell none
+ tracelog
+ 
+-private-bin atril, atril-previewer, atril-thumbnailer
++#private-bin atril, atril-previewer, atril-thumbnailer
+ private-dev
+-private-etc fonts,ld.so.cache
++private-etc fonts,ld.so.cache,alternatives
+ # atril uses webkit gtk to display epub files
+ # waiting for globbing support in private-lib; for now hardcoding it to webkit2gtk-4.0
+ #private-lib webkit2gtk-4.0 - problems on Arch with the new version of WebKit
+--- firejail-0.9.58.orig/etc/bleachbit.profile
++++ firejail-0.9.58/etc/bleachbit.profile
+@@ -12,10 +12,10 @@ noblacklist ${PATH}/python3*
+ noblacklist /usr/lib/python2*
+ noblacklist /usr/lib/python3*
+ 
+-include disable-common.inc
+-include disable-devel.inc
+-include disable-interpreters.inc
+-include disable-passwdmgr.inc
++#include disable-common.inc
++#include disable-devel.inc
++#include disable-interpreters.inc
++#include disable-passwdmgr.inc
+ # include disable-programs.inc
+ 
+ caps.drop all
+--- firejail-0.9.58.orig/etc/blender.profile
++++ firejail-0.9.58/etc/blender.profile
+@@ -42,3 +42,5 @@ private-tmp
+ 
+ noexec ${HOME}
+ noexec /tmp
++
++start-or-join blender
+--- firejail-0.9.58.orig/etc/caja.profile
++++ firejail-0.9.58/etc/caja.profile
+@@ -12,6 +12,7 @@ include globals.local
+ noblacklist ${HOME}/.local/share/Trash
+ # noblacklist ${HOME}/.config/caja - disable-programs.inc is disabled, see below
+ # noblacklist ${HOME}/.local/share/caja-python
++noblacklist ${HOME}
+ 
+ # Allow python (blacklisted by disable-interpreters.inc)
+ noblacklist ${PATH}/python2*
+@@ -19,10 +20,10 @@ noblacklist ${PATH}/python3*
+ noblacklist /usr/lib/python2*
+ noblacklist /usr/lib/python3*
+ 
+-include disable-common.inc
+-include disable-devel.inc
+-include disable-interpreters.inc
+-include disable-passwdmgr.inc
++#include disable-common.inc
++#include disable-devel.inc
++#include disable-interpreters.inc
++#include disable-passwdmgr.inc
+ # include disable-programs.inc
+ 
+ caps.drop all
+@@ -30,7 +31,6 @@ netfilter
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
+ notv
+ novideo
+ protocol unix
+--- firejail-0.9.58.orig/etc/calligra.profile
++++ firejail-0.9.58/etc/calligra.profile
+@@ -27,7 +27,7 @@ protocol unix
+ seccomp
+ shell none
+ 
+-private-bin calligra,calligraauthor,calligraconverter,calligraflow,calligraplan,calligraplanwork,calligrasheets,calligrastage,calligrawords,dbus-launch,kbuildsycoca4,kdeinit4
++private-bin calligra,calligraauthor,calligraconverter,calligraflow,calligraplan,calligraplanwork,calligrasheets,calligrastage,calligrawords,dbus-launch,kbuildsycoca4,kdeinit4,alternatives
+ private-dev
+ 
+ # noexec ${HOME}
+--- firejail-0.9.58.orig/etc/chromium-common.profile
++++ firejail-0.9.58/etc/chromium-common.profile
+@@ -15,6 +15,11 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.pki
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.pki
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/code.profile
++++ firejail-0.9.58/etc/code.profile
+@@ -36,3 +36,5 @@ private-tmp
+ # in VS Code
+ # noexec ${HOME}
+ noexec /tmp
++
++join-or-start code
+--- firejail-0.9.58.orig/etc/darktable.profile
++++ firejail-0.9.58/etc/darktable.profile
+@@ -8,7 +8,10 @@ include globals.local
+ 
+ noblacklist ${HOME}/.cache/darktable
+ noblacklist ${HOME}/.config/darktable
+-noblacklist ${PICTURES}
++whitelist ${DOWNLOADS}
++whitelist ${DESKTOP}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ 
+ include disable-common.inc
+ include disable-devel.inc
+--- firejail-0.9.58.orig/etc/deluge.profile
++++ firejail-0.9.58/etc/deluge.profile
+@@ -21,7 +21,12 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ mkdir ${HOME}/.config/deluge
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.config/deluge
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/dillo.profile
++++ firejail-0.9.58/etc/dillo.profile
+@@ -17,6 +17,11 @@ include disable-programs.inc
+ mkdir ${HOME}/.dillo
+ mkdir ${HOME}/.fltk
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.dillo
+ whitelist ${HOME}/.fltk
+ include whitelist-common.inc
+--- firejail-0.9.58.orig/etc/discord-common.profile
++++ firejail-0.9.58/etc/discord-common.profile
+@@ -12,6 +12,11 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ 
+ caps.drop all
+ netfilter
+@@ -25,7 +30,7 @@ novideo
+ protocol unix,inet,inet6,netlink
+ seccomp
+ 
+-private-bin sh,xdg-mime,tr,sed,echo,head,cut,xdg-open,grep,egrep,bash,zsh
++private-bin sh,xdg-mime,tr,sed,echo,head,cut,xdg-open,grep,egrep,bash,zsh,alternatives
+ private-dev
+ private-etc fonts,machine-id,localtime,ld.so.cache,ca-certificates,ssl,pki,crypto-policies,resolv.conf
+ private-tmp
+--- firejail-0.9.58.orig/etc/electron.profile
++++ firejail-0.9.58/etc/electron.profile
+@@ -11,6 +11,11 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ 
+ apparmor
+ caps.drop all
+--- firejail-0.9.58.orig/etc/evince.profile
++++ firejail-0.9.58/etc/evince.profile
+@@ -37,7 +37,7 @@ seccomp
+ shell none
+ tracelog
+ 
+-private-bin evince,evince-previewer,evince-thumbnailer
++private-bin evince,evince-previewer,evince-thumbnailer,alternatives
+ private-dev
+ private-etc fonts,machine-id
+ 
+--- firejail-0.9.58.orig/etc/falkon.profile
++++ firejail-0.9.58/etc/falkon.profile
+@@ -16,6 +16,11 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/falkon
+ whitelist ${HOME}/.config/falkon
+ include whitelist-common.inc
+--- firejail-0.9.58.orig/etc/firefox-common.profile
++++ firejail-0.9.58/etc/firefox-common.profile
+@@ -18,6 +18,11 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.pki
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.pki
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+@@ -32,24 +37,25 @@ netfilter
+ # Also breaks enigmail apparently?
+ # During a stream on Plasma it prevents the mechanism to temporarily bypass the power management, i.e. to keep the screen on
+ # Therefore disable if you use that
+-nodbus
++# nodbus
+ nodvd
+ nogroups
+ nonewprivs
+ noroot
+ notv
+-?BROWSER_DISABLE_U2F: nou2f
+ protocol unix,inet,inet6,netlink
+ seccomp.drop @clock,@cpu-emulation,@debug,@module,@obsolete,@raw-io,@reboot,@resources,@swap,acct,add_key,bpf,fanotify_init,io_cancel,io_destroy,io_getevents,io_setup,io_submit,ioprio_set,kcmp,keyctl,mount,name_to_handle_at,nfsservctl,ni_syscall,open_by_handle_at,personality,pivot_root,process_vm_readv,ptrace,remap_file_pages,request_key,setdomainname,sethostname,syslog,umount,umount2,userfaultfd,vhangup,vmsplice
+ shell none
+ #disable tracelog, it breaks or causes major issues with many firefox based browsers, see github issue #1930
+ #tracelog
+ 
+-disable-mnt
++# disable-mnt
+ private-dev
+ # private-etc below works fine on most distributions. There are some problems on CentOS.
+-#private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache
+-private-tmp
++private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache,alternatives
++#private-tmp
+ 
+ noexec ${HOME}
+ noexec /tmp
++
++join-or-start firefox
+--- firejail-0.9.58.orig/etc/firejail.config
++++ firejail-0.9.58/etc/firejail.config
+@@ -6,7 +6,7 @@
+ # apparmor yes
+ 
+ # Disable U2F in browsers, default enabled.
+-# browser-disable-u2f yes
++browser-disable-u2f no
+ 
+ # Number of ARP probes sent when assigning an IP address for --net option,
+ # default 2. This is a partial implementation of RFC 5227. A 0.5 seconds
+--- firejail-0.9.58.orig/etc/freecad.profile
++++ firejail-0.9.58/etc/freecad.profile
+@@ -32,7 +32,7 @@ protocol unix
+ seccomp
+ shell none
+ 
+-private-bin freecad,freecadcmd
++private-bin freecad,freecadcmd,alternatives
+ private-cache
+ private-dev
+ private-tmp
+--- firejail-0.9.58.orig/etc/gajim.profile
++++ firejail-0.9.58/etc/gajim.profile
+@@ -45,7 +45,7 @@ shell none
+ tracelog
+ 
+ disable-mnt
+-private-bin python,python3,sh,gpg,gpg2,gajim,bash,zsh,paplay,gajim-history-manager
++private-bin python,python3,sh,gpg,gpg2,gajim,bash,zsh,paplay,gajim-history-manager,alternatives
+ private-dev
+ private-etc alsa,asound.conf,ca-certificates,crypto-policies,fonts,group,hostname,hosts,ld.so.cache,ld.so.conf,localtime,machine-id,passwd,pki,pulse,resolv.conf,ssl
+ private-tmp
+--- firejail-0.9.58.orig/etc/geany.profile
++++ firejail-0.9.58/etc/geany.profile
+@@ -8,9 +8,9 @@ include globals.local
+ 
+ noblacklist ${HOME}/.config/geany
+ 
+-include disable-common.inc
++#include disable-common.inc
+ include disable-passwdmgr.inc
+-include disable-programs.inc
++#include disable-programs.inc
+ 
+ caps.drop all
+ netfilter
+@@ -18,7 +18,7 @@ no3d
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
++#noroot
+ nosound
+ notv
+ nou2f
+--- firejail-0.9.58.orig/etc/gedit.profile
++++ firejail-0.9.58/etc/gedit.profile
+@@ -10,11 +10,11 @@ noblacklist ${HOME}/.config/enchant
+ noblacklist ${HOME}/.config/gedit
+ noblacklist ${HOME}/.gitconfig
+ 
+-include disable-common.inc
++#include disable-common.inc
+ # include disable-devel.inc
+ # include disable-interpreters.inc
+ include disable-passwdmgr.inc
+-include disable-programs.inc
++#include disable-programs.inc
+ 
+ include whitelist-var-common.inc
+ 
+@@ -27,7 +27,7 @@ no3d
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
++#noroot
+ nosound
+ notv
+ nou2f
+--- firejail-0.9.58.orig/etc/gimp.profile
++++ firejail-0.9.58/etc/gimp.profile
+@@ -40,3 +40,5 @@ private-tmp
+ # if you are not using external plugins, you can enable noexec statement below
+ # noexec ${HOME}
+ noexec /tmp
++
++start-or-join gimp
+--- firejail-0.9.58.orig/etc/gitter.profile
++++ firejail-0.9.58/etc/gitter.profile
+@@ -15,6 +15,11 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.config/autostart
+ whitelist ${HOME}/.config/Gitter
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/keepassxc.profile
++++ firejail-0.9.58/etc/keepassxc.profile
+@@ -34,7 +34,6 @@ nonewprivs
+ noroot
+ nosound
+ notv
+-nou2f
+ novideo
+ protocol unix
+ seccomp
+--- firejail-0.9.58.orig/etc/leafpad.profile
++++ firejail-0.9.58/etc/leafpad.profile
+@@ -22,7 +22,6 @@ no3d
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
+ nosound
+ notv
+ nou2f
+--- firejail-0.9.58.orig/etc/midori.profile
++++ firejail-0.9.58/etc/midori.profile
+@@ -24,6 +24,11 @@ mkdir ${HOME}/.local/share/webkit
+ mkdir ${HOME}/.local/share/webkitgtk
+ mkdir ${HOME}/.pki
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/gnome-mplayer/plugin
+ whitelist ${HOME}/.cache/midori
+ whitelist ${HOME}/.config/gnome-mplayer
+--- firejail-0.9.58.orig/etc/min.profile
++++ firejail-0.9.58/etc/min.profile
+@@ -17,6 +17,11 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.pki
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.pki
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/pluma.profile
++++ firejail-0.9.58/etc/pluma.profile
+@@ -25,7 +25,7 @@ no3d
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
++#noroot
+ nosound
+ notv
+ nou2f
+@@ -35,12 +35,14 @@ seccomp
+ shell none
+ tracelog
+ 
+-private-bin pluma
++#private-bin pluma
+ private-dev
+ # private-etc fonts
+-private-lib pluma
+-private-tmp
++#private-lib pluma
++#private-tmp
+ 
+ memory-deny-write-execute
+ noexec ${HOME}
+ noexec /tmp
++
++join-or-start pluma
+--- firejail-0.9.58.orig/etc/ppsspp.profile
++++ firejail-0.9.58/etc/ppsspp.profile
+@@ -37,7 +37,7 @@ shell none
+ 
+ # private-dev is disabled to allow controller support
+ #private-dev
+-private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies,machine-id
++private-etc asound.conf,ca-certificates,drirc,fonts,group,host.conf,hostname,hosts,ld.so.cache,ld.so.preload,localtime,nsswitch.conf,passwd,pulse,resolv.conf,ssl,pki,crypto-policies,machine-id,alternatives
+ private-opt ppsspp
+ private-tmp
+ 
+--- firejail-0.9.58.orig/etc/qbittorrent.profile
++++ firejail-0.9.58/etc/qbittorrent.profile
+@@ -26,7 +26,12 @@ include disable-programs.inc
+ mkdir ${HOME}/.cache/qBittorrent
+ mkdir ${HOME}/.config/qBittorrent
+ mkdir ${HOME}/.local/share/data/qBittorrent
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/qBittorrent
+ whitelist ${HOME}/.config/qBittorrent
+ whitelist ${HOME}/.config/qBittorrentrc
+@@ -60,3 +65,5 @@ private-tmp
+ # memory-deny-write-execute - problems on  Arch, see #1690 on GitHub repo
+ noexec ${HOME}
+ noexec /tmp
++
++start-or-join qbittorrent
+--- firejail-0.9.58.orig/etc/qtox.profile
++++ firejail-0.9.58/etc/qtox.profile
+@@ -16,6 +16,11 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.config/tox
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.config/tox
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/qutebrowser.profile
++++ firejail-0.9.58/etc/qutebrowser.profile
+@@ -28,6 +28,11 @@ mkdir ${HOME}/.cache/qutebrowser
+ mkdir ${HOME}/.config/qutebrowser
+ mkdir ${HOME}/.local/share/qutebrowser
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/qutebrowser
+ whitelist ${HOME}/.config/qutebrowser
+ whitelist ${HOME}/.local/share/qutebrowser
+--- firejail-0.9.58.orig/etc/ricochet.profile
++++ firejail-0.9.58/etc/ricochet.profile
+@@ -15,6 +15,9 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ whitelist ${DOWNLOADS}
++whitelist ${DESKTOP}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.local/share/Ricochet
+ include whitelist-common.inc
+ 
+--- firejail-0.9.58.orig/etc/seamonkey.profile
++++ firejail-0.9.58/etc/seamonkey.profile
+@@ -18,6 +18,11 @@ include disable-programs.inc
+ mkdir ${HOME}/.cache/mozilla
+ mkdir ${HOME}/.mozilla
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/gnome-mplayer/plugin
+ whitelist ${HOME}/.cache/mozilla
+ whitelist ${HOME}/.config/gnome-mplayer
+--- firejail-0.9.58.orig/etc/signal-desktop.profile
++++ firejail-0.9.58/etc/signal-desktop.profile
+@@ -15,6 +15,11 @@ include disable-passwdmgr.inc
+ 
+ mkdir ${HOME}/.config/Signal
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.config/Signal
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+--- firejail-0.9.58.orig/etc/start-tor-browser.profile
++++ firejail-0.9.58/etc/start-tor-browser.profile
+@@ -34,7 +34,7 @@ shell none
+ disable-mnt
+ private-bin bash,sh,grep,tail,env,gpg,id,readlink,dirname,test,mkdir,ln,sed,cp,rm,getconf
+ private-dev
+-private-etc fonts,hostname,hosts,resolv.conf,pki,ssl,ca-certificates,crypto-policies,alsa,asound.conf,pulse,machine-id,ld.so.cache
++private-etc fonts,hostname,hosts,resolv.conf,pki,ssl,ca-certificates,crypto-policies,alsa,asound.conf,pulse,machine-id,ld.so.cache,alternatives
+ private-tmp
+ 
+ noexec /tmp
+--- firejail-0.9.58.orig/etc/torbrowser-launcher.profile
++++ firejail-0.9.58/etc/torbrowser-launcher.profile
+@@ -49,7 +49,7 @@ shell none
+ disable-mnt
+ private-bin bash,cp,dirname,env,expr,file,getconf,gpg,grep,id,ln,mkdir,python*,readlink,rm,sed,sh,tail,tar,tclsh,test,tor-browser-en,torbrowser-launcher,xz
+ private-dev
+-private-etc fonts,hostname,hosts,resolv.conf,pki,ssl,ca-certificates,crypto-policies,alsa,asound.conf,pulse,machine-id,ld.so.cache
++private-etc fonts,hostname,hosts,resolv.conf,pki,ssl,ca-certificates,crypto-policies,alsa,asound.conf,pulse,machine-id,ld.so.cache,alternatives
+ private-tmp
+ 
+ noexec /tmp
+--- firejail-0.9.58.orig/etc/transmission-gtk.profile
++++ firejail-0.9.58/etc/transmission-gtk.profile
+@@ -17,7 +17,12 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.cache/transmission
+ mkdir ${HOME}/.config/transmission
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/transmission
+ whitelist ${HOME}/.config/transmission
+ include whitelist-common.inc
+--- firejail-0.9.58.orig/etc/transmission-qt.profile
++++ firejail-0.9.58/etc/transmission-qt.profile
+@@ -17,7 +17,12 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.cache/transmission
+ mkdir ${HOME}/.config/transmission
+-whitelist  ${DOWNLOADS}
++whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.cache/transmission
+ whitelist ${HOME}/.config/transmission
+ include whitelist-common.inc
+--- firejail-0.9.58.orig/etc/uget-gtk.profile
++++ firejail-0.9.58/etc/uget-gtk.profile
+@@ -14,6 +14,11 @@ include disable-programs.inc
+ 
+ mkdir ${HOME}/.config/uGet
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ whitelist ${HOME}/.config/uGet
+ include whitelist-common.inc
+ 
+--- firejail-0.9.58.orig/etc/vim.profile
++++ firejail-0.9.58/etc/vim.profile
+@@ -19,7 +19,6 @@ netfilter
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
+ notv
+ nou2f
+ novideo
+--- firejail-0.9.58.orig/etc/virtualbox.profile
++++ firejail-0.9.58/etc/virtualbox.profile
+@@ -22,6 +22,11 @@ mkdir ${HOME}/VirtualBox VMs
+ whitelist ${HOME}/.config/VirtualBox
+ whitelist ${HOME}/VirtualBox VMs
+ whitelist ${DOWNLOADS}
++whitelist ${MUSIC}
++whitelist ${DESKTOP}
++whitelist ${VIDEOS}
++whitelist ${DOCUMENTS}
++whitelist ${PICTURES}
+ include whitelist-common.inc
+ include whitelist-var-common.inc
+ 
+--- firejail-0.9.58.orig/etc/vlc.profile
++++ firejail-0.9.58/etc/vlc.profile
+@@ -41,3 +41,5 @@ private-tmp
+ #memory-deny-write-execute
+ noexec ${HOME}
+ noexec /tmp
++
++start-or-join vlc
+--- /dev/null
++++ firejail-0.9.58/etc/vscodium.profile
+@@ -0,0 +1,42 @@
++# Firejail profile for Visual Studio Code
++# This file is overwritten after every install/update
++# Persistent local customizations
++include code.local
++# Persistent global definitions
++include globals.local
++
++noblacklist ${HOME}/.vscode
++noblacklist ${HOME}/.vscode-oss
++noblacklist ${HOME}/.config/Code
++noblacklist ${HOME}/.VSCodium
++
++include disable-common.inc
++include disable-passwdmgr.inc
++include disable-programs.inc
++
++caps.drop all
++net none
++netfilter
++nodvd
++nogroups
++nonewprivs
++noroot
++nosound
++notv
++nou2f
++novideo
++protocol unix,inet,inet6,netlink
++seccomp
++shell none
++
++private-cache
++private-dev
++private-tmp
++
++# Disabling noexec ${HOME} for now since it will
++# probably interfere with running some programmes
++# in VS Code
++# noexec ${HOME}
++noexec /tmp
++
++join-or-start vscodium
+--- firejail-0.9.58.orig/etc/wget.profile
++++ firejail-0.9.58/etc/wget.profile
+@@ -23,7 +23,6 @@ no3d
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
+ nosound
+ notv
+ nou2f
+--- firejail-0.9.58.orig/etc/whois.profile
++++ firejail-0.9.58/etc/whois.profile
+@@ -24,7 +24,6 @@ nodbus
+ nodvd
+ nogroups
+ nonewprivs
+-noroot
+ nosound
+ notv
+ nou2f
+--- firejail-0.9.58.orig/etc/x-terminal-emulator.profile
++++ firejail-0.9.58/etc/x-terminal-emulator.profile
+@@ -11,7 +11,6 @@ net none
+ netfilter
+ nodbus
+ nogroups
+-noroot
+ nou2f
+ protocol unix
+ seccomp
+--- firejail-0.9.58.orig/src/firecfg/firecfg.config
++++ firejail-0.9.58/src/firecfg/firecfg.config
+@@ -30,9 +30,9 @@ anydesk
+ apktool
+ arch-audit
+ archaudit-report
+-ardour4
+-ardour5
+-arduino
++#ardour4
++#ardour5
++#arduino
+ ark
+ arm
+ artha
+@@ -54,7 +54,7 @@ basilisk
+ beaker
+ bibletime
+ bitlbee
+-bleachbit
++#bleachbit
+ blender
+ blender-2.8
+ bless
+@@ -80,10 +80,10 @@ chromium
+ chromium-browser
+ cin
+ cinelerra
+-clamdscan
+-clamdtop
+-clamscan
+-clamtk
++#clamdscan
++#clamdtop
++#clamscan
++#clamtk
+ claws-mail
+ clawsker
+ clementine
+@@ -455,6 +455,7 @@ vivaldi-beta
+ vivaldi-snapshot
+ vivaldi-stable
+ vlc
++vscodium
+ vym
+ w3m
+ warzone2100
