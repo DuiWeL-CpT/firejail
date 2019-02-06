@@ -1,0 +1,49 @@
+Description: Disable libreoffice profile sandbox.
+ firejail (0.9.58-1parrot2) testing; urgency=medium
+ .
+   * Temporarily exclude libreoffice from sandbox (it does not work properly).
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-02-06
+
+--- firejail-0.9.58.orig/src/firecfg/firecfg.config
++++ firejail-0.9.58/src/firecfg/firecfg.config
+@@ -257,20 +257,20 @@ ktorrent
+ kwrite
+ leafpad
+ less
+-libreoffice
++#libreoffice
+ liferea
+ linphone
+ lmms
+-lobase
+-localc
+-lodraw
+-loffice
+-lofromtemplate
+-loimpress
++#lobase
++#localc
++#lodraw
++#loffice
++#lofromtemplate
++#loimpress
+ lollypop
+-lomath
+-loweb
+-lowriter
++#lomath
++#loweb
++#lowriter
+ luminance-hdr
+ lximage-qt
+ lxmusic
+@@ -392,7 +392,7 @@ slack
+ smplayer
+ smtube
+ sol
+-soffice
++#soffice
+ soundconverter
+ spotify
+ sqlitebrowser
