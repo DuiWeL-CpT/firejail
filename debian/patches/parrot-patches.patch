@@ -1,6 +1,10 @@
-Description: Add parrot profiles to improve system usability
+Description: Parrot custom profiles for better usability.
+ firejail (0.9.58-1parrot3) testing; urgency=medium
+ .
+   * Fix several profiles with wrong join-or-start option.
+   * Fix firefox widevinecdm support.
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
-Last-Update: 2019-02-05
+Last-Update: 2019-02-07
 
 --- firejail-0.9.58.orig/etc/QOwnNotes.profile
 +++ firejail-0.9.58/etc/QOwnNotes.profile
@@ -105,7 +109,7 @@ Last-Update: 2019-02-05
  noexec ${HOME}
  noexec /tmp
 +
-+start-or-join blender
++join-or-start blender
 --- firejail-0.9.58.orig/etc/caja.profile
 +++ firejail-0.9.58/etc/caja.profile
 @@ -12,6 +12,7 @@ include globals.local
@@ -292,7 +296,7 @@ Last-Update: 2019-02-05
  whitelist ${HOME}/.pki
  include whitelist-common.inc
  include whitelist-var-common.inc
-@@ -32,24 +37,25 @@ netfilter
+@@ -32,24 +37,24 @@ netfilter
  # Also breaks enigmail apparently?
  # During a stream on Plasma it prevents the mechanism to temporarily bypass the power management, i.e. to keep the screen on
  # Therefore disable if you use that
@@ -319,8 +323,16 @@ Last-Update: 2019-02-05
 +private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache,alternatives
 +#private-tmp
  
- noexec ${HOME}
+-noexec ${HOME}
++#it breaks widevinecdm module
++#noexec ${HOME}
  noexec /tmp
+--- firejail-0.9.58.orig/etc/firefox.profile
++++ firejail-0.9.58/etc/firefox.profile
+@@ -21,3 +21,5 @@ whitelist ${HOME}/.mozilla
+ 
+ # Redirect
+ include firefox-common.profile
 +
 +join-or-start firefox
 --- firejail-0.9.58.orig/etc/firejail.config
@@ -411,7 +423,7 @@ Last-Update: 2019-02-05
  # noexec ${HOME}
  noexec /tmp
 +
-+start-or-join gimp
++join-or-start gimp
 --- firejail-0.9.58.orig/etc/gitter.profile
 +++ firejail-0.9.58/etc/gitter.profile
 @@ -15,6 +15,11 @@ include disable-passwdmgr.inc
@@ -535,7 +547,7 @@ Last-Update: 2019-02-05
  noexec ${HOME}
  noexec /tmp
 +
-+start-or-join qbittorrent
++join-or-start qbittorrent
 --- firejail-0.9.58.orig/etc/qtox.profile
 +++ firejail-0.9.58/etc/qtox.profile
 @@ -16,6 +16,11 @@ include disable-programs.inc
@@ -703,7 +715,7 @@ Last-Update: 2019-02-05
  noexec ${HOME}
  noexec /tmp
 +
-+start-or-join vlc
++join-or-start vlc
 --- /dev/null
 +++ firejail-0.9.58/etc/vscodium.profile
 @@ -0,0 +1,42 @@
