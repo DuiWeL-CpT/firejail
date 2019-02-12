@@ -1,3 +1,9 @@
+firejail (0.9.58-1parrot4) testing; urgency=medium
+
+  * Fix thunderbird sandbox profile.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 13 Feb 2019 00:05:36 +0100
+
 firejail (0.9.58-1parrot3) testing; urgency=medium
 
   * Fix several profiles with wrong join-or-start option.

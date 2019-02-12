@@ -3,3 +3,4 @@ apparmor-ptrace.patch
 config-hardening.patch
 disable-libreoffice.patch
 parrot-patches.patch
+thunderbird-enable-dbus.patch
