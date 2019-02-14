@@ -2,6 +2,7 @@ firejail (0.9.58-1parrot5) testing; urgency=medium
 
   * Fix torbrowser-launcher sandbox proile.
   * Fix keepassxc sandbox profile.
+  * Fix thunderbird conflicts with firefox.
 
  -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 14 Feb 2019 02:40:48 +0100
 

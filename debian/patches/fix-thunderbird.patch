@@ -1,9 +1,5 @@
-Description: Enable dbus in thunderbird to allow enigmail.
- firejail (0.9.58-1parrot4) testing; urgency=medium
- .
-   * Fix thunderbird sandbox profile.
+Description: Fix thunderbird conflicts with firefox
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
-Last-Update: 2019-02-12
 
 --- firejail-0.9.58.orig/etc/thunderbird.profile
 +++ firejail-0.9.58/etc/thunderbird.profile
@@ -12,5 +8,6 @@ Last-Update: 2019-02-12
  # Redirect
  # Uncomment if you use enigmail
 -# ignore nodbus
+-include firefox.profile
 +ignore nodbus
- include firefox.profile
++include firefox-common.profile
