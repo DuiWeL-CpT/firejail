@@ -1,0 +1,19 @@
+Description: Fix keepassxc profile
+ firejail (0.9.58-1parrot5) testing; urgency=medium
+ .
+   * Fix torbrowser-launcher sandbox proile.
+   * Fix keepassxc sandbox profile.
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-02-14
+
+--- firejail-0.9.58.orig/etc/keepassxc.profile
++++ firejail-0.9.58/etc/keepassxc.profile
+@@ -41,7 +41,7 @@ shell none
+ 
+ private-bin keepassxc
+ private-dev
+-private-etc fonts,ld.so.cache,machine-id
++private-etc fonts,ld.so.cache,machine-id,alternatives
+ private-tmp
+ 
+ # 2.2.4 crashes on database open
