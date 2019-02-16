@@ -1,0 +1,15 @@
+Description: Enable vscodium networking
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-02-16
+
+--- firejail-0.9.58.orig/etc/vscodium.profile
++++ firejail-0.9.58/etc/vscodium.profile
+@@ -15,7 +15,7 @@ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+ caps.drop all
+-net none
++#net none
+ netfilter
+ nodvd
+ nogroups
