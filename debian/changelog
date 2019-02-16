@@ -1,3 +1,10 @@
+firejail (0.9.58-1parrot6) UNRELEASED; urgency=medium
+
+  * Add /etc/alternatives support on most of the profiles.
+  * Merge recent fixes into parrot-patches.patch.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 16 Feb 2019 16:55:26 +0100
+
 firejail (0.9.58-1parrot5) testing; urgency=medium
 
   * Fix torbrowser-launcher sandbox proile.

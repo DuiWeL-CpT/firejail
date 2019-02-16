@@ -1,8 +1,4 @@
 disable-internet-tests.patch
 apparmor-ptrace.patch
 config-hardening.patch
-disable-libreoffice.patch
 parrot-patches.patch
-fix-keepassxc.patch
-fix-torbrowser-launcher.patch
-fix-thunderbird.patch
