@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Firejail Authors
+ * Copyright (C) 2014-2019 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -111,7 +111,7 @@ void process_home(const char *fname, char *home, int home_len) {
 		// skip files handled automatically by firejail
 		if (strcmp(ptr, ".Xauthority") == 0 ||
 		    strcmp(ptr, ".Xdefaults-debian") == 0 ||
-		    strncmp(ptr, ".config/pulse/", 13) == 0 ||
+		    strncmp(ptr, ".config/pulse/", 14) == 0 ||
 		    strncmp(ptr, ".pulse/", 7) == 0 ||
 		    strncmp(ptr, ".bash_hist", 10) == 0 ||
 		    strcmp(ptr, ".bashrc") == 0)

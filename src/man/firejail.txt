@@ -770,12 +770,26 @@ $ firejail \-\-net=eth0 \-\-mtu=1492
 \fB\-\-name=name
 Set sandbox name. Several options, such as \-\-join and \-\-shutdown, can use
 this name to identify a sandbox.
+
+In case the name supplied by the user is already in use by another sandbox, Firejail will assign a
+new name as "name-PID", where PID is the process ID of the sandbox. This functionality
+can be disabled at run time in /etc/firejail/firejail.config file, by setting "name-change" flag to "no".
 .br
 
 .br
 Example:
 .br
-$ firejail \-\-name=mybrowser firefox
+$ firejail \-\-name=browser firefox &
+.br
+$ firejail \-\-name=browser \-\-private \
+firefox \-\-no-remote &
+.br
+$ firejail --list
+.br
+1198:netblue:browser:firejail --name=browser firefox
+.br
+1312:netblue:browser-1312:firejail --name=browser --private firefox --no-remote
+.br
 
 .TP
 \fB\-\-net=bridge_interface
@@ -2513,7 +2527,7 @@ AppArmor support is disabled by default at compile time. Use --enable-apparmor c
 .br
 $ ./configure --prefix=/usr --enable-apparmor
 .TP
-During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The local customizations can be placed in /etc/apparmor.d/local/firejail-local. The profile needs to be loaded into the kernel by reloading apparmor.service, rebooting the system or running the following command as root:
+During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The local customizations must be placed in /etc/apparmor.d/local/firejail-local. The profile needs to be loaded into the kernel by reloading apparmor.service, rebooting the system or running the following command as root:
 .br
 
 .br

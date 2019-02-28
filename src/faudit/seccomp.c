@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Firejail Authors
+ * Copyright (C) 2014-2019 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -27,8 +27,8 @@ static int extract_seccomp(int *val) {
 
 	char buf[MAXBUF];
 	while (fgets(buf, MAXBUF, fp)) {
-		if (strncmp(buf, "Seccomp:\t", 8) == 0) {
-			char *ptr = buf + 8;
+		if (strncmp(buf, "Seccomp:\t", 9) == 0) {
+			char *ptr = buf + 9;
 			int tmp;
 			sscanf(ptr, "%d", &tmp);
 			*val = tmp;

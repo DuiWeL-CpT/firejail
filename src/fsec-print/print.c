@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Firejail Authors
+ * Copyright (C) 2014-2019 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -206,7 +206,7 @@ static void bpf_decode_args(const struct sock_filter *bpf, unsigned int line) {
 				printf("data.syscall-number");
 				syscall_loaded = 1;
 			}
-			else if (bpf->k == offsetof(struct seccomp_data, nr))
+			else if (bpf->k == offsetof(struct seccomp_data, instruction_pointer))
 				printf("data.instruction_pointer");
 			else {
 				int index = bpf->k - offsetof(struct seccomp_data, args);

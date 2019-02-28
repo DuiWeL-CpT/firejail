@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Firejail Authors
+ * Copyright (C) 2014-2019 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -271,7 +271,6 @@ typedef struct config_t {
 	uint32_t cpus;
 	int nice;
 	char *cgroup;
-
 
 	// command line
 	char *command_line;
@@ -781,6 +780,8 @@ enum {
 	CFG_APPARMOR,
 	CFG_DBUS,
 	CFG_PRIVATE_CACHE,
+	CFG_CGROUP,
+	CFG_NAME_CHANGE,
 	CFG_MAX // this should always be the last entry
 };
 extern char *xephyr_screen;

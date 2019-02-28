@@ -15,6 +15,7 @@ include disable-devel.inc
 include disable-interpreters.inc
 include disable-passwdmgr.inc
 include disable-programs.inc
+include disable-xdg.inc
 
 include whitelist-var-common.inc
 
@@ -33,6 +34,7 @@ shell none
 tracelog
 
 private-bin konversation,kbuildsycoca4
+private-cache
 private-dev
 private-tmp
 

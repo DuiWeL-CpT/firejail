@@ -10,6 +10,7 @@ include firefox-common.local
 #include firefox-common-addons.inc
 
 noblacklist ${HOME}/.pki
+noblacklist ${HOME}/.local/share/pki
 
 include disable-common.inc
 include disable-devel.inc
@@ -17,8 +18,10 @@ include disable-interpreters.inc
 include disable-programs.inc
 
 mkdir ${HOME}/.pki
+mkdir ${HOME}/.local/share/pki
 whitelist ${DOWNLOADS}
 whitelist ${HOME}/.pki
+whitelist ${HOME}/.local/share/pki
 include whitelist-common.inc
 include whitelist-var-common.inc
 
@@ -51,5 +54,6 @@ private-dev
 #private-etc ca-certificates,ssl,machine-id,dconf,selinux,passwd,group,hostname,hosts,localtime,nsswitch.conf,resolv.conf,xdg,gtk-2.0,gtk-3.0,X11,pango,fonts,mime.types,mailcap,asound.conf,pulse,pki,crypto-policies,ld.so.cache
 private-tmp
 
-noexec ${HOME}
+# breaks DRM binaries
+#noexec ${HOME}
 noexec /tmp
