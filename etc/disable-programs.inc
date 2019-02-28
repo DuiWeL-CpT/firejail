@@ -28,6 +28,7 @@ blacklist ${HOME}/.Steampid
 blacklist ${HOME}/.TelegramDesktop
 blacklist ${HOME}/.ViberPC
 blacklist ${HOME}/.VirtualBox
+blacklist ${HOME}/.VSCodium
 blacklist ${HOME}/.WebStorm*
 blacklist ${HOME}/.Wolfram Research
 blacklist ${HOME}/.ZAP
@@ -46,6 +47,7 @@ blacklist ${HOME}/.audacity-data
 blacklist ${HOME}/.bcast5
 blacklist ${HOME}/.bibletime
 blacklist ${HOME}/.claws-mail
+blacklist ${HOME}/.cliqz
 blacklist ${HOME}/.config/0ad
 blacklist ${HOME}/.config/2048-qt
 blacklist ${HOME}/.config/Atom
@@ -175,6 +177,7 @@ blacklist ${HOME}/.config/katesyntaxhighlightingrc
 blacklist ${HOME}/.config/katevirc
 blacklist ${HOME}/.config/kdenliverc
 blacklist ${HOME}/.config/kgetrc
+blacklist ${HOME}/.config/klavaro
 blacklist ${HOME}/.config/klipperrc
 blacklist ${HOME}/.config/kmail2rc
 blacklist ${HOME}/.config/kmailsearchindexingrc
@@ -376,6 +379,7 @@ blacklist ${HOME}/.kodi
 blacklist ${HOME}/.linphone-history.db
 blacklist ${HOME}/.linphonerc
 blacklist ${HOME}/.lmmsrc.xml
+blacklist ${HOME}/.local/lib/vivaldi
 blacklist ${HOME}/.local/share/0ad
 blacklist ${HOME}/.local/share/3909/PapersPlease
 blacklist ${HOME}/.local/share/Empathy
@@ -430,6 +434,7 @@ blacklist ${HOME}/.local/share/kaffeine
 blacklist ${HOME}/.local/share/kate
 blacklist ${HOME}/.local/share/kdenlive
 blacklist ${HOME}/.local/share/kget
+blacklist ${HOME}/.local/share/klavaro
 blacklist ${HOME}/.local/share/kmail2
 blacklist ${HOME}/.local/share/knotes
 blacklist ${HOME}/.local/share/krita
@@ -538,6 +543,7 @@ blacklist ${HOME}/.w3m
 blacklist ${HOME}/.warzone2100-3.*
 blacklist ${HOME}/.waterfox
 blacklist ${HOME}/.weechat
+blacklist ${HOME}/.wget-hsts
 blacklist ${HOME}/.wgetrc
 blacklist ${HOME}/.wine
 blacklist ${HOME}/.wireshark

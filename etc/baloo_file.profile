@@ -26,6 +26,7 @@ include disable-programs.inc
 include whitelist-var-common.inc
 
 caps.drop all
+netfilter
 no3d
 nodvd
 nogroups
@@ -42,6 +43,7 @@ shell none
 # x11 xorg
 
 private-bin baloo_file,baloo_file_extractor,baloo_filemetadata_temp_extractor,kbuildsycoca4
+private-cache
 private-dev
 private-tmp
 

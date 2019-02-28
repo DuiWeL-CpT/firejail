@@ -2,11 +2,22 @@ Author: Reiner Herrmann <reiner@reiner-h.de>
 Description: change global default settings
  - restrict networking feature; new network namespace can be used to
    circumvent packet filter of default namespace (see #916920).
+ - disable cgroup by default; can be used to move processes into
+   less restricted cgroups.
 Bug-Debian: https://bugs.debian.org/916920
 
 --- a/etc/firejail.config
 +++ b/etc/firejail.config
-@@ -76,7 +76,7 @@
+@@ -19,7 +19,7 @@
+ # bind yes
+ 
+ # Enable or disable cgroup support, default enabled.
+-# cgroup yes
++cgroup no
+ 
+ # Enable or disable chroot support, default enabled.
+ # chroot yes
+@@ -82,7 +82,7 @@
  # networking features should also be enabled (network yes).
  # Restricted networking grants access to --interface, --net=ethXXX and
  # --netfilter only to root user. Regular users are only allowed --net=none.

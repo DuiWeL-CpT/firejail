@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Firejail Authors
+ * Copyright (C) 2014-2019 Firejail Authors
  *
  * This file is part of firejail project
  *
@@ -733,26 +733,30 @@ static void run_cmd_and_exit(int i, int argc, char **argv) {
 	else if (strncmp(argv[i], "--join-or-start=", 16) == 0) {
 		// NOTE: this is first part of option handler,
 		// 		 sandbox name is set in other part
-		logargs(argc, argv);
+		if (checkcfg(CFG_JOIN) || getuid() == 0) {
+			logargs(argc, argv);
 
-		if (arg_shell_none) {
-			if (argc <= (i+1)) {
-				fprintf(stderr, "Error: --shell=none set, but no command specified\n");
-				exit(1);
+			if (arg_shell_none) {
+				if (argc <= (i+1)) {
+					fprintf(stderr, "Error: --shell=none set, but no command specified\n");
+					exit(1);
+				}
+				cfg.original_program_index = i + 1;
 			}
-			cfg.original_program_index = i + 1;
-		}
 
-		// try to join by name only
-		pid_t pid;
-		if (!read_pid(argv[i] + 16, &pid)) {
-			if (!cfg.shell && !arg_shell_none)
-				cfg.shell = guess_shell();
+			// try to join by name only
+			pid_t pid;
+			if (!read_pid(argv[i] + 16, &pid)) {
+				if (!cfg.shell && !arg_shell_none)
+					cfg.shell = guess_shell();
 
-			join(pid, argc, argv, i + 1);
-			exit(0);
+				join(pid, argc, argv, i + 1);
+				exit(0);
+			}
+			// if there no such sandbox continue argument processing
 		}
-		// if there no such sandbox continue argument processing
+		else
+			exit_err_feature("join");
 	}
 #ifdef HAVE_NETWORK
 	else if (strncmp(argv[i], "--join-network=", 15) == 0) {
@@ -1286,16 +1290,20 @@ int main(int argc, char **argv) {
 			arg_nice = 1;
 		}
 		else if (strncmp(argv[i], "--cgroup=", 9) == 0) {
-			if (option_cgroup) {
-				fprintf(stderr, "Error: only a cgroup can be defined\n");
-				exit(1);
-			}
+			if (checkcfg(CFG_CGROUP)) {
+				if (option_cgroup) {
+					fprintf(stderr, "Error: only a cgroup can be defined\n");
+					exit(1);
+				}
 
-			option_cgroup = 1;
-			cfg.cgroup = strdup(argv[i] + 9);
-			if (!cfg.cgroup)
-				errExit("strdup");
-			set_cgroup(cfg.cgroup);
+				option_cgroup = 1;
+				cfg.cgroup = strdup(argv[i] + 9);
+				if (!cfg.cgroup)
+					errExit("strdup");
+				set_cgroup(cfg.cgroup);
+			}
+			else
+				exit_err_feature("cgroup");
 		}
 
 		//*************************************

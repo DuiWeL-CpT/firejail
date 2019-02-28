@@ -1,3 +1,25 @@
+firejail (0.9.58.2-1parrot1) testing; urgency=medium
+
+  * Import new Debian release.
+  * Import Parrot profiles.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 28 Feb 2019 02:25:11 +0100
+
+firejail (0.9.58.2-1) unstable; urgency=medium
+
+  * New upstream release.
+    - new global configuration flag (name-change) that allows disabling
+      automatic renaming of sandboxes, if requested name already exists
+      (Closes: #920768)
+    - whitelist additional files in zoom profile
+      Thanks to Patrik Flykt for the patch. (Closes: #921454)
+  * Drop patch applied upstream.
+  * Switch off cgroup support by default in firejail.config, as it can be
+    used to move processes into less restricted cgroups (see also #916920).
+  * Install AppArmor local override file via dh_apparmor.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Fri, 08 Feb 2019 20:06:02 +0100
+
 firejail (0.9.58-1parrot6.1) testing; urgency=medium
 
   * Add /etc/alternatives support on most of the profiles.

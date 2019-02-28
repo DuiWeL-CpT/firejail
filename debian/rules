@@ -30,6 +30,7 @@ override_dh_install:
 	dh_install -pfirejail-profiles -Xdefault.profile -Xserver.profile
 	dh_missing -pfirejail --fail-missing
 	dh_missing -pfirejail-profiles --fail-missing -Xdefault.profile -Xserver.profile
+	dh_apparmor -pfirejail --profile-name=firejail-default
 
 override_dh_auto_test:
 	# skip tests here as they are run as autopkgtest

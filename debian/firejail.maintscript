@@ -159,3 +159,4 @@ rm_conffile /etc/firejail/xviewer.profile       0.9.46~rc1~
 rm_conffile /etc/firejail/xz.profile            0.9.46~rc1~
 rm_conffile /etc/firejail/xzdec.profile         0.9.46~rc1~
 rm_conffile /etc/firejail/zathura.profile       0.9.46~rc1~
+rm_conffile /etc/apparmor.d/local/firejail-local      0.9.58.2-1~

@@ -1,0 +1,37 @@
+Author: Reiner Herrmann <reiner@reiner-h.de>
+Description: Don't install local AppArmor override file
+ It will be created by dh_apparmor instead with a name matching the
+ profile name (firejail-default).
+Bug: https://github.com/netblue30/firejail/issues/2388
+
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -134,8 +134,6 @@
+ 	sh -c "if [ ! -d $(DESTDIR)/$(sysconfdir)/apparmor.d ]; then install -d -m 755 $(DESTDIR)/$(sysconfdir)/apparmor.d; fi;"
+ 	install -c -m 0644 etc/firejail-default $(DESTDIR)/$(sysconfdir)/apparmor.d/.
+ 	sh -c "if [ ! -d $(DESTDIR)/$(sysconfdir)/apparmor.d/local ]; then install -d -m 755 $(DESTDIR)/$(sysconfdir)/apparmor.d/local; fi;"
+-	# install apparmor profile customization file
+-	sh -c "if [ ! -f $(DESTDIR)/$(sysconfdir)/apparmor.d/local/firejail-local ]; then install -c -m 0644 etc/firejail-local $(DESTDIR)/$(sysconfdir)/apparmor.d/local/.; fi;"
+ endif
+ 	# man pages
+ 	install -m 0755 -d $(DESTDIR)/$(mandir)/man1
+--- a/etc/firejail-default
++++ b/etc/firejail-default
+@@ -160,5 +160,5 @@
+ pivot_root,
+ 
+ # Site-specific additions and overrides. See local/README for details.
+-#include <local/firejail-local>
++#include <local/firejail-default>
+ }
+--- a/src/man/firejail.txt
++++ b/src/man/firejail.txt
+@@ -2527,7 +2527,7 @@
+ .br
+ $ ./configure --prefix=/usr --enable-apparmor
+ .TP
+-During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The local customizations must be placed in /etc/apparmor.d/local/firejail-local. The profile needs to be loaded into the kernel by reloading apparmor.service, rebooting the system or running the following command as root:
++During software install, a generic AppArmor profile file, firejail-default, is placed in /etc/apparmor.d directory. The local customizations must be placed in /etc/apparmor.d/local/firejail-default. The profile needs to be loaded into the kernel by reloading apparmor.service, rebooting the system or running the following command as root:
+ .br
+ 
+ .br
