@@ -16,6 +16,11 @@ include disable-programs.inc
 
 mkdir ${HOME}/.config/tox
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.config/tox
 include whitelist-common.inc
 include whitelist-var-common.inc
@@ -36,7 +41,7 @@ tracelog
 
 disable-mnt
 private-bin qtox
-private-etc fonts,resolv.conf,ld.so.cache,localtime,ca-certificates,ssl,pki,crypto-policies,machine-id,pulse
+private-etc fonts,resolv.conf,ld.so.cache,localtime,ca-certificates,ssl,pki,crypto-policies,alternatives,machine-id,pulse
 private-dev
 private-tmp
 

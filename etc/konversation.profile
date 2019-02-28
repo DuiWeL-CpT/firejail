@@ -34,9 +34,9 @@ shell none
 tracelog
 
 private-bin konversation,kbuildsycoca4
-private-cache
 private-dev
 private-tmp
+private-cache
 
 # memory-deny-write-execute
 noexec ${HOME}

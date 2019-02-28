@@ -43,7 +43,7 @@ tracelog
 private-bin ocenaudio
 private-cache
 private-dev
-private-etc asound.conf,fonts,ld.so.cache,pulse
+private-etc asound.conf,fonts,ld.so.cache,pulse,alternatives
 # private-lib
 private-tmp
 

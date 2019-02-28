@@ -32,7 +32,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin freecad,freecadcmd
+private-bin freecad,freecadcmd,alternatives
 private-cache
 private-dev
 private-tmp

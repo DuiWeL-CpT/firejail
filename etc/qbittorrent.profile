@@ -26,7 +26,12 @@ include disable-programs.inc
 mkdir ${HOME}/.cache/qBittorrent
 mkdir ${HOME}/.config/qBittorrent
 mkdir ${HOME}/.local/share/data/qBittorrent
-whitelist  ${DOWNLOADS}
+whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.cache/qBittorrent
 whitelist ${HOME}/.config/qBittorrent
 whitelist ${HOME}/.config/qBittorrentrc
@@ -60,3 +65,5 @@ private-tmp
 # memory-deny-write-execute - problems on  Arch, see #1690 on GitHub repo
 noexec ${HOME}
 noexec /tmp
+
+join-or-start qbittorrent

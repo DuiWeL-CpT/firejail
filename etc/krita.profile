@@ -26,9 +26,9 @@ include disable-xdg.inc
 
 apparmor
 caps.drop all
+netfilter
 ipc-namespace
 # net none
-netfilter
 # nodbus
 nodvd
 nogroups

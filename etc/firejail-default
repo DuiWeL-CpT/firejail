@@ -29,6 +29,7 @@ dbus,
 # Allow obtaining some process information, but not ptrace(2)
 ptrace (read,readby) peer=firejail-default,
 
+
 ##########
 # Allow read access to whole filesystem and control it from firejail.
 ##########
@@ -159,6 +160,7 @@ remount,
 umount,
 pivot_root,
 
-# Site-specific additions and overrides. See local/README for details.
+# Site-specific additions and overrides for 'firejail-default'.
+# For more details, please see /etc/apparmor.d/local/README.
 #include <local/firejail-local>
 }

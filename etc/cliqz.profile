@@ -16,6 +16,7 @@ whitelist ${HOME}/.cache/cliqz
 whitelist ${HOME}/.cliqz
 whitelist ${HOME}/.config/cliqz
 
+
 # private-etc must first be enabled in firefox-common.profile
 #private-etc cliqz
 

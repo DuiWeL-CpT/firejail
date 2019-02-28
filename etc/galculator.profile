@@ -38,6 +38,6 @@ tracelog
 
 private-bin galculator
 private-dev
-private-etc fonts
+private-etc fonts,alternatives
 private-lib
 private-tmp

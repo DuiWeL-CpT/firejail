@@ -35,7 +35,7 @@ shell none
 private-bin zathura
 private-cache
 private-dev
-private-etc fonts,machine-id
+private-etc fonts,machine-id,alternatives
 private-tmp
 
 read-only ${HOME}/

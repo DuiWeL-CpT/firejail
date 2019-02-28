@@ -7,7 +7,6 @@ include globals.local
 
 noblacklist ${HOME}/snap
 noblacklist ${HOME}/.PyCharmCE*
-noblacklist ${HOME}/.python-history
 noblacklist ${HOME}/.java
 
 # Allow access to java
@@ -15,6 +14,7 @@ noblacklist ${PATH}/java
 noblacklist /usr/lib/java
 noblacklist /etc/java
 noblacklist /usr/share/java
+noblacklist ${HOME}/.python-history
 
 include disable-common.inc
 include disable-devel.inc

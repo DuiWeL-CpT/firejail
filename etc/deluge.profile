@@ -21,7 +21,12 @@ include disable-passwdmgr.inc
 include disable-programs.inc
 
 mkdir ${HOME}/.config/deluge
-whitelist  ${DOWNLOADS}
+whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.config/deluge
 include whitelist-common.inc
 include whitelist-var-common.inc

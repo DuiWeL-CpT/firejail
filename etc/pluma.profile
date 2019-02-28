@@ -8,11 +8,11 @@ include globals.local
 
 noblacklist ${HOME}/.config/pluma
 
-include disable-common.inc
-include disable-devel.inc
-include disable-interpreters.inc
+#include disable-common.inc
+#include disable-devel.inc
+#include disable-interpreters.inc
 include disable-passwdmgr.inc
-include disable-programs.inc
+#include disable-programs.inc
 
 include whitelist-var-common.inc
 
@@ -25,7 +25,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
-noroot
+#noroot
 nosound
 notv
 nou2f
@@ -35,12 +35,14 @@ seccomp
 shell none
 tracelog
 
-private-bin pluma
+#private-bin pluma
 private-dev
 # private-etc fonts
-private-lib pluma
-private-tmp
+#private-lib pluma
+#private-tmp
 
 memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
+
+join-or-start pluma

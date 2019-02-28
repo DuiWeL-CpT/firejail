@@ -11,6 +11,7 @@ noblacklist ${HOME}/.lv2
 noblacklist ${HOME}/.vst
 noblacklist ${DOCUMENTS}
 noblacklist ${MUSIC}
+noblacklist ${DOWNLOADS}
 
 include disable-common.inc
 include disable-devel.inc

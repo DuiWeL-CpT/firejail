@@ -81,8 +81,7 @@ fi
 which ping 2>/dev/null
 if [ "$?" -eq 0 ];
 then
-	echo "TESTING: ping"
-	./ping.exp
+	echo "TESTING SKIP: ping"
 else
 	echo "TESTING SKIP: ping not found"
 fi

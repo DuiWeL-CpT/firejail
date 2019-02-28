@@ -6,10 +6,10 @@ include vim.local
 # Persistent global definitions
 include globals.local
 
-noblacklist ${HOME}/.python-history
 noblacklist ${HOME}/.vim
 noblacklist ${HOME}/.viminfo
 noblacklist ${HOME}/.vimrc
+noblacklist ${HOME}/.python-history
 
 include disable-common.inc
 include disable-passwdmgr.inc
@@ -20,7 +20,6 @@ netfilter
 nodvd
 nogroups
 nonewprivs
-noroot
 notv
 nou2f
 novideo

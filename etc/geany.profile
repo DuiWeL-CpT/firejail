@@ -9,9 +9,9 @@ include globals.local
 noblacklist ${HOME}/.config/geany
 noblacklist ${HOME}/.python-history
 
-include disable-common.inc
+#include disable-common.inc
 include disable-passwdmgr.inc
-include disable-programs.inc
+#include disable-programs.inc
 
 caps.drop all
 netfilter
@@ -19,7 +19,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
-noroot
+#noroot
 nosound
 notv
 nou2f

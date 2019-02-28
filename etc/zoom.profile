@@ -15,8 +15,8 @@ include disable-programs.inc
 
 mkdir ${HOME}/.zoom
 whitelist ${HOME}/.cache/zoom
-whitelist ${HOME}/.config/zoomus.conf
 whitelist ${HOME}/.zoom
+whitelist ${HOME}/.config/zoomus.conf
 include whitelist-common.inc
 
 caps.drop all
