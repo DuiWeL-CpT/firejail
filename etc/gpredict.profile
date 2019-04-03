@@ -33,7 +33,7 @@ tracelog
 
 private-bin gpredict
 private-dev
-private-etc fonts,resolv.conf,ca-certificates,ssl,pki,crypto-policies,alternatives
+private-etc fonts,resolv.conf,ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 noexec ${HOME}

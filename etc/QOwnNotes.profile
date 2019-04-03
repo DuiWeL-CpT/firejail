@@ -15,12 +15,7 @@ mkdir ${DOCUMENTS}
 mkdir ${HOME}/Nextcloud/Notes
 mkdir ${HOME}.config/PBE
 mkdir ${HOME}/.local/share/PBE
-whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
 whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/Nextcloud/Notes
 whitelist ${HOME}/.config/PBE
 whitelist ${HOME}/.local/share/PBE
@@ -54,7 +49,7 @@ tracelog
 disable-mnt
 private-bin QOwnNotes,gio
 private-dev
-private-etc fonts,ld.so.cache,pulse,resolv.conf,hosts,nsswitch.conf,host.conf,ca-certificates,ssl,pki,crypto-policies,alternatives
+private-etc fonts,ld.so.cache,pulse,resolv.conf,hosts,nsswitch.conf,host.conf,ca-certificates,ssl,pki,crypto-policies
 private-tmp
 
 noexec ${HOME}

@@ -69,7 +69,8 @@ fi
 echo "TESTING: fs.print (test/utils/fs-print.exp)"
 ./fs-print.exp
 
-echo "TESTING SKIP: dns.print (test/utils/dns-print.exp)"
+echo "TESTING: dns.print (test/utils/dns-print.exp)"
+./dns-print.exp
 
 echo "TESTING: caps.print (test/utils/caps-print.exp)"
 ./caps-print.exp

@@ -37,5 +37,3 @@ private-tmp
 # in VS Code
 # noexec ${HOME}
 noexec /tmp
-
-join-or-start code

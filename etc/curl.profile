@@ -21,7 +21,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
-# noroot
+noroot
 nosound
 notv
 nou2f
