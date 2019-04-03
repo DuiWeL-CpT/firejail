@@ -10,8 +10,6 @@ noblacklist ${HOME}/.arduino15
 noblacklist ${HOME}/.java
 noblacklist ${HOME}/Arduino
 noblacklist ${DOCUMENTS}
-noblacklist ${DOWNLOADS}
-noblacklist ${DDESKTOP}
 
 # Allow access to java
 noblacklist ${PATH}/java

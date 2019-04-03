@@ -9,7 +9,7 @@ include globals.local
 noblacklist ${HOME}/.emacs
 noblacklist ${HOME}/.emacs.d
 # uncomment the following line if you need gpg
-noblacklist ${HOME}/.gnupg
+#noblacklist ${HOME}/.gnupg
 noblacklist ${HOME}/.python-history
 
 include disable-common.inc

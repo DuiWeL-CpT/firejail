@@ -7,9 +7,6 @@ include amarok.local
 include globals.local
 
 noblacklist ${MUSIC}
-noblacklist ${DOWNLOADS}
-noblacklist ${DESKTOP}
-noblacklist ${DOCUMENTS}
 
 include disable-common.inc
 include disable-devel.inc

@@ -26,11 +26,6 @@ mkdir ${HOME}/.local/share/webkitgtk
 mkdir ${HOME}/.pki
 mkdir ${HOME}/.local/share/pki
 whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.cache/gnome-mplayer/plugin
 whitelist ${HOME}/.cache/midori
 whitelist ${HOME}/.config/gnome-mplayer

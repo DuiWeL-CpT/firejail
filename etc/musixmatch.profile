@@ -31,7 +31,7 @@ seccomp
 
 disable-mnt
 private-dev
-private-etc machine-id,pulse,asound.conf,ca-certificates,ssl,pki,crypto-policies,alternatives
+private-etc machine-id,pulse,asound.conf,ca-certificates,ssl,pki,crypto-policies
 
 noexec ${HOME}
 noexec /tmp

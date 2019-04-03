@@ -1,3 +1,10 @@
+firejail (0.9.58.2-1parrot2) testing; urgency=medium
+
+  * Fix apparmor conflict when compiled on a build node without apparmor.
+  * Prevent firecfg from failing when executed as root without sudo.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 06:17:39 +0200
+
 firejail (0.9.58.2-1parrot1) testing; urgency=medium
 
   * Import new Debian release.

@@ -12,7 +12,6 @@ include globals.local
 noblacklist ${HOME}/.local/share/Trash
 # noblacklist ${HOME}/.config/caja - disable-programs.inc is disabled, see below
 # noblacklist ${HOME}/.local/share/caja-python
-noblacklist ${HOME}
 
 # Allow python (blacklisted by disable-interpreters.inc)
 noblacklist ${PATH}/python2*
@@ -20,10 +19,10 @@ noblacklist ${PATH}/python3*
 noblacklist /usr/lib/python2*
 noblacklist /usr/lib/python3*
 
-#include disable-common.inc
-#include disable-devel.inc
-#include disable-interpreters.inc
-#include disable-passwdmgr.inc
+include disable-common.inc
+include disable-devel.inc
+include disable-interpreters.inc
+include disable-passwdmgr.inc
 # include disable-programs.inc
 
 caps.drop all
@@ -31,6 +30,7 @@ netfilter
 nodvd
 nogroups
 nonewprivs
+noroot
 notv
 novideo
 protocol unix

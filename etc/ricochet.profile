@@ -15,9 +15,6 @@ include disable-passwdmgr.inc
 include disable-programs.inc
 
 whitelist ${DOWNLOADS}
-whitelist ${DESKTOP}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.local/share/Ricochet
 include whitelist-common.inc
 
@@ -39,7 +36,7 @@ shell none
 disable-mnt
 private-bin ricochet,tor
 private-dev
-#private-etc fonts,tor,X11,alternatives,ca-certificates,ssl,pki,crypto-policies,alternatives
+#private-etc fonts,tor,X11,alternatives,ca-certificates,ssl,pki,crypto-policies
 
 noexec ${HOME}
 noexec /tmp

@@ -37,9 +37,9 @@ seccomp
 shell none
 tracelog
 
-private-bin evince,evince-previewer,evince-thumbnailer,alternatives
+private-bin evince,evince-previewer,evince-thumbnailer
 private-dev
-private-etc fonts,machine-id,alternatives
+private-etc fonts,machine-id
 
 private-lib evince,gdk-pixbuf-2.*,gio,gvfs/libgvfscommon.so,libdjvulibre.so.*,libgconf-2.so.*,libpoppler-glib.so.*,librsvg-2.so.*,gconv
 

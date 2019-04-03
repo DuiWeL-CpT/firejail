@@ -40,7 +40,7 @@ disable-mnt
 # private-bin authenticator
 private-cache
 private-dev
-private-etc fonts,ld.so.cache,alternatives
+private-etc fonts,ld.so.cache
 # private-lib
 private-tmp
 

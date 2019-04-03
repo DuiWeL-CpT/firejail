@@ -39,7 +39,7 @@ shell none
 private-bin eog
 private-cache
 private-dev
-private-etc fonts,alternatives
+private-etc fonts
 private-lib gdk-pixbuf-2.*,gio,girepository-1.*,gvfs,libgconf-2.so.*
 private-tmp
 

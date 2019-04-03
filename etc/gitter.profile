@@ -15,11 +15,6 @@ include disable-passwdmgr.inc
 include disable-programs.inc
 
 whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.config/autostart
 whitelist ${HOME}/.config/Gitter
 include whitelist-var-common.inc
@@ -40,7 +35,7 @@ shell none
 
 disable-mnt
 private-bin bash,env,gitter
-private-etc fonts,pulse,resolv.conf,ca-certificates,ssl,pki,crypto-policies,alternatives
+private-etc fonts,pulse,resolv.conf,ca-certificates,ssl,pki,crypto-policies
 private-opt Gitter
 private-dev
 private-tmp

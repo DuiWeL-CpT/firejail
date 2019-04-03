@@ -19,11 +19,6 @@ include disable-programs.inc
 mkdir ${HOME}/.cache/mozilla
 mkdir ${HOME}/.mozilla
 whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.cache/gnome-mplayer/plugin
 whitelist ${HOME}/.cache/mozilla
 whitelist ${HOME}/.config/gnome-mplayer
