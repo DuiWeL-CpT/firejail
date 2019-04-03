@@ -1,3 +1,9 @@
+firejail (0.9.58.2-1parrot3.2) testing; urgency=medium
+
+  * Force inclusion of apparmor local profile.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 10:30:31 +0200
+
 firejail (0.9.58.2-1parrot3.1) testing; urgency=medium
 
   * Rebuild package.
