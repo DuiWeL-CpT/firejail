@@ -1,10 +1,3 @@
-firejail (0.9.58.2-2parrot1) testing; urgency=medium
-
-  * Import new Debian release.
-  * Include Parrot patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 05 Jun 2019 17:28:12 +0200
-
 firejail (0.9.58.2-2) unstable; urgency=high
 
   * Cherry-pick security fix for seccomp bypass issue. (Closes: #929732)
@@ -17,38 +10,6 @@ firejail (0.9.58.2-2) unstable; urgency=high
     truncate the firejail binary outside the jail.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Wed, 29 May 2019 21:06:42 +0200
-
-firejail (0.9.58.2-1parrot3.2) testing; urgency=medium
-
-  * Force inclusion of apparmor local profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 10:30:31 +0200
-
-firejail (0.9.58.2-1parrot3.1) testing; urgency=medium
-
-  * Rebuild package.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 07:12:56 +0200
-
-firejail (0.9.58.2-1parrot3) testing; urgency=medium
-
-  * Update patch for apparmor compilation.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 06:55:13 +0200
-
-firejail (0.9.58.2-1parrot2) testing; urgency=medium
-
-  * Fix apparmor conflict when compiled on a build node without apparmor.
-  * Prevent firecfg from failing when executed as root without sudo.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 03 Apr 2019 06:17:39 +0200
-
-firejail (0.9.58.2-1parrot1) testing; urgency=medium
-
-  * Import new Debian release.
-  * Import Parrot profiles.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 28 Feb 2019 02:25:11 +0100
 
 firejail (0.9.58.2-1) unstable; urgency=medium
 
@@ -64,51 +25,6 @@ firejail (0.9.58.2-1) unstable; urgency=medium
   * Install AppArmor local override file via dh_apparmor.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Fri, 08 Feb 2019 20:06:02 +0100
-
-firejail (0.9.58-1parrot6.1) testing; urgency=medium
-
-  * Add /etc/alternatives support on most of the profiles.
-  * Merge recent fixes into parrot-patches.patch.
-  * Add networking to vscodium.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 16 Feb 2019 16:55:26 +0100
-
-firejail (0.9.58-1parrot5) testing; urgency=medium
-
-  * Fix torbrowser-launcher sandbox proile.
-  * Fix keepassxc sandbox profile.
-  * Fix thunderbird conflicts with firefox.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 14 Feb 2019 02:40:48 +0100
-
-firejail (0.9.58-1parrot4) testing; urgency=medium
-
-  * Fix thunderbird sandbox profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 13 Feb 2019 00:05:36 +0100
-
-firejail (0.9.58-1parrot3) testing; urgency=medium
-
-  * Fix several profiles with wrong join-or-start option.
-  * Fix firefox widevinecdm support.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 07 Feb 2019 21:53:08 +0100
-
-firejail (0.9.58-1parrot2) testing; urgency=medium
-
-  * Temporarily exclude libreoffice from sandbox (it does not work properly).
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 06 Feb 2019 09:01:59 +0100
-
-firejail (0.9.58-1parrot1) testing; urgency=medium
-
-  * Import new Debian release.
-  * Remake custom profiles from scratch.
-  * Disable applications that don't have to be sandboxed.
-  * Enable root user for some editors and utilities.
-  * Add VSCodium profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 05 Feb 2019 13:29:29 +0100
 
 firejail (0.9.58-1) unstable; urgency=medium
 
@@ -133,30 +49,6 @@ firejail (0.9.58~rc1-1) experimental; urgency=low
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 21 Jan 2019 21:37:32 +0100
 
-firejail (0.9.56-2parrot3) testing; urgency=medium
-
-  * Fix playonlinux profile (it needs python).
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 17 Nov 2018 03:34:57 +0100
-
-firejail (0.9.56-2parrot2) testing; urgency=medium
-
-  [ CoffeeFou ]
-  * Fix discord profile.
-
-  [ Lorenzo "Palinuro" Faletra ]
-  * Fix torbrowser-launcher startup.
-  * Fix firefox profile (dbus and qbittorrent integration).
-  * Disable torbrowser-launcher profile (let's use apparmor for it).
-
- -- CoffeeFou <coffeefou@protonmail.com>  Thu, 18 Oct 2018 14:20:22 +0200
-
-firejail (0.9.56-2parrot1) testing; urgency=medium
-
-  * Import new Debian patch to disable unwanted tests.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 11 Oct 2018 19:19:31 +0200
-
 firejail (0.9.56-2) unstable; urgency=medium
 
   * Properly (re)move obsolete conffiles.
@@ -167,20 +59,6 @@ firejail (0.9.56-2) unstable; urgency=medium
   * Cherry-pick upstream patches to skip some environment-dependent tests.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 01 Oct 2018 15:55:51 +0200
-
-firejail (0.9.56-1parrot2) testing; urgency=medium
-
-  * Use ${VIDEOS} instead of ${VIDEO}
-  * Fix atril profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 27 Sep 2018 10:21:07 +0200
-
-firejail (0.9.56-1parrot1) testing; urgency=medium
-
-  * Import new Debian release.
-  * Updates Parrot patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 26 Sep 2018 13:37:18 +0200
 
 firejail (0.9.56-1) unstable; urgency=medium
 
@@ -204,62 +82,6 @@ firejail (0.9.56~rc1-1) experimental; urgency=low
     - reorganize tests a bit; allow some to run unisolated
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 16 Aug 2018 19:26:39 +0200
-
-firejail (0.9.54-1parrot8) testing; urgency=medium
-
-  * Fix keepasscx profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Aug 2018 21:10:37 +0200
-
-firejail (0.9.54-1parrot7) testing; urgency=medium
-
-  * Disable arduino sandbox.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 21 Aug 2018 17:17:29 +0200
-
-firejail (0.9.54-1parrot6) testing; urgency=medium
-
-  * Enable apparmor for libreoffice to fix system freeze.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 11 Aug 2018 15:28:32 +0200
-
-firejail (0.9.54-1parrot5.1) testing; urgency=medium
-
-  * Import Coffeefou merge requests to fix code and discord.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 12 Jul 2018 00:32:26 +0200
-
-firejail (0.9.54-1parrot5) testing; urgency=medium
-
-  * Update qbittorrent profile.
-  * Update torbrowser-launcher profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 11 Jul 2018 23:50:32 +0200
-
-firejail (0.9.54-1parrot4) testing; urgency=medium
-
-  * Update atril profile for nvidia/bumblebee OpenGL support.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 25 Jun 2018 18:37:16 +0200
-
-firejail (0.9.54-1parrot3) testing; urgency=medium
-
-  * Fix atril profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 20 Jun 2018 15:44:53 +0200
-
-firejail (0.9.54-1parrot2) testing; urgency=medium
-
-  * Fix libreoffice profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 25 May 2018 14:54:42 +0200
-
-firejail (0.9.54-1parrot1) testing; urgency=medium
-
-  * Import new Debian version.
-  * Re-apply and update old patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 25 May 2018 03:23:17 +0200
 
 firejail (0.9.54-1) unstable; urgency=medium
 
@@ -285,12 +107,6 @@ firejail (0.9.54~rc1-1) experimental; urgency=low
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Mon, 07 May 2018 22:42:16 +0200
 
-firejail (0.9.52-3parrot1) testing; urgency=medium
-
-  * Rebuild for Parrot.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 04 May 2018 15:02:40 +0200
-
 firejail (0.9.52-3) unstable; urgency=medium
 
   * Move packaging VCS to salsa.
@@ -299,44 +115,12 @@ firejail (0.9.52-3) unstable; urgency=medium
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Fri, 27 Apr 2018 19:42:28 +0200
 
-firejail (0.9.52-2parrot3) testing; urgency=medium
-
-  * Fix keepassxc missing libraries.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 16 Apr 2018 09:46:37 +0200
-
-firejail (0.9.52-2parrot2) testing; urgency=medium
-
-  * Update atril profile.
-  * Update geany profile.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@localhost.localdomain>  Mon, 08 Jan 2018 23:05:20 +0100
-
-firejail (0.9.52-2parrot1) testing; urgency=medium
-
-  * fix libreoffice javaldx startup crash
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Sat, 30 Dec 2017 00:35:11 +0100
-
-firejail (0.9.52-2parrot0) testing; urgency=medium
-
-  * Remove bleachbit from firecfg config.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Thu, 28 Dec 2017 15:26:15 +0100
-
 firejail (0.9.52-2) unstable; urgency=medium
 
   * Cleanup removed conffile in correct binary package. (Closes: #884915)
   * Bump debhelper compatibility/dependency to 11.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Thu, 21 Dec 2017 18:53:32 +0100
-
-firejail (0.9.52-1parrot0) testing; urgency=medium
-
-  * Import new Debian release.
-  * Reinclude profile patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 26 Dec 2017 11:30:12 +0100
 
 firejail (0.9.52-1) unstable; urgency=medium
 
@@ -347,52 +131,6 @@ firejail (0.9.52-1) unstable; urgency=medium
   * Bump Standards-Version to 4.1.2.
 
  -- Reiner Herrmann <reiner@reiner-h.de>  Sat, 16 Dec 2017 14:07:29 +0100
-
-firejail (0.9.50-3parrot6) testing; urgency=medium
-
-  * Fix libreoffice cache path.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 11 Dec 2017 00:23:19 +0100
-
-firejail (0.9.50-3parrot5) testing; urgency=medium
-
-  * Fix typo.
-  * Refresh patches.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 05 Dec 2017 09:06:14 +0100
-
-firejail (0.9.50-3parrot4) testing; urgency=medium
-
-  * Disable libreoffice devel blacklist.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Fri, 01 Dec 2017 09:24:08 +0100
-
-firejail (0.9.50-3parrot3) testing; urgency=medium
-
-  * Fix thunderbird compatibility with icedove profiles.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Nov 2017 23:15:30 +0100
-
-firejail (0.9.50-3parrot2) testing; urgency=medium
-
-  * Update profiles.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 27 Nov 2017 03:22:17 +0100
-
-firejail (0.9.50-3parrot1) testing; urgency=medium
-
-  * Fix firefox rules.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Tue, 31 Oct 2017 22:29:40 +0100
-
-firejail (0.9.50-3parrot0) testing; urgency=medium
-
-  * Non-maintainer upload.
-  * Fix thunderbird rules.
-  * Fix display rules.
-  * Fix libreoffice rules.
-
- -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Mon, 30 Oct 2017 12:06:09 +0100
 
 firejail (0.9.50-3) unstable; urgency=medium
 

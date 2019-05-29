@@ -1,0 +1,39 @@
+Description: Disable some profiles.
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-02-28
+
+--- firejail-0.9.58.2.orig/src/firecfg/firecfg.config
++++ firejail-0.9.58.2/src/firecfg/firecfg.config
+@@ -32,7 +32,7 @@ arch-audit
+ archaudit-report
+ ardour4
+ ardour5
+-arduino
++#arduino
+ ark
+ arm
+ artha
+@@ -54,7 +54,7 @@ basilisk
+ beaker
+ bibletime
+ bitlbee
+-bleachbit
++#bleachbit
+ blender
+ blender-2.8
+ bless
+@@ -80,10 +80,10 @@ chromium
+ chromium-browser
+ cin
+ cinelerra
+-clamdscan
+-clamdtop
+-clamscan
+-clamtk
++#clamdscan
++#clamdtop
++#clamscan
++#clamtk
+ claws-mail
+ clawsker
+ clementine

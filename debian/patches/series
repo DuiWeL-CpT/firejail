@@ -3,4 +3,7 @@ config-hardening.patch
 apparmor-include.patch
 seccomp-join.patch
 truncation.patch
-parrot-patches.patch
+fix-apparmor-profiles.patch
+parrot-profiles.patch
+disable-profiles.patch
+prevent-firecfg-failure-as-root.patch
