@@ -1,3 +1,23 @@
+firejail (0.9.58.2-2parrot1) testing; urgency=medium
+
+  * Import new Debian release.
+  * Include Parrot patches.
+
+ -- Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>  Wed, 05 Jun 2019 17:28:12 +0200
+
+firejail (0.9.58.2-2) unstable; urgency=high
+
+  * Cherry-pick security fix for seccomp bypass issue. (Closes: #929732)
+    Seccomp filters were writable inside the jail, so they could be
+    overwritten/truncated. Another jail that was then joined with the first
+    one, had no seccomp filters applied.
+  * Cherry-pick security fix for binary truncation issue. (Closes: #929733)
+    When the jailed program was running as root, and firejail was killed
+    from the outside (as root), the jailed program had the possibility to
+    truncate the firejail binary outside the jail.
+
+ -- Reiner Herrmann <reiner@reiner-h.de>  Wed, 29 May 2019 21:06:42 +0200
+
 firejail (0.9.58.2-1parrot3.2) testing; urgency=medium
 
   * Force inclusion of apparmor local profile.

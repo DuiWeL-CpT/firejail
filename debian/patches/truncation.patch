@@ -1,0 +1,44 @@
+From: smitsohu <smitsohu@gmail.com>
+Subject: [PATCH] shutdown option: give sandbox time to terminate
+Bug: https://github.com/netblue30/firejail/issues/2401
+Bug-Debian: https://bugs.debian.org/929733
+Origin: upstream, https://github.com/netblue30/firejail/commit/fcba07c and faa1ec7
+
+Similarly to CVE-2019-5736, the binary (firejail) could be truncated outside the
+jail from the inside under certain conditions.
+This was possible if the jailed program was running as root, and it was killed
+from the outside (as root), e.g. with SIGKILL or --shutdown.
+
+--- a/src/firejail/shutdown.c
++++ b/src/firejail/shutdown.c
+@@ -52,15 +52,17 @@
+ 	printf("Sending SIGTERM to %u\n", pid);
+ 	kill(pid, SIGTERM);
+ 
+-	// wait for not more than 10 seconds
+-	sleep(2);
+-	int monsec = 8;
++	// wait for not more than 11 seconds
++	int monsec = 11;
+ 	char *monfile;
+ 	if (asprintf(&monfile, "/proc/%d/cmdline", pid) == -1)
+ 		errExit("asprintf");
+ 	int killdone = 0;
+ 
+ 	while (monsec) {
++		sleep(1);
++		monsec--;
++		
+ 		FILE *fp = fopen(monfile, "r");
+ 		if (!fp) {
+ 			killdone = 1;
+@@ -75,9 +77,6 @@
+ 			killdone = 1;
+ 			break;
+ 		}
+-
+-		sleep(1);
+-		monsec--;
+ 	}
+ 	free(monfile);
+ 

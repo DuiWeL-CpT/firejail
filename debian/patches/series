@@ -1,7 +1,6 @@
 disable-internet-tests.patch
 config-hardening.patch
 apparmor-include.patch
-parrot-profiles.patch
-disable-profiles.patch
-prevent-firecfg-failure-as-root.patch
-fix-apparmor-profiles.patch
+seccomp-join.patch
+truncation.patch
+parrot-patches.patch
