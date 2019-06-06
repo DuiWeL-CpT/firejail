@@ -9,6 +9,7 @@ include chromium-common.local
 noblacklist ${HOME}/.pki
 noblacklist ${HOME}/.local/share/pki
 
+
 include disable-common.inc
 include disable-devel.inc
 include disable-interpreters.inc
@@ -17,8 +18,14 @@ include disable-programs.inc
 mkdir ${HOME}/.pki
 mkdir ${HOME}/.local/share/pki
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.pki
 whitelist ${HOME}/.local/share/pki
+
 include whitelist-common.inc
 include whitelist-var-common.inc
 
@@ -39,6 +46,7 @@ private-dev
 
 # breaks DRM binaries
 #noexec ${HOME}
+
 noexec /tmp
 
 # the file dialog needs to work without d-bus

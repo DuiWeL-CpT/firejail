@@ -38,7 +38,7 @@ seccomp
 disable-mnt
 private-dev
 private-tmp
-private-etc ca-certificates,fonts,host.conf,hostname,hosts,resolv.conf,ssl,pki,crypto-policies,xdg
+private-etc ca-certificates,fonts,host.conf,hostname,hosts,resolv.conf,ssl,pki,crypto-policies,xdg,alternatives
 
 noexec ${HOME}
 noexec /tmp

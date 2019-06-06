@@ -11,7 +11,6 @@ net none
 netfilter
 nodbus
 nogroups
-noroot
 nou2f
 protocol unix
 seccomp

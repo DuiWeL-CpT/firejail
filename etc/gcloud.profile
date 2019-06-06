@@ -32,7 +32,7 @@ tracelog
 
 disable-mnt
 private-dev
-private-etc ca-certificates,ssl,hosts,localtime,nsswitch.conf,resolv.conf,pki,crypto-policies,ld.so.cache
+private-etc ca-certificates,ssl,hosts,localtime,nsswitch.conf,resolv.conf,pki,crypto-policies,ld.so.cache,alternatives
 private-tmp
 
 noexec /tmp

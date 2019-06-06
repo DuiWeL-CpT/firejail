@@ -20,6 +20,7 @@ ipc-namespace
 netfilter
 no3d
 # nodbus
+ignore nodbus
 nodvd
 nogroups
 nonewprivs
@@ -32,10 +33,10 @@ protocol unix,inet,inet6
 seccomp
 shell none
 
-disable-mnt
+#disable-mnt
 private-bin flameshot
 private-cache
-private-etc fonts,ld.so.conf,resolv.conf,ca-certificates,ssl,pki,crypto-policies
+private-etc fonts,ld.so.conf,resolv.conf,ca-certificates,ssl,pki,crypto-policies,alternatives
 private-dev
 private-tmp
 

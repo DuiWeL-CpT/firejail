@@ -13,9 +13,9 @@ include disable-passwdmgr.inc
 include disable-programs.inc
 
 caps.drop all
+netfilter
 ipc-namespace
 # net none
-netfilter
 # nodbus
 nodvd
 nogroups
@@ -28,7 +28,7 @@ protocol unix
 seccomp
 shell none
 
-private-bin calligra,calligraauthor,calligraconverter,calligraflow,calligraplan,calligraplanwork,calligrasheets,calligrastage,calligrawords,dbus-launch,kbuildsycoca4,kdeinit4
+private-bin calligra,calligraauthor,calligraconverter,calligraflow,calligraplan,calligraplanwork,calligrasheets,calligrastage,calligrawords,dbus-launch,kbuildsycoca4,kdeinit4,alternatives
 private-dev
 
 # noexec ${HOME}

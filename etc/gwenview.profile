@@ -27,8 +27,8 @@ include whitelist-var-common.inc
 
 apparmor
 caps.drop all
-# net none
 netfilter
+# net none
 # nodbus
 nodvd
 nogroups
@@ -44,7 +44,7 @@ shell none
 
 private-bin gwenview,gimp*,kbuildsycoca4,kdeinit4
 private-dev
-private-etc fonts,gimp,gtk-2.0,kde4rc,kde5rc,ld.so.cache,machine-id,pulse,xdg
+private-etc fonts,gimp,gtk-2.0,kde4rc,kde5rc,ld.so.cache,machine-id,pulse,xdg,alternatives
 
 # memory-deny-write-execute
 noexec ${HOME}

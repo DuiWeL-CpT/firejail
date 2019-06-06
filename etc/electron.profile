@@ -11,6 +11,11 @@ include disable-passwdmgr.inc
 include disable-programs.inc
 
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 
 apparmor
 caps.drop all

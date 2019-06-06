@@ -15,6 +15,7 @@ noblacklist ${HOME}/.java
 noblacklist ${HOME}/.local/share/JetBrains
 noblacklist ${HOME}/.ssh
 noblacklist ${HOME}/.tooling
+noblacklist ${HOME}/.python-history
 
 include disable-common.inc
 include disable-passwdmgr.inc

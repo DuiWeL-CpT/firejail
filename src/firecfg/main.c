@@ -288,8 +288,8 @@ static char *get_user(void) {
 	if (!user) {
 		user = getenv("SUDO_USER");
 		if (!user) {
-			fprintf(stderr, "Error: cannot detect login user\n");
-			exit(1);
+			fprintf(stderr, "Warning: cannot detect login user\n");
+			return "root";
 		}
 	}
 
@@ -299,8 +299,9 @@ static char *get_user(void) {
 static char *get_homedir(const char *user, uid_t *uid, gid_t *gid) {
 	// find home directory
 	struct passwd *pw = getpwnam(user);
-	if (!pw)
+	if (!pw && getuid() != 0)
 		goto errexit;
+
 
 	char *home = pw->pw_dir;
 	if (!home)

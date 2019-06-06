@@ -15,6 +15,11 @@ include disable-passwdmgr.inc
 
 mkdir ${HOME}/.config/Signal
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.config/Signal
 include whitelist-common.inc
 include whitelist-var-common.inc

@@ -34,7 +34,7 @@ shell none
 
 disable-mnt
 private-bin mate-color-select
-private-etc fonts
+private-etc fonts,alternatives
 private-dev
 private-lib
 private-tmp

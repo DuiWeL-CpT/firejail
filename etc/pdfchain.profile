@@ -34,7 +34,7 @@ shell none
 
 private-bin pdfchain,pdftk,sh
 private-dev
-private-etc dconf,fonts,gtk-3.0,xdg
+private-etc dconf,fonts,gtk-3.0,xdg,alternatives
 private-tmp
 
 memory-deny-write-execute

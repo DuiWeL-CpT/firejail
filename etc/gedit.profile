@@ -11,11 +11,11 @@ noblacklist ${HOME}/.config/gedit
 noblacklist ${HOME}/.gitconfig
 noblacklist ${HOME}/.python-history
 
-include disable-common.inc
+#include disable-common.inc
 # include disable-devel.inc
 # include disable-interpreters.inc
 include disable-passwdmgr.inc
-include disable-programs.inc
+#include disable-programs.inc
 
 include whitelist-var-common.inc
 
@@ -28,7 +28,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
-noroot
+#noroot
 nosound
 notv
 nou2f
@@ -41,7 +41,7 @@ tracelog
 # private-bin gedit
 private-dev
 # private-etc fonts
-private-lib /usr/bin/gedit,libtinfo.so.*,libreadline.so.*,gedit,libgspell-1.so.*,gconv,aspell
+#private-lib /usr/bin/gedit,libtinfo.so.*,libreadline.so.*,gedit,libgspell-1.so.*,gconv,aspell
 private-tmp
 
 noexec ${HOME}

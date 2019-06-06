@@ -14,6 +14,11 @@ include disable-programs.inc
 
 mkdir ${HOME}/.config/uGet
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.config/uGet
 include whitelist-common.inc
 

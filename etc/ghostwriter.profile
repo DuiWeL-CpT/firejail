@@ -52,7 +52,7 @@ tracelog
 #private-bin ghostwriter,pandoc
 private-cache
 private-dev
-private-etc cups,crypto-policies,localtime,drirc,fonts,gtk-3.0,dconf,machine-id
+private-etc cups,crypto-policies,localtime,drirc,fonts,gtk-3.0,dconf,machine-id,alternatives
 # Breaks Translation
 #private-lib
 private-tmp

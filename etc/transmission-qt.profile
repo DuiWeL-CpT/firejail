@@ -17,7 +17,12 @@ include disable-programs.inc
 
 mkdir ${HOME}/.cache/transmission
 mkdir ${HOME}/.config/transmission
-whitelist  ${DOWNLOADS}
+whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 whitelist ${HOME}/.cache/transmission
 whitelist ${HOME}/.config/transmission
 include whitelist-common.inc

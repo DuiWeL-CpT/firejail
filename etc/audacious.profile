@@ -22,7 +22,7 @@ include whitelist-var-common.inc
 apparmor
 caps.drop all
 netfilter
-#nodbus - dbus needed for MPRIS
+# nodbus
 nogroups
 nonewprivs
 noroot

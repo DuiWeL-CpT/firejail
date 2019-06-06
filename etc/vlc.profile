@@ -41,3 +41,5 @@ private-tmp
 #memory-deny-write-execute
 noexec ${HOME}
 noexec /tmp
+
+join-or-start vlc

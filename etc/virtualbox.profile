@@ -22,6 +22,11 @@ mkdir ${HOME}/VirtualBox VMs
 whitelist ${HOME}/.config/VirtualBox
 whitelist ${HOME}/VirtualBox VMs
 whitelist ${DOWNLOADS}
+whitelist ${MUSIC}
+whitelist ${DESKTOP}
+whitelist ${VIDEOS}
+whitelist ${DOCUMENTS}
+whitelist ${PICTURES}
 include whitelist-common.inc
 include whitelist-var-common.inc
 
