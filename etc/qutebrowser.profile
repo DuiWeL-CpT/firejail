@@ -28,11 +28,6 @@ mkdir ${HOME}/.cache/qutebrowser
 mkdir ${HOME}/.config/qutebrowser
 mkdir ${HOME}/.local/share/qutebrowser
 whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.cache/qutebrowser
 whitelist ${HOME}/.config/qutebrowser
 whitelist ${HOME}/.local/share/qutebrowser

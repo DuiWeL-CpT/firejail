@@ -8,10 +8,7 @@ include globals.local
 
 noblacklist ${HOME}/.cache/darktable
 noblacklist ${HOME}/.config/darktable
-whitelist ${DOWNLOADS}
-whitelist ${DESKTOP}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
+noblacklist ${PICTURES}
 
 include disable-common.inc
 include disable-devel.inc

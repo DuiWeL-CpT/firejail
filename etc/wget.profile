@@ -9,8 +9,8 @@ include globals.local
 
 blacklist /tmp/.X11-unix
 
-noblacklist ${HOME}/.wgetrc
 noblacklist ${HOME}/.wget-hsts
+noblacklist ${HOME}/.wgetrc
 
 include disable-common.inc
 include disable-passwdmgr.inc
@@ -24,6 +24,7 @@ no3d
 nodvd
 nogroups
 nonewprivs
+noroot
 nosound
 notv
 nou2f

@@ -38,7 +38,7 @@ tracelog
 
 private-bin xreader,xreader-previewer,xreader-thumbnailer
 private-dev
-private-etc fonts,ld.so.cache,alternatives
+private-etc fonts,ld.so.cache
 private-tmp
 
 memory-deny-write-execute

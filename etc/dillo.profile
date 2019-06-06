@@ -17,11 +17,6 @@ include disable-programs.inc
 mkdir ${HOME}/.dillo
 mkdir ${HOME}/.fltk
 whitelist ${DOWNLOADS}
-whitelist ${MUSIC}
-whitelist ${DESKTOP}
-whitelist ${VIDEOS}
-whitelist ${DOCUMENTS}
-whitelist ${PICTURES}
 whitelist ${HOME}/.dillo
 whitelist ${HOME}/.fltk
 include whitelist-common.inc

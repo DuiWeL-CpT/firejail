@@ -21,5 +21,3 @@ whitelist ${HOME}/.mozilla
 
 # Redirect
 include firefox-common.profile
-
-join-or-start firefox

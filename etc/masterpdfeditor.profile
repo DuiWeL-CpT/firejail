@@ -41,7 +41,7 @@ tracelog
 private-bin masterpdfeditor*
 private-cache
 private-dev
-private-etc fonts,alternatives
+private-etc fonts
 # private-lib
 private-tmp
 

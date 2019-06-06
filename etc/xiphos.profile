@@ -38,5 +38,5 @@ tracelog
 
 private-bin xiphos
 private-dev
-private-etc fonts,resolv.conf,sword,ca-certificates,ssl,pki,crypto-policies,alternatives
+private-etc fonts,resolv.conf,sword,ca-certificates,ssl,pki,crypto-policies
 private-tmp
