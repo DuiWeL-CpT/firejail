@@ -7,3 +7,4 @@ fix-apparmor-profiles.patch
 parrot-profiles.patch
 disable-profiles.patch
 prevent-firecfg-failure-as-root.patch
+add-parrot-gitlab-intergration.patch

@@ -1,0 +1,9 @@
+Description: Include Parrot gitlab integration config file
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-06-06
+
+--- /dev/null
++++ firejail-0.9.58.2/.gitlab-ci.yml
+@@ -0,0 +1 @@
++include: https://nest.parrotsec.org/parrot-organization/ci/raw/master/deb-build.yml
+\ No newline at end of file
