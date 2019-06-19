@@ -1,0 +1,12 @@
+Description: Make thunderbird load firefox profiles properly
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-06-19
+
+--- firejail-0.9.58.2.orig/etc/thunderbird.profile
++++ firejail-0.9.58.2/etc/thunderbird.profile
+@@ -44,4 +44,4 @@ writable-run-user
+ # Redirect
+ # Uncomment if you use enigmail
+ ignore nodbus
+-include firefox-common.profile
++include firefox.profile

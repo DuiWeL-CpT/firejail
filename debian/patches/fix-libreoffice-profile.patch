@@ -1,10 +1,21 @@
 Description: Fix libreoffice profile
+ firejail (0.9.58.2-3parrot4) testing; urgency=medium
+ .
+   * Allow interpreters in libreoffice profile.
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
 Last-Update: 2019-06-19
 
 --- firejail-0.9.58.2.orig/etc/libreoffice.profile
 +++ firejail-0.9.58.2/etc/libreoffice.profile
-@@ -34,22 +34,22 @@ netfilter
+@@ -18,7 +18,6 @@ noblacklist /etc/java
+ noblacklist /usr/share/java
+ 
+ include disable-common.inc
+-include disable-devel.inc
+ include disable-passwdmgr.inc
+ include disable-programs.inc
+ 
+@@ -34,22 +33,22 @@ netfilter
  nodvd
  nogroups
  # comment nonewprivs when using the ubuntu 18.04/debian 10 apparmor profile
@@ -32,11 +43,3 @@ Last-Update: 2019-06-19
  noexec /tmp
  
  join-or-start libreoffice
---- firejail-0.9.58.2.orig/etc/thunderbird.profile
-+++ firejail-0.9.58.2/etc/thunderbird.profile
-@@ -44,4 +44,4 @@ writable-run-user
- # Redirect
- # Uncomment if you use enigmail
- ignore nodbus
--include firefox-common.profile
-+include firefox.profile
