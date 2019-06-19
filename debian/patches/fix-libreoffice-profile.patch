@@ -1,0 +1,42 @@
+Description: Fix libreoffice profile
+Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
+Last-Update: 2019-06-19
+
+--- firejail-0.9.58.2.orig/etc/libreoffice.profile
++++ firejail-0.9.58.2/etc/libreoffice.profile
+@@ -34,22 +34,22 @@ netfilter
+ nodvd
+ nogroups
+ # comment nonewprivs when using the ubuntu 18.04/debian 10 apparmor profile
+-nonewprivs
++#nonewprivs
+ noroot
+ notv
+ nou2f
+ # comment the protocol line when using the ubuntu 18.04/debian 10 apparmor profile
+-protocol unix,inet,inet6
++#protocol unix,inet,inet6
+ # comment seccomp when using the ubuntu 18.04/debian 10 apparmor profile
+-seccomp
++#seccomp
+ shell none
+ # comment tracelog when using the ubuntu 18.04/debian 10 apparmor profile
+-tracelog
++#tracelog
+ 
+ private-dev
+ private-tmp
+ 
+-noexec ${HOME}
++#noexec ${HOME}
+ noexec /tmp
+ 
+ join-or-start libreoffice
+--- firejail-0.9.58.2.orig/etc/thunderbird.profile
++++ firejail-0.9.58.2/etc/thunderbird.profile
+@@ -44,4 +44,4 @@ writable-run-user
+ # Redirect
+ # Uncomment if you use enigmail
+ ignore nodbus
+-include firefox-common.profile
++include firefox.profile

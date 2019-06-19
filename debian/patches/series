@@ -8,3 +8,4 @@ parrot-profiles.patch
 disable-profiles.patch
 prevent-firecfg-failure-as-root.patch
 add-parrot-gitlab-intergration.patch
+fix-libreoffice-profile.patch
