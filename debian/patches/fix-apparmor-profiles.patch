@@ -1,9 +1,9 @@
-Description: Fix missing apparmor profiles.
- firejail (0.9.58.2-1parrot3.2) testing; urgency=medium
+Description: Fix apparmor profile
+ firejail (0.9.58.2-3parrot3) testing; urgency=medium
  .
-   * Force inclusion of apparmor local profile.
+   * Fix apparmor firejail-local profile.
 Author: Lorenzo "Palinuro" Faletra <palinuro@parrotsec.org>
-Last-Update: 2019-04-03
+Last-Update: 2019-06-19
 
 --- firejail-0.9.58.2.orig/Makefile.in
 +++ firejail-0.9.58.2/Makefile.in
@@ -19,3 +19,12 @@ Last-Update: 2019-04-03
  endif
  	# man pages
  	install -m 0755 -d $(DESTDIR)/$(mandir)/man1
+--- firejail-0.9.58.2.orig/etc/firejail-default
++++ firejail-0.9.58.2/etc/firejail-default
+@@ -162,5 +162,5 @@ pivot_root,
+ 
+ # Site-specific additions and overrides for 'firejail-default'.
+ # For more details, please see /etc/apparmor.d/local/README.
+-#include <local/firejail-local>
++# include <local/firejail-local>
+ }
